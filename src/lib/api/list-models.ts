@@ -35,6 +35,7 @@ async function listGoogleGenAIModels(provider: OfficialProviderState) {
             id: model.name,
             name: model.displayName,
             enabled: provider.models.find((m) => m.id === model.name)?.enabled ?? false,
+            source: 'fetch' as const,
         };
     });
 }
@@ -53,6 +54,7 @@ async function listOpenRouterModels(provider: OfficialProviderState) {
         // 'name' present in OpenRouter models
         name: 'name' in model ? (model.name as string) : model.id,
         enabled: provider.models.find((m) => m.id === model.id)?.enabled ?? false,
+        source: 'fetch' as const,
     }));
 }
 
@@ -69,5 +71,6 @@ async function listModelsOpenAI(provider: OfficialProviderState) {
         id: model.id,
         name: model.id,
         enabled: provider.models.find((m) => m.id === model.id)?.enabled ?? false,
+        source: 'fetch' as const,
     }));
 }

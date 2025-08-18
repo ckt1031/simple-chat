@@ -11,6 +11,7 @@ export interface Model {
     id: string;
     name?: string;
     enabled: boolean;
+    source: 'fetch' | 'custom';
 }
 
 export interface OfficialProviderState {
@@ -43,6 +44,17 @@ export interface ProviderStore extends ProviderState {
         updates: Partial<OfficialProviderState>
     ) => void;
 
+    // Models management - official providers
+    applyFetchedModelsToOfficial: (provider: OfficialProvider, fetchedModels: Model[]) => void;
+    clearFetchedModelsForOfficial: (provider: OfficialProvider) => void;
+    addCustomModelToOfficial: (provider: OfficialProvider, model: Pick<Model, 'id' | 'name'>) => boolean;
+    updateModelForOfficial: (
+        provider: OfficialProvider,
+        modelId: string,
+        updates: Partial<Pick<Model, 'id' | 'name' | 'enabled'>>
+    ) => boolean;
+    removeCustomModelFromOfficial: (provider: OfficialProvider, modelId: string) => void;
+
     // Custom provider actions
     addCustomProvider: (providerFormat: OfficialProvider) => string; // returns id
     updateCustomProvider: (
@@ -50,6 +62,17 @@ export interface ProviderStore extends ProviderState {
         updates: Partial<CustomProviderState>
     ) => void;
     removeCustomProvider: (id: string) => void;
+
+    // Models management - custom providers
+    applyFetchedModelsToCustom: (customId: string, fetchedModels: Model[]) => void;
+    clearFetchedModelsForCustom: (customId: string) => void;
+    addCustomModelToCustom: (customId: string, model: Pick<Model, 'id' | 'name'>) => boolean;
+    updateModelForCustom: (
+        customId: string,
+        modelId: string,
+        updates: Partial<Pick<Model, 'id' | 'name' | 'enabled'>>
+    ) => boolean;
+    removeCustomModelFromCustom: (customId: string, modelId: string) => void;
 }
 
 export const useProviderStore = create<ProviderStore>()(
@@ -94,6 +117,108 @@ export const useProviderStore = create<ProviderStore>()(
                     },
                 }));
             },
+            applyFetchedModelsToOfficial: (provider, fetchedModels) => {
+                set((state) => {
+                    const current = state.officialProviders[provider];
+                    const oldFetchedById = new Map(
+                        current.models
+                            .filter((m) => m.source === 'fetch')
+                            .map((m) => [m.id, m] as const)
+                    );
+                    const fetchedIds = new Set(fetchedModels.map((m) => m.id));
+                    const dedupCustom = current.models.filter(
+                        (m) => m.source === 'custom' && !fetchedIds.has(m.id)
+                    );
+                    const mergedFetched: Model[] = fetchedModels.map((m) => ({
+                        id: m.id,
+                        name: m.name ?? m.id,
+                        enabled: oldFetchedById.get(m.id)?.enabled ?? m.enabled ?? false,
+                        source: 'fetch',
+                    }));
+                    return {
+                        officialProviders: {
+                            ...state.officialProviders,
+                            [provider]: {
+                                ...current,
+                                models: [...mergedFetched, ...dedupCustom],
+                            },
+                        },
+                    } as Partial<ProviderState>;
+                });
+            },
+            clearFetchedModelsForOfficial: (provider) => {
+                set((state) => {
+                    const current = state.officialProviders[provider];
+                    return {
+                        officialProviders: {
+                            ...state.officialProviders,
+                            [provider]: {
+                                ...current,
+                                models: current.models.filter((m) => m.source === 'custom'),
+                            },
+                        },
+                    } as Partial<ProviderState>;
+                });
+            },
+            addCustomModelToOfficial: (provider, model) => {
+                let success = false;
+                set((state) => {
+                    const current = state.officialProviders[provider];
+                    const exists = current.models.some((m) => m.id === model.id);
+                    if (exists) return {};
+                    success = true;
+                    return {
+                        officialProviders: {
+                            ...state.officialProviders,
+                            [provider]: {
+                                ...current,
+                                models: [
+                                    ...current.models,
+                                    { id: model.id, name: model.name ?? model.id, enabled: false, source: 'custom' },
+                                ],
+                            },
+                        },
+                    } as Partial<ProviderState>;
+                });
+                return success;
+            },
+            updateModelForOfficial: (provider, modelId, updates) => {
+                let success = false;
+                set((state) => {
+                    const current = state.officialProviders[provider];
+                    const index = current.models.findIndex((m) => m.id === modelId);
+                    if (index === -1) return {};
+                    const nextId = updates.id ?? modelId;
+                    if (nextId !== modelId && current.models.some((m) => m.id === nextId)) {
+                        return {};
+                    }
+                    const updated: Model = { ...current.models[index], ...updates, id: nextId } as Model;
+                    const nextModels = [...current.models];
+                    nextModels[index] = updated;
+                    success = true;
+                    return {
+                        officialProviders: {
+                            ...state.officialProviders,
+                            [provider]: { ...current, models: nextModels },
+                        },
+                    } as Partial<ProviderState>;
+                });
+                return success;
+            },
+            removeCustomModelFromOfficial: (provider, modelId) => {
+                set((state) => {
+                    const current = state.officialProviders[provider];
+                    return {
+                        officialProviders: {
+                            ...state.officialProviders,
+                            [provider]: {
+                                ...current,
+                                models: current.models.filter((m) => !(m.source === 'custom' && m.id === modelId)),
+                            },
+                        },
+                    } as Partial<ProviderState>;
+                });
+            },
             addCustomProvider: (providerFormat) => {
                 const id = `custom-${Date.now()}`;
                 set((state) => ({
@@ -124,6 +249,113 @@ export const useProviderStore = create<ProviderStore>()(
                 set((state) => {
                     const { [id]: _removed, ...rest } = state.customProviders;
                     return { customProviders: rest } as Partial<ProviderState>;
+                });
+            },
+            applyFetchedModelsToCustom: (customId, fetchedModels) => {
+                set((state) => {
+                    const current = state.customProviders[customId];
+                    if (!current) return {};
+                    const oldFetchedById = new Map(
+                        current.models
+                            .filter((m) => m.source === 'fetch')
+                            .map((m) => [m.id, m] as const)
+                    );
+                    const fetchedIds = new Set(fetchedModels.map((m) => m.id));
+                    const dedupCustom = current.models.filter(
+                        (m) => m.source === 'custom' && !fetchedIds.has(m.id)
+                    );
+                    const mergedFetched: Model[] = fetchedModels.map((m) => ({
+                        id: m.id,
+                        name: m.name ?? m.id,
+                        enabled: oldFetchedById.get(m.id)?.enabled ?? m.enabled ?? false,
+                        source: 'fetch',
+                    }));
+                    return {
+                        customProviders: {
+                            ...state.customProviders,
+                            [customId]: {
+                                ...current,
+                                models: [...mergedFetched, ...dedupCustom],
+                            },
+                        },
+                    } as Partial<ProviderState>;
+                });
+            },
+            clearFetchedModelsForCustom: (customId) => {
+                set((state) => {
+                    const current = state.customProviders[customId];
+                    if (!current) return {};
+                    return {
+                        customProviders: {
+                            ...state.customProviders,
+                            [customId]: {
+                                ...current,
+                                models: current.models.filter((m) => m.source === 'custom'),
+                            },
+                        },
+                    } as Partial<ProviderState>;
+                });
+            },
+            addCustomModelToCustom: (customId, model) => {
+                let success = false;
+                set((state) => {
+                    const current = state.customProviders[customId];
+                    if (!current) return {};
+                    const exists = current.models.some((m) => m.id === model.id);
+                    if (exists) return {};
+                    success = true;
+                    return {
+                        customProviders: {
+                            ...state.customProviders,
+                            [customId]: {
+                                ...current,
+                                models: [
+                                    ...current.models,
+                                    { id: model.id, name: model.name ?? model.id, enabled: false, source: 'custom' },
+                                ],
+                            },
+                        },
+                    } as Partial<ProviderState>;
+                });
+                return success;
+            },
+            updateModelForCustom: (customId, modelId, updates) => {
+                let success = false;
+                set((state) => {
+                    const current = state.customProviders[customId];
+                    if (!current) return {};
+                    const index = current.models.findIndex((m) => m.id === modelId);
+                    if (index === -1) return {};
+                    const nextId = updates.id ?? modelId;
+                    if (nextId !== modelId && current.models.some((m) => m.id === nextId)) {
+                        return {};
+                    }
+                    const updated: Model = { ...current.models[index], ...updates, id: nextId } as Model;
+                    const nextModels = [...current.models];
+                    nextModels[index] = updated;
+                    success = true;
+                    return {
+                        customProviders: {
+                            ...state.customProviders,
+                            [customId]: { ...current, models: nextModels },
+                        },
+                    } as Partial<ProviderState>;
+                });
+                return success;
+            },
+            removeCustomModelFromCustom: (customId, modelId) => {
+                set((state) => {
+                    const current = state.customProviders[customId];
+                    if (!current) return {};
+                    return {
+                        customProviders: {
+                            ...state.customProviders,
+                            [customId]: {
+                                ...current,
+                                models: current.models.filter((m) => !(m.source === 'custom' && m.id === modelId)),
+                            },
+                        },
+                    } as Partial<ProviderState>;
                 });
             },
         }),

@@ -10,9 +10,10 @@ interface Props {
   activeOfficial: OfficialProvider | null;
   activeCustomId: string | null;
   onBack: () => void;
+  onManageModels: () => void;
 }
 
-export default function ProviderConfig({ isCustom, activeOfficial, activeCustomId, onBack }: Props) {
+export default function ProviderConfig({ isCustom, activeOfficial, activeCustomId, onBack, onManageModels }: Props) {
   const { officialProviders, customProviders, updateOfficialProvider, updateCustomProvider, removeCustomProvider } = useProviderStore();
 
   const title = isCustom ? 'Configure custom provider' : 'Configure provider';
@@ -39,7 +40,7 @@ export default function ProviderConfig({ isCustom, activeOfficial, activeCustomI
   type FormValues = z.infer<typeof FormSchema>;
 
   function ConfigForm({ provider }: { provider: OfficialProviderState | CustomProviderState }) {
-    const { register, handleSubmit, formState: { errors, isSubmitting, isDirty } } = useForm<FormValues>({
+    const { register, handleSubmit, formState: { errors, isSubmitting, isDirty } } = useForm({
       resolver: zodResolver(FormSchema),
       defaultValues: {
         displayName: isCustom ? (provider as CustomProviderState).displayName : undefined,
@@ -110,10 +111,17 @@ export default function ProviderConfig({ isCustom, activeOfficial, activeCustomI
               {...register('apiKey')}
             />
           </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Models</label>
-            <div className="text-xs text-neutral-500">Model fetching will be added later.</div>
-          </div>
+          <button
+            type="button"
+            onClick={onManageModels}
+            className="w-full flex items-center justify-between rounded-lg border border-neutral-200 dark:border-neutral-700 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
+          >
+            <div className='flex flex-col gap-1 items-start'>
+              <div className="text-sm font-medium">Models</div>
+              <div className="text-xs text-neutral-500">Fetch and manage models</div>
+            </div>
+            <span className="text-neutral-400">›</span>
+          </button>
         </div>
 
         <div className="flex items-center justify-between pt-2">

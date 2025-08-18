@@ -5,8 +5,9 @@ import { OfficialProvider, useProviderStore } from '@/lib/stores/provider';
 import ProviderList from './ProviderList';
 import AddCustom from './AddCustom';
 import ProviderConfig from './ProviderConfig';
+import ModelsManager from './ProviderModels';
 
-type View = 'list' | 'add-custom' | 'configure-official' | 'configure-custom';
+type View = 'list' | 'add-custom' | 'configure-official' | 'configure-custom' | 'manage-models-official' | 'manage-models-custom';
 
 export default function ProviderSettingsTab() {
   const {
@@ -44,10 +45,29 @@ export default function ProviderSettingsTab() {
         />
       )}
       {view === 'configure-official' && (
-        <ProviderConfig isCustom={false} activeOfficial={activeOfficial} activeCustomId={activeCustomId} onBack={backToList} />
+        <ProviderConfig
+          isCustom={false}
+          activeOfficial={activeOfficial}
+          activeCustomId={activeCustomId}
+          onBack={backToList}
+          onManageModels={() => setView('manage-models-official')}
+        />
       )}
       {view === 'configure-custom' && (
-        <ProviderConfig isCustom={true} activeOfficial={activeOfficial} activeCustomId={activeCustomId} onBack={backToList} />
+        <ProviderConfig
+          isCustom={true}
+          activeOfficial={activeOfficial}
+          activeCustomId={activeCustomId}
+          onBack={backToList}
+          onManageModels={() => setView('manage-models-custom')}
+        />
+      )}
+
+      {view === 'manage-models-official' && activeOfficial && (
+        <ModelsManager isCustom={false} activeOfficial={activeOfficial} activeCustomId={activeCustomId} onBack={() => setView('configure-official')} />
+      )}
+      {view === 'manage-models-custom' && activeCustomId && (
+        <ModelsManager isCustom={true} activeOfficial={activeOfficial} activeCustomId={activeCustomId} onBack={() => setView('configure-custom')} />
       )}
     </div>
   );

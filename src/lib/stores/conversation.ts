@@ -48,10 +48,10 @@ export const useConversationStore = create<ConversationStore>()(
                 return newID;
             },
             setCurrentConversation: (id: string | null) => {
-                set((state) => ({ currentConversationId: id }));
+                set(() => ({ currentConversationId: id }));
             },
             setHydrated: (hydrated: boolean) => {
-                set((state) => ({ isHydrated: hydrated }));
+                set(() => ({ isHydrated: hydrated }));
             },
             addConversation: (conversation: Omit<Conversation, 'id'>) => {
                 set((state) => ({ conversations: [...state.conversations, { ...conversation, id: crypto.randomUUID() }] }));

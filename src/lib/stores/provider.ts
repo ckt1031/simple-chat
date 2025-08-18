@@ -252,6 +252,7 @@ export const useProviderStore = create<ProviderStore>()(
             },
             removeCustomProvider: (id) => {
                 set((state) => {
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     const { [id]: _removed, ...rest } = state.customProviders;
                     return { customProviders: rest } as Partial<ProviderState>;
                 });
@@ -367,53 +368,7 @@ export const useProviderStore = create<ProviderStore>()(
         {
             name: 'provider',
             storage: createJSONStorage(() => localStorage),
-            version: 2,
-            migrate: (persisted, version) => {
-                const state = (persisted || {}) as Partial<ProviderState>;
-                const oldOfficial: any = (state as any).officialProviders || {};
-
-                const getOrDefault = (keyNew: OfficialProvider, keyOld: string): OfficialProviderState => {
-                    return (
-                        oldOfficial[keyNew] ||
-                        oldOfficial[keyOld] || {
-                            enabled: false,
-                            apiKey: '',
-                            apiBaseURL: '',
-                            models: [],
-                        }
-                    );
-                };
-
-                const migratedOfficial: Record<OfficialProvider, OfficialProviderState> = {
-                    [OfficialProvider.OPENAI]: getOrDefault(OfficialProvider.OPENAI, 'openai'),
-                    [OfficialProvider.GOOGLE]: getOrDefault(OfficialProvider.GOOGLE, 'google'),
-                    [OfficialProvider.OPENROUTER]: getOrDefault(OfficialProvider.OPENROUTER, 'openrouter'),
-                };
-
-                const oldCustom: any = (state as any).customProviders || {};
-                const migratedCustom: Record<string, CustomProviderState> = {} as any;
-                for (const id of Object.keys(oldCustom)) {
-                    const p = oldCustom[id] || {};
-                    let format = p.providerFormat as OfficialProvider | string | undefined;
-                    if (format === 'openai') format = OfficialProvider.OPENAI;
-                    if (format === 'google') format = OfficialProvider.GOOGLE;
-                    if (format === 'openrouter') format = OfficialProvider.OPENROUTER;
-                    migratedCustom[id] = {
-                        type: 'custom',
-                        providerFormat: (format as OfficialProvider) || OfficialProvider.OPENAI,
-                        enabled: !!p.enabled,
-                        apiKey: p.apiKey ?? '',
-                        apiBaseURL: p.apiBaseURL ?? '',
-                        models: Array.isArray(p.models) ? p.models : [],
-                        displayName: p.displayName ?? `Custom (${(format as OfficialProvider) || OfficialProvider.OPENAI})`,
-                    };
-                }
-
-                return {
-                    officialProviders: migratedOfficial,
-                    customProviders: migratedCustom,
-                } as ProviderState;
-            },
+            version: 1,
         }
     )
 );

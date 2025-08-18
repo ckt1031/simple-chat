@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { X } from 'lucide-react';
 import { useGlobalStore } from '@/lib/stores/global';
 import { cn } from '@/lib/utils';
@@ -10,11 +10,11 @@ import ProviderSettingsTab from '@/components/Settings/ProvidersTab';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 export function SettingsModal() {
-  const tabs = [
+  const tabs = useMemo(() => [
     { id: 'general', label: 'General' },
     { id: 'providers', label: 'Providers' },
     { id: 'about', label: 'About' },
-  ];
+  ], []);
 
   const { ui, closeSettings } = useGlobalStore();
   const [activeTab, setActiveTab] = useState('general');

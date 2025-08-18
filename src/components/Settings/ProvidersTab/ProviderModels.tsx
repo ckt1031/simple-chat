@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { OfficialProvider, useProviderStore, OfficialProviderState, CustomProviderState } from '@/lib/stores/provider';
+import { OfficialProvider, useProviderStore, OfficialProviderState, CustomProviderState, Model } from '@/lib/stores/provider';
 import listModels from '@/lib/api/list-models';
 import { cn } from '@/lib/utils';
 
@@ -77,9 +77,9 @@ export default function ModelsManager({ isCustom, activeOfficial, activeCustomId
 
   const onUpdateField = (modelId: string, field: 'name' | 'id', value: string) => {
     if (isCustom && activeCustomId) {
-      store.updateModelForCustom(activeCustomId, modelId, { [field]: value } as any);
+      store.updateModelForCustom(activeCustomId, modelId, { [field]: value } as Partial<Model>);
     } else if (!isCustom && activeOfficial) {
-      store.updateModelForOfficial(activeOfficial, modelId, { [field]: value } as any);
+      store.updateModelForOfficial(activeOfficial, modelId, { [field]: value } as Partial<Model>);
     }
   };
 

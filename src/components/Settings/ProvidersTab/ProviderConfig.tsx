@@ -2,7 +2,7 @@ import Switch from '@/components/Switch';
 import { cn } from '@/lib/utils';
 import { OfficialProvider, OfficialProviderState, CustomProviderState, useProviderStore } from '@/lib/stores/provider';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
+import { z } from 'zod/mini';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 interface Props {
@@ -33,9 +33,9 @@ export default function ProviderConfig({ isCustom, activeOfficial, activeCustomI
   };
 
   const FormSchema = z.object({
-    displayName: z.string().optional(),
-    apiBaseURL: z.union([z.string().url().min(1, 'Required'), z.literal('')]).optional(),
-    apiKey: z.string().optional(),
+    displayName: z.optional(z.string()),
+    apiBaseURL: z.optional(z.union([z.url(), z.literal('')])),
+    apiKey: z.optional(z.string()),
   });
   type FormValues = z.infer<typeof FormSchema>;
 
@@ -99,7 +99,7 @@ export default function ProviderConfig({ isCustom, activeOfficial, activeCustomI
               {...register('apiBaseURL')}
             />
             {errors.apiBaseURL && (
-              <div className="text-xs text-red-600 dark:text-red-400">{errors.apiBaseURL.message as any}</div>
+              <div className="text-xs text-red-600 dark:text-red-400">{errors.apiBaseURL.message}</div>
             )}
           </div>
           <div className="space-y-1">

@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useGlobalStore } from '@/lib/stores/global';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
-import { useConversationStore } from '@/lib/stores/conversation';
+import { Message, useConversationStore } from '@/lib/stores/conversation';
 import { OfficialProvider, useProviderStore } from '@/lib/stores/provider';
 import completionsStreaming from '@/lib/api/completions-streaming';
 import { useRouter } from 'next/navigation';
@@ -14,7 +14,7 @@ interface ChatProps {
 }
 
 export function Chat({ chatId }: ChatProps) {
-  const { openSettings, ui, general, setChatRequesting } = useGlobalStore();
+  const { ui, general, setChatRequesting } = useGlobalStore();
   const { hasEnabledProviders, officialProviders, customProviders } = useProviderStore();
   const { conversations, currentConversationId, isHydrated, addMessage, appendToMessage, updateMessage, setCurrentConversation, createNewConversation } = useConversationStore();
   const router = useRouter();
@@ -139,13 +139,13 @@ export function Chat({ chatId }: ChatProps) {
         content: '',
       });
 
-      const textStream = await completionsStreaming(selected, messagesForAI as any);
+      const textStream = await completionsStreaming(selected, messagesForAI as Message[]);
       for await (const delta of textStream) {
         appendToMessage(assistantId, delta);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       // If we created a placeholder, replace its content with the error; otherwise add a new error message
-      const errorText = `Failed to generate a response: ${err?.message || 'Unknown error'}`;
+      const errorText = `Failed to generate a response: ${err instanceof Error ? err.message : 'Unknown error'}`;
       try {
         // Attempt to update the last assistant message if it was just created
         const convo = conversations.find((c) => c.id === conversationId);
@@ -183,7 +183,7 @@ export function Chat({ chatId }: ChatProps) {
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4 px-4 min-h-0">
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-4">
-              <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">What's on your mind?</h2>
+              <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">What&apos;s on your mind?</h2>
               <p className="text-neutral-600 dark:text-white">Start a conversation to begin chatting with AI.</p>
             </div>
           </div>
@@ -208,7 +208,7 @@ export function Chat({ chatId }: ChatProps) {
         {currentConversation.messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-4">
-              <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">What's on your mind?</h2>
+              <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">What&apos;s on your mind?</h2>
               <p className="text-neutral-600 dark:text-white">Start a conversation to begin chatting with AI.</p>
             </div>
           </div>

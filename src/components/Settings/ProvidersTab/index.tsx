@@ -11,8 +11,6 @@ type View = 'list' | 'add-custom' | 'configure-official' | 'configure-custom' | 
 
 export default function ProviderSettingsTab() {
   const {
-    officialProviders,
-    customProviders,
     addCustomProvider,
   } = useProviderStore();
 
@@ -25,12 +23,6 @@ export default function ProviderSettingsTab() {
     { id: OfficialProvider.GOOGLE, label: 'Google' },
     { id: OfficialProvider.OPENROUTER, label: 'OpenRouter' },
   ], []);
-
-  function handleAddCustom(format: OfficialProvider) {
-    const id = addCustomProvider(format);
-    setActiveCustomId(id);
-    setView('configure-custom');
-  }
 
   const backToList = () => { setView('list'); setActiveOfficial(null); setActiveCustomId(null); };
 

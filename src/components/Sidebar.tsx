@@ -14,7 +14,7 @@ export function Sidebar() {
     openSettings,
   } = useGlobalStore();
 
-  const { conversations, currentConversationId, createNewConversation, deleteConversation } = useConversationStore();
+  const { conversations, currentConversationId, deleteConversation } = useConversationStore();
   const router = useRouter();
 
   const handleSelectConversation = (id: string) => {

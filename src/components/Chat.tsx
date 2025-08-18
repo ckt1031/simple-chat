@@ -5,12 +5,13 @@ import { useGlobalStore } from '@/lib/stores/global';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { useConversationStore } from '@/lib/stores/conversation';
-import { useProviderStore } from '@/lib/stores/provider';
+import { OfficialProvider, useProviderStore } from '@/lib/stores/provider';
+import completionsStreaming from '@/lib/api/completions-streaming';
 
 export function Chat() {
-  const { openSettings, ui } = useGlobalStore();
-  const { hasEnabledProviders } = useProviderStore();
-  const { conversations, currentConversationId, addMessage } = useConversationStore();
+  const { openSettings, ui, general, setChatRequesting } = useGlobalStore();
+  const { hasEnabledProviders, officialProviders, customProviders } = useProviderStore();
+  const { conversations, currentConversationId, addMessage, appendToMessage, updateMessage } = useConversationStore();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -28,11 +29,12 @@ export function Chat() {
 
   const handleSendMessage = async (content: string) => {
     // Add user message
-    addMessage({
+    const userMessage = {
       timestamp: Date.now(),
       role: 'user',
       content,
-    });
+    } as const;
+    addMessage(userMessage);
 
     // Get enabled providers
     if (!hasEnabledProviders()) {
@@ -42,6 +44,74 @@ export function Chat() {
         content: 'No AI providers configured. Please add a provider in settings.',
       });
       return;
+    }
+
+    // Ensure a model is selected
+    const selected = general.selectedModel;
+    if (!selected) {
+      addMessage({
+        timestamp: Date.now(),
+        role: 'assistant',
+        content: 'No model selected. Please choose a model from the selector above.',
+      });
+      return;
+    }
+
+    // Ensure the selected model's provider is enabled
+    let providerEnabled = false;
+    if (
+      selected.providerId === OfficialProvider.OPENAI ||
+      selected.providerId === OfficialProvider.GOOGLE ||
+      selected.providerId === OfficialProvider.OPENROUTER
+    ) {
+      providerEnabled = officialProviders[selected.providerId].enabled;
+    } else if (typeof selected.providerId === 'string') {
+      providerEnabled = !!customProviders[selected.providerId]?.enabled;
+    }
+
+    if (!providerEnabled) {
+      addMessage({
+        timestamp: Date.now(),
+        role: 'assistant',
+        content: "The selected model's provider is disabled. Please enable it in settings.",
+      });
+      return;
+    }
+
+    // Build the message list to send (include the just-added user message)
+    const convo = conversations.find((c) => c.id === currentConversationId);
+    const messagesForAI = [...(convo?.messages ?? []), { ...userMessage }];
+
+    try {
+      setChatRequesting(true);
+      // Create a placeholder assistant message to stream into
+      const assistantId = addMessage({
+        timestamp: Date.now(),
+        role: 'assistant',
+        content: '',
+      });
+
+      const textStream = await completionsStreaming(selected, messagesForAI as any);
+      for await (const delta of textStream) {
+        appendToMessage(assistantId, delta);
+      }
+    } catch (err: any) {
+      // If we created a placeholder, replace its content with the error; otherwise add a new error message
+      const errorText = `Failed to generate a response: ${err?.message || 'Unknown error'}`;
+      try {
+        // Attempt to update the last assistant message if it was just created
+        const convo = conversations.find((c) => c.id === currentConversationId);
+        const last = convo?.messages[convo.messages.length - 1];
+        if (last && last.role === 'assistant') {
+          updateMessage(last.id, { content: errorText });
+        } else {
+          addMessage({ timestamp: Date.now(), role: 'assistant', content: errorText });
+        }
+      } catch {
+        addMessage({ timestamp: Date.now(), role: 'assistant', content: errorText });
+      }
+    } finally {
+      setChatRequesting(false);
     }
   };
 

@@ -27,6 +27,7 @@ interface GlobalStore extends GlobalState {
   toggleSidebar: () => void;
   openSidebar: () => void;
   closeSidebar: () => void;
+  setChatRequesting: (requesting: boolean) => void;
 }
 
 export const useGlobalStore = create<GlobalStore>()(
@@ -62,6 +63,9 @@ export const useGlobalStore = create<GlobalStore>()(
       },
       closeSidebar: () => {
         set((state) => ({ ui: { ...state.ui, isSidebarOpen: false } }));
+      },
+      setChatRequesting: (requesting) => {
+        set((state) => ({ ui: { ...state.ui, isChatRequesting: requesting } }));
       },
     }),
     {

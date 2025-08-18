@@ -25,7 +25,9 @@ export interface ConversationStore extends ConversationState {
     updateConversation: (conversation: Conversation) => void;
     deleteConversation: (id: string) => void;
     setCurrentConversation: (id: string) => void;
-    addMessage: (message: Omit<Message, 'id'>) => void;
+    addMessage: (message: Omit<Message, 'id'>) => string;
+    updateMessage: (id: string, updates: Partial<Omit<Message, 'id'>>) => void;
+    appendToMessage: (id: string, text: string) => void;
 }
 
 export const useConversationStore = create<ConversationStore>()(
@@ -53,8 +55,32 @@ export const useConversationStore = create<ConversationStore>()(
                 set((state) => ({ conversations: state.conversations.filter(c => c.id !== id) }));
             },
             addMessage: (message: Omit<Message, 'id'>) => {
-                set((state) => ({ conversations: state.conversations.map(c => c.id === state.currentConversationId ? { ...c, messages: [...c.messages, { ...message, id: crypto.randomUUID() }] } : c) }));
-            }
+                const id = crypto.randomUUID();
+                set((state) => ({ conversations: state.conversations.map(c => c.id === state.currentConversationId ? { ...c, messages: [...c.messages, { ...message, id }] } : c) }));
+                return id;
+            },
+            updateMessage: (id: string, updates: Partial<Omit<Message, 'id'>>) => {
+                set((state) => ({
+                    conversations: state.conversations.map((c) => {
+                        if (c.id !== state.currentConversationId) return c;
+                        return {
+                            ...c,
+                            messages: c.messages.map((m) => (m.id === id ? { ...m, ...updates } : m)),
+                        };
+                    }),
+                }));
+            },
+            appendToMessage: (id: string, text: string) => {
+                set((state) => ({
+                    conversations: state.conversations.map((c) => {
+                        if (c.id !== state.currentConversationId) return c;
+                        return {
+                            ...c,
+                            messages: c.messages.map((m) => (m.id === id ? { ...m, content: (m.content || '') + text } : m)),
+                        };
+                    }),
+                }));
+            },
         }),
         { name: 'conversation', storage: createJSONStorage(() => localStorage) }
     )

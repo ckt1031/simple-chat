@@ -42,7 +42,7 @@ export const useConversationStore = create<ConversationStore>()(
             createNewConversation: () => {
                 const newID = crypto.randomUUID();
                 set((state) => ({
-                    conversations: [...state.conversations, { id: newID, title: 'New chat', messages: [] }],
+                    conversations: [{ id: newID, title: 'New chat', messages: [] },...state.conversations],
                     currentConversationId: newID,
                 }));
                 return newID;

@@ -2,6 +2,7 @@
 
 import { Message } from '@/lib/stores/conversation';
 import { cn, formatDate } from '@/lib/utils';
+import { MemoizedMarkdown } from './MemoizedMarkdown';
 
 interface ChatMessageProps {
   message: Message;
@@ -16,8 +17,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
       isUser ? "justify-end" : "justify-start"
     )}>
       <div className={cn(
-        "flex max-w-[80%] space-x-3",
-        isUser ? "flex-row-reverse space-x-reverse" : "flex-row"
+        "flex space-x-3",
+        isUser ? "max-w-[80%] flex-row-reverse space-x-reverse" : "flex-row"
       )}>
         {/* Message Content */}
         <div className={cn(
@@ -25,14 +26,24 @@ export function ChatMessage({ message }: ChatMessageProps) {
           isUser ? "items-end" : "items-start"
         )}>
           <div className={cn(
-            "px-4 py-2 rounded-2xl text-sm leading-relaxed",
-            isUser
-              ? "bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white"
-              : "bg-neutral-800 text-neutral-100 dark:bg-neutral-700 dark:text-white"
+            "py-2 rounded-2xl text-sm leading-relaxed",
+            isUser ? "px-4 bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white" : "px-2"
           )}>
-            <div className="whitespace-pre-wrap">{message.content}</div>
+            {
+              isUser ? (
+                <div className="whitespace-pre-wrap">{message.content}</div>
+              ) : (
+                <div className="prose prose-neutral dark:prose-invert max-w-none w-full space-y-2">
+                  <MemoizedMarkdown
+                    key={message.id}
+                    id={message.id}
+                    content={message.content}
+                  />
+                </div>
+              )
+            }
           </div>
-          
+
           {/* Timestamp */}
           <div className="text-xs text-neutral-500 dark:text-neutral-400 px-2">
             {formatDate(message.timestamp)}

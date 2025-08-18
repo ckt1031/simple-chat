@@ -135,9 +135,9 @@ export function Chat() {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full dark:bg-neutral-900">
+    <div className="flex-1 flex flex-col h-full min-h-0 dark:bg-neutral-900">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 px-4">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4 px-4">
         {currentConversation.messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-4">

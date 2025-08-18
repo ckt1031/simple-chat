@@ -14,6 +14,10 @@ export interface Model {
     source: 'fetch' | 'custom';
 }
 
+export interface ModelWithProvider extends Model {
+    providerId: OfficialProvider | string;
+}
+
 export interface OfficialProviderState {
     enabled: boolean;
 
@@ -134,6 +138,7 @@ export const useProviderStore = create<ProviderStore>()(
                         name: m.name ?? m.id,
                         enabled: oldFetchedById.get(m.id)?.enabled ?? m.enabled ?? false,
                         source: 'fetch',
+                        providerId: provider,
                     }));
                     return {
                         officialProviders: {
@@ -174,7 +179,7 @@ export const useProviderStore = create<ProviderStore>()(
                                 ...current,
                                 models: [
                                     ...current.models,
-                                    { id: model.id, name: model.name ?? model.id, enabled: false, source: 'custom' },
+                                    { id: model.id, name: model.name ?? model.id, enabled: false, source: 'custom', providerId: provider },
                                 ],
                             },
                         },

@@ -5,9 +5,10 @@ import { Sidebar } from '@/components/Sidebar';
 import { Chat } from '@/components/Chat';
 import { SettingsModal } from '@/components/SettingsModal';
 import { useGlobalStore } from '@/lib/stores/global';
+import { ModelSelector } from '@/components/ModelSelector';
 
 export default function Home() {
-  const { ui, toggleSidebar } = useGlobalStore();
+  const { toggleSidebar } = useGlobalStore();
 
   return (
     <div className="h-screen flex bg-white dark:bg-neutral-900">
@@ -25,7 +26,8 @@ export default function Home() {
           >
             <Menu className="w-5 h-5" />
           </button>
-          <h1 className="text-lg font-semibold text-neutral-700 dark:text-white">Simple Chat</h1>
+          {/* Model Selector here */}
+          <ModelSelector />
         </div>
 
         {/* Chat Area fills full width; sidebar overlays */}

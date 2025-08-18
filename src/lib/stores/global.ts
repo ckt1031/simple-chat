@@ -1,7 +1,10 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { ModelWithProvider } from './provider';
 
-export interface SettingsState {}
+export interface SettingsState {
+  selectedModel: ModelWithProvider | null;
+}
 
 export interface UIState {
   isSidebarOpen: boolean;
@@ -29,7 +32,9 @@ interface GlobalStore extends GlobalState {
 export const useGlobalStore = create<GlobalStore>()(
   persist(
     (set) => ({
-      general: {},
+      general: {
+        selectedModel: null,
+      },
       ui: {
         isSidebarOpen: true,
         isSettingsOpen: false,

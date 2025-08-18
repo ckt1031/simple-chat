@@ -368,7 +368,7 @@ export const useProviderStore = create<ProviderStore>()(
         {
             name: 'provider',
             storage: createJSONStorage(() => localStorage),
-            version: 1,
+            version: 0,
         }
     )
 );

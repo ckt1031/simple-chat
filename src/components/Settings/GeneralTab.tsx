@@ -11,18 +11,35 @@ export default function GeneralTab() {
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-white mb-2">
+          <label className="block text-sm font-medium text-neutral-700 dark:text-white mb-3">
             Theme
           </label>
-          <select
-            value={theme}
-            onChange={(e) => setTheme(e.target.value)}
-            className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-neutral-500 focus:border-transparent"
-          >
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-            <option value="system">System</option>
-          </select>
+          <div className="flex gap-2">
+            {[
+              { value: 'light', label: 'Light' },
+              { value: 'dark', label: 'Dark' },
+              { value: 'system', label: 'System' },
+            ].map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setTheme(option.value)}
+                className={`
+                  flex-1 px-4 py-2 rounded-lg transition-colors
+                  border
+                  ${
+                    theme === option.value
+                      ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 border-neutral-900 dark:border-neutral-100 shadow'
+                      : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                  }
+                  focus:outline-none focus:ring-2 focus:ring-neutral-500
+                `}
+                aria-pressed={theme === option.value}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

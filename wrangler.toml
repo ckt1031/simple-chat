@@ -1,0 +1,6 @@
+name = "profile-quiz"
+compatibility_date = "2025-05-05"
+workers_dev = false
+
+[assets]
+directory = "./out"

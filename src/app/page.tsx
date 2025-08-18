@@ -7,11 +7,20 @@ import { SettingsModal } from '@/components/SettingsModal';
 import { useGlobalStore } from '@/lib/stores/global';
 import { ModelSelector } from '@/components/ModelSelector';
 import { useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function Home() {
-  const { toggleSidebar } = useGlobalStore();
+  const { toggleSidebar, openSettings } = useGlobalStore();
   const searchParams = useSearchParams();
   const chatId = searchParams.get('id');
+  const settingsTab = searchParams.get('settings');
+
+  // Handle settings URL parameter
+  useEffect(() => {
+    if (settingsTab) {
+      openSettings();
+    }
+  }, [settingsTab, openSettings]);
 
   return (
     <div className="h-screen flex bg-white dark:bg-neutral-900">

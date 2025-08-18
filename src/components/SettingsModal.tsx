@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useGlobalStore } from '@/lib/stores/global';
 import { cn } from '@/lib/utils';
 import GeneralTab from '@/components/Settings/GeneralTab';
 import AboutTab from '@/components/Settings/AboutTab';
 import ProviderSettingsTab from '@/components/Settings/ProvidersTab';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 export function SettingsModal() {
   const tabs = [
@@ -17,6 +18,32 @@ export function SettingsModal() {
 
   const { ui, closeSettings } = useGlobalStore();
   const [activeTab, setActiveTab] = useState('general');
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const settingsTab = searchParams.get('settings');
+
+  // Handle settings tab from URL parameter
+  useEffect(() => {
+    if (settingsTab && tabs.some(tab => tab.id === settingsTab)) {
+      setActiveTab(settingsTab);
+    }
+  }, [settingsTab, tabs]);
+
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    // Update URL to reflect the active tab
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.set('settings', tabId);
+    router.push(`/?${newParams.toString()}`);
+  };
+
+  const handleClose = () => {
+    closeSettings();
+    // Remove settings parameter from URL when closing
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.delete('settings');
+    router.push(`/?${newParams.toString()}`);
+  };
 
   if (!ui.isSettingsOpen) return null;
 
@@ -27,7 +54,7 @@ export function SettingsModal() {
         <div className="flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 px-3 py-2 sm:hidden">
           <h2 className="text-base font-semibold">Settings</h2>
           <button
-            onClick={closeSettings}
+            onClick={handleClose}
             className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded transition-colors"
             aria-label="Close settings"
           >
@@ -39,7 +66,7 @@ export function SettingsModal() {
         <div className="hidden sm:block w-48 bg-neutral-50 dark:bg-neutral-800 sm:rounded-l-lg">
           <div className="pt-2 px-2">
             <button
-              onClick={closeSettings}
+              onClick={handleClose}
               className="p-1 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded transition-colors"
               aria-label="Close settings"
             >
@@ -51,7 +78,7 @@ export function SettingsModal() {
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
                 className={cn(
                   "w-full text-left px-3 py-2 text-sm rounded-lg transition-colors",
                   activeTab === tab.id
@@ -70,7 +97,7 @@ export function SettingsModal() {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               className={cn(
                 "px-3 py-1.5 text-sm rounded-full transition-colors border",
                 activeTab === tab.id

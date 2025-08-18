@@ -12,7 +12,7 @@ export default function AboutTab() {
           Theme and appearance settings are stored locally in your browser.
         </p>
       </div>
-      <div className="text-xs text-neutral-500">
+      <div className="text-xs text-neutral-500 dark:text-neutral-400">
         <p>
           © {new Date().getFullYear()} Simple Chat
         </p>
@@ -20,5 +20,3 @@ export default function AboutTab() {
     </div>
   );
 }
-
-

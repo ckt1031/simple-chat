@@ -6,10 +6,12 @@ import { useGlobalStore } from '@/lib/stores/global';
 import { cn } from '@/lib/utils';
 import GeneralTab from '@/components/Settings/GeneralTab';
 import AboutTab from '@/components/Settings/AboutTab';
+import ProviderSettingsTab from '@/components/Settings/ProvidersTab';
 
 export function SettingsModal() {
   const tabs = [
     { id: 'general', label: 'General' },
+    { id: 'providers', label: 'Providers' },
     { id: 'about', label: 'About' },
   ];
 
@@ -84,6 +86,7 @@ export function SettingsModal() {
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {activeTab === 'general' && <GeneralTab />}
+          {activeTab === 'providers' && <ProviderSettingsTab />}
           {activeTab === 'about' && <AboutTab />}
         </div>
       </div>

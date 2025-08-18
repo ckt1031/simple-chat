@@ -1,22 +1,17 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useChatStore } from '@/lib/stores/global';
+import { useGlobalStore } from '@/lib/stores/global';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
-import { cn } from '@/lib/utils';
+import { useConversationStore } from '@/lib/stores/conversation';
+import { useProviderStore } from '@/lib/stores/provider';
 
 export function Chat() {
-  const { 
-    conversations, 
-    currentConversationId, 
-    addMessage, 
-    setLoading, 
-    isLoading,
-    settings,
-    openSettings,
-  } = useChatStore();
-  
+  const { openSettings, ui } = useGlobalStore();
+  const { hasEnabledProviders } = useProviderStore();
+  const { conversations, currentConversationId, addMessage } = useConversationStore();
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const currentConversation = conversations.find(
@@ -32,75 +27,35 @@ export function Chat() {
   }, [currentConversation?.messages]);
 
   const handleSendMessage = async (content: string) => {
-    if (!currentConversationId) return;
-
     // Add user message
-    addMessage(currentConversationId, {
+    addMessage({
+      timestamp: Date.now(),
       role: 'user',
       content,
     });
 
     // Get enabled providers
-    const enabledProviders = settings.providers.filter(p => p.enabled);
-    if (enabledProviders.length === 0) {
-      addMessage(currentConversationId, {
+    if (!hasEnabledProviders()) {
+      addMessage({
+        timestamp: Date.now(),
         role: 'assistant',
         content: 'No AI providers configured. Please add a provider in settings.',
       });
       return;
     }
-
-    // Use the first enabled provider
-    const provider = enabledProviders[0];
-    setLoading(true);
-
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: [
-            ...currentConversation?.messages || [],
-            { role: 'user', content }
-          ],
-          provider,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get response');
-      }
-
-      const data = await response.json();
-      
-      addMessage(currentConversationId, {
-        role: 'assistant',
-        content: data.text,
-      });
-    } catch (error) {
-      console.error('Error sending message:', error);
-      addMessage(currentConversationId, {
-        role: 'assistant',
-        content: 'Sorry, I encountered an error. Please check your provider configuration.',
-      });
-    } finally {
-      setLoading(false);
-    }
   };
 
   if (!currentConversation) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <h1 className="text-2xl font-bold text-gray-900">What's on the agenda today?</h1>
-          <p className="text-gray-600 max-w-md">
+      <div className="flex-1 flex items-center justify-center dark:bg-neutral-900">
+        <div className="text-center space-y-4 px-4">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome to AI Chat</h1>
+          <p className="text-gray-600 dark:text-white max-w-md">
             Start a new conversation to begin chatting with AI. Make sure to configure your AI providers in settings first.
           </p>
           <button
             onClick={openSettings}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            className="px-4 py-2 bg-neutral-800 text-white dark:text-white rounded-lg hover:bg-neutral-700 transition-colors"
           >
             Open Settings
           </button>
@@ -110,14 +65,14 @@ export function Chat() {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full">
+    <div className="flex-1 flex flex-col h-full dark:bg-neutral-900">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 px-4">
         {currentConversation.messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-4">
-              <h2 className="text-xl font-semibold text-gray-900">What's on the agenda today?</h2>
-              <p className="text-gray-600">Start a conversation to begin chatting with AI.</p>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">What's on your mind?</h2>
+              <p className="text-gray-600 dark:text-white">Start a conversation to begin chatting with AI.</p>
             </div>
           </div>
         ) : (
@@ -129,11 +84,11 @@ export function Chat() {
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-gray-200">
-        <ChatInput 
-          onSend={handleSendMessage} 
-          disabled={isLoading}
-          isLoading={isLoading}
+      <div className="p-4">
+        <ChatInput
+          onSend={handleSendMessage}
+          disabled={ui.isChatRequesting}
+          isLoading={ui.isChatRequesting}
         />
       </div>
     </div>

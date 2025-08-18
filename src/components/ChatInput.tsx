@@ -39,12 +39,12 @@ export function ChatInput({ onSend, disabled = false, placeholder = "Ask anythin
   }, [message]);
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto">
-      <div className="relative flex items-center space-x-2 p-2 bg-white border border-gray-200 rounded-full shadow-sm">
+    <form onSubmit={handleSubmit} className="w-full max-w-3xl mx-auto">
+      <div className="relative flex items-center space-x-2 p-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-full shadow-sm">
         {/* Plus Button */}
         <button
           type="button"
-          className="flex-shrink-0 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+          className="flex-shrink-0 p-1 text-neutral-500 dark:text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
         >
           <Plus className="w-5 h-5" />
         </button>
@@ -57,7 +57,7 @@ export function ChatInput({ onSend, disabled = false, placeholder = "Ask anythin
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full resize-none border-0 focus:ring-0 focus:outline-none text-sm leading-relaxed placeholder-gray-400 bg-transparent"
+          className="w-full resize-none border-0 focus:ring-0 focus:outline-none text-sm leading-relaxed placeholder-neutral-500 dark:placeholder-neutral-400 bg-transparent"
           rows={1}
           style={{ maxHeight: '120px' }}
         />
@@ -68,10 +68,10 @@ export function ChatInput({ onSend, disabled = false, placeholder = "Ask anythin
             type="submit"
             disabled={!message.trim() || disabled || isLoading}
             className={cn(
-              "p-3 transition-colors rounded-full",
+              "p-2 transition-colors rounded-full",
               message.trim() && !disabled && !isLoading
-                ? "bg-neutral-800 text-neutral-100 hover:bg-neutral-700"
-                : "bg-neutral-100 text-neutral-400 cursor-not-allowed"
+                  ? "bg-neutral-800 text-neutral-100 hover:bg-neutral-700 dark:bg-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-600"
+                : "bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-400 cursor-not-allowed"
             )}
           >
             {isLoading ? (

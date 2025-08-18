@@ -1,7 +1,6 @@
 'use client';
 
-import { User, Bot } from 'lucide-react';
-import { type Message } from '@/lib/stores/global';
+import { Message } from '@/lib/stores/conversation';
 import { cn, formatDate } from '@/lib/utils';
 
 interface ChatMessageProps {
@@ -28,8 +27,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
           <div className={cn(
             "px-4 py-2 rounded-2xl text-sm leading-relaxed",
             isUser
-              ? "bg-neutral-200 text-black"
-              : "bg-neutral-800 text-neutral-100"
+              ? "bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white"
+              : "bg-neutral-800 text-neutral-100 dark:bg-neutral-700 dark:text-white"
           )}>
             <div className="whitespace-pre-wrap">{message.content}</div>
           </div>

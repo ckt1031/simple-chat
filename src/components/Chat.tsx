@@ -46,11 +46,24 @@ export function Chat({ chatId }: ChatProps) {
   );
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'end',
+        inline: 'nearest'
+      });
+    }
   };
 
   useEffect(() => {
-    scrollToBottom();
+    // Only auto-scroll if we're near the bottom or if it's a new message
+    const messagesContainer = messagesEndRef.current?.parentElement;
+    if (messagesContainer) {
+      const isNearBottom = messagesContainer.scrollTop + messagesContainer.clientHeight >= messagesContainer.scrollHeight - 100;
+      if (isNearBottom || currentConversation?.messages.length === 1) {
+        scrollToBottom();
+      }
+    }
   }, [currentConversation?.messages]);
 
   const handleSendMessage = async (content: string) => {
@@ -165,9 +178,9 @@ export function Chat({ chatId }: ChatProps) {
   // Show new chat interface when no conversation is selected
   if (!currentConversation) {
     return (
-      <div className="flex-1 flex flex-col h-full min-h-0 dark:bg-neutral-900">
+      <div className="flex-1 flex flex-col min-h-0 dark:bg-neutral-900 overflow-hidden">
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4 px-4">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4 px-4 min-h-0">
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-4">
               <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">What's on your mind?</h2>
@@ -177,7 +190,7 @@ export function Chat({ chatId }: ChatProps) {
         </div>
 
         {/* Input */}
-        <div className="p-4">
+        <div className="flex-shrink-0 p-4">
           <ChatInput
             onSend={handleSendMessage}
             disabled={ui.isChatRequesting}
@@ -189,9 +202,9 @@ export function Chat({ chatId }: ChatProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full min-h-0 dark:bg-neutral-900">
+    <div className="flex-1 flex flex-col min-h-0 dark:bg-neutral-900 overflow-hidden">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4 px-4">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4 px-4 min-h-0">
         {currentConversation.messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-4">
@@ -207,14 +220,14 @@ export function Chat({ chatId }: ChatProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="p-4">
-        <ChatInput
-          onSend={handleSendMessage}
-          disabled={ui.isChatRequesting}
-          isLoading={ui.isChatRequesting}
-        />
+              {/* Input */}
+        <div className="flex-shrink-0 p-4">
+          <ChatInput
+            onSend={handleSendMessage}
+            disabled={ui.isChatRequesting}
+            isLoading={ui.isChatRequesting}
+          />
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }

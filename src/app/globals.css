@@ -4,6 +4,12 @@
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
+/* Ensure proper height constraints */
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
 /* Custom scrollbar for scrollable lists */
 .custom-scrollbar {
   scrollbar-width: thin;

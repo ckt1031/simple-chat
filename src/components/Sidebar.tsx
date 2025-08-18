@@ -4,29 +4,34 @@ import { SquarePen, Trash2, Settings } from 'lucide-react';
 import { useGlobalStore } from '@/lib/stores/global';
 import { cn } from '@/lib/utils';
 import { useConversationStore } from '@/lib/stores/conversation';
+import { useRouter } from 'next/navigation';
 
 export function Sidebar() {
   const {
-    // conversations,
-    // currentConversationId,
-    // createConversation,
-    // setCurrentConversation,
-    // deleteConversation,
     ui,
     toggleSidebar,
     closeSidebar,
     openSettings,
   } = useGlobalStore();
 
-    const { conversations, currentConversationId, createNewConversation, setCurrentConversation, deleteConversation } = useConversationStore();
+  const { conversations, currentConversationId, createNewConversation, deleteConversation } = useConversationStore();
+  const router = useRouter();
 
   const handleSelectConversation = (id: string) => {
-    setCurrentConversation(id);
+    router.push(`/?id=${id}`);
+  };
+
+  const handleNewChat = () => {
+    router.push('/');
   };
 
   const handleDeleteConversation = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     deleteConversation(id);
+    // If we deleted the current conversation, redirect to new chat
+    if (currentConversationId === id) {
+      router.push('/');
+    }
   };
 
   return (
@@ -59,7 +64,7 @@ export function Sidebar() {
           </div>
           <div className="px-1.5 flex items-center justify-between">
             <button
-              onClick={createNewConversation}
+              onClick={handleNewChat}
               className="w-full flex items-center space-x-2 px-3 py-2 text-sm font-medium text-neutral-700 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg transition-colors"
             >
               <SquarePen className="w-4 h-4" />

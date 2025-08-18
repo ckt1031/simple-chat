@@ -6,9 +6,12 @@ import { Chat } from '@/components/Chat';
 import { SettingsModal } from '@/components/SettingsModal';
 import { useGlobalStore } from '@/lib/stores/global';
 import { ModelSelector } from '@/components/ModelSelector';
+import { useSearchParams } from 'next/navigation';
 
 export default function Home() {
   const { toggleSidebar } = useGlobalStore();
+  const searchParams = useSearchParams();
+  const chatId = searchParams.get('id');
 
   return (
     <div className="h-screen flex bg-white dark:bg-neutral-900">
@@ -31,7 +34,7 @@ export default function Home() {
         </div>
 
         {/* Chat Area fills full width; sidebar overlays */}
-        <Chat />
+        <Chat chatId={chatId} />
       </div>
 
       {/* Settings Modal with global state */}

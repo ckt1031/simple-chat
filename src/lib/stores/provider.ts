@@ -7,13 +7,19 @@ export enum OfficialProvider {
     OPENROUTER = 'OpenRouter',
 }
 
+export interface Model {
+    id: string;
+    name?: string;
+    enabled: boolean;
+}
+
 export interface OfficialProviderState {
     enabled: boolean;
 
     apiKey: string;
     apiBaseURL: string;
 
-    models: string[];
+    models: Model[];
 }
 
 export interface CustomProviderState extends OfficialProviderState {

@@ -20,7 +20,7 @@ export default function Home() {
         <div className="flex items-center p-3 flex-row gap-2">
           <button
             onClick={toggleSidebar}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+            className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
             aria-label="Toggle sidebar"
           >
             <Menu className="w-5 h-5" />

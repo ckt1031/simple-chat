@@ -40,7 +40,7 @@ export function ChatInput({ onSend, disabled = false, placeholder = "Ask anythin
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-3xl mx-auto">
-      <div className="relative flex items-center space-x-2 p-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-full shadow-sm">
+      <div className="relative flex items-center space-x-2 p-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full shadow-sm">
         {/* Plus Button */}
         <button
           type="button"

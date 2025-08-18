@@ -49,8 +49,8 @@ export function Chat() {
     return (
       <div className="flex-1 flex items-center justify-center dark:bg-neutral-900">
         <div className="text-center space-y-4 px-4">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome to AI Chat</h1>
-          <p className="text-gray-600 dark:text-white max-w-md">
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Welcome to AI Chat</h1>
+          <p className="text-neutral-600 dark:text-white max-w-md">
             Start a new conversation to begin chatting with AI. Make sure to configure your AI providers in settings first.
           </p>
           <button
@@ -71,8 +71,8 @@ export function Chat() {
         {currentConversation.messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-4">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">What's on your mind?</h2>
-              <p className="text-gray-600 dark:text-white">Start a conversation to begin chatting with AI.</p>
+              <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">What's on your mind?</h2>
+              <p className="text-neutral-600 dark:text-white">Start a conversation to begin chatting with AI.</p>
             </div>
           </div>
         ) : (

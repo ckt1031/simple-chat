@@ -34,7 +34,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
           </div>
           
           {/* Timestamp */}
-          <div className="text-xs text-gray-500 px-2">
+          <div className="text-xs text-neutral-500 dark:text-neutral-400 px-2">
             {formatDate(message.timestamp)}
           </div>
         </div>

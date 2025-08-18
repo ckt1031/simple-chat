@@ -105,9 +105,9 @@ export function Sidebar() {
           <div className="p-4">
             <button
               onClick={openSettings}
-              className="p-1 hover:bg-neutral-200 rounded transition-colors"
+              className="p-1 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded transition-colors"
             >
-              <Settings className="w-4 h-4 text-neutral-500" />
+              <Settings className="w-4 h-4 text-neutral-500 dark:text-white" />
             </button>
           </div>
         </div>

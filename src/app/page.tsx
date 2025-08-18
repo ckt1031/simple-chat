@@ -7,9 +7,9 @@ import { SettingsModal } from '@/components/SettingsModal';
 import { useGlobalStore } from '@/lib/stores/global';
 import { ModelSelector } from '@/components/ModelSelector';
 import { useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 
-export default function Home() {
+function HomePageContent() {
   const { toggleSidebar, openSettings } = useGlobalStore();
   const searchParams = useSearchParams();
   const chatId = searchParams.get('id');
@@ -49,5 +49,13 @@ export default function Home() {
       {/* Settings Modal with global state */}
       <SettingsModal />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense>
+      <HomePageContent />
+    </Suspense>
   );
 }

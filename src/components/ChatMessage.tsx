@@ -81,7 +81,7 @@ export function ChatMessage({ message, onRegenerate, isRegenerating = false, con
             {imageUrls.length > 0 && (
               <div className={cn("mb-2 grid gap-2", imageUrls.length === 1 ? "grid-cols-1" : "grid-cols-2") }>
                 {imageUrls.map((src, idx) => (
-                  <img key={idx} src={src} alt="attachment" className="rounded-md max-h-64 object-contain bg-neutral-100 dark:bg-neutral-800" />
+                  <img key={idx} src={src} alt="attachment" className="rounded-md max-h-32 object-contain bg-neutral-100 dark:bg-neutral-800" />
                 ))}
               </div>
             )}

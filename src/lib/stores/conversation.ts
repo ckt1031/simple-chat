@@ -1,6 +1,7 @@
 import { createIdGenerator } from "ai";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { ConversationIndxedStorage } from "./storage";
 
 export interface Conversation {
     id: string;
@@ -178,15 +179,7 @@ export const useConversationStore = create<ConversationStore>()(
         }),
         { 
             name: 'conversation', 
-            storage: createJSONStorage(() => localStorage),
-            partialize: (state) => ({
-                conversations: state.conversations.map(conv => ({
-                    ...conv,
-                    abortController: undefined // Exclude AbortController from persistence
-                })),
-                currentConversationId: state.currentConversationId,
-                isHydrated: state.isHydrated,
-            }),
+            storage: createJSONStorage(() => ConversationIndxedStorage),
             onRehydrateStorage: () => (state) => {
                 if (state) {
                     state.setHydrated(true);

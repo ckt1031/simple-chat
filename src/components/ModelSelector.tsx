@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useGlobalStore } from '@/lib/stores/global';

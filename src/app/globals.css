@@ -8,6 +8,13 @@
 html, body {
   height: 100%;
   overflow-x: hidden;
+  background-color: var(--color-neutral-50);
+  color: var(--color-neutral-900);
+  [data-theme="dark"] &,
+  [data-theme="dark"] * & {
+    background-color: var(--color-neutral-900);
+    color: var(--color-neutral-50);
+  }
 }
 
 /* Mobile viewport height fix */

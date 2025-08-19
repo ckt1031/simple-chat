@@ -1,3 +1,4 @@
+import { createIdGenerator } from "ai";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
@@ -22,7 +23,6 @@ export interface ConversationState {
 
 export interface ConversationStore extends ConversationState {
     createNewConversation: () => string;
-    addConversation: (conversation: Omit<Conversation, 'id'>) => void;
     updateConversation: (conversation: Conversation) => void;
     updateConversationTitle: (id: string, title: string) => void;
     deleteConversation: (id: string) => void;
@@ -40,7 +40,7 @@ export const useConversationStore = create<ConversationStore>()(
             currentConversationId: null,
             isHydrated: false,
             createNewConversation: () => {
-                const newID = crypto.randomUUID();
+                const newID = createIdGenerator({ size: 16 })();
                 set((state) => ({
                     conversations: [{ id: newID, title: 'New chat', messages: [] },...state.conversations],
                     currentConversationId: newID,
@@ -53,9 +53,6 @@ export const useConversationStore = create<ConversationStore>()(
             setHydrated: (hydrated: boolean) => {
                 set(() => ({ isHydrated: hydrated }));
             },
-            addConversation: (conversation: Omit<Conversation, 'id'>) => {
-                set((state) => ({ conversations: [...state.conversations, { ...conversation, id: crypto.randomUUID() }] }));
-            },
             updateConversation: (conversation: Conversation) => {
                 set((state) => ({ conversations: state.conversations.map(c => c.id === conversation.id ? conversation : c) }));
             },
@@ -66,7 +63,7 @@ export const useConversationStore = create<ConversationStore>()(
                 set((state) => ({ conversations: state.conversations.filter(c => c.id !== id) }));
             },
             addMessage: (message: Omit<Message, 'id'>) => {
-                const id = crypto.randomUUID();
+                const id = createIdGenerator({ prefix: 'msg', size: 16 })();
                 set((state) => {
                     const updatedConversations = state.conversations.map(c => {
                         if (c.id === state.currentConversationId) {

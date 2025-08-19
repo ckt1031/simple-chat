@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useGlobalStore } from '@/lib/stores/global';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
@@ -8,6 +8,7 @@ import { Message, useConversationStore } from '@/lib/stores/conversation';
 import { OfficialProvider, useProviderStore } from '@/lib/stores/provider';
 import completionsStreaming from '@/lib/api/completions-streaming';
 import { useRouter } from 'next/navigation';
+import ChatScrollToBottom from './ChatScrollToBottom';
 
 interface ChatProps {
   chatId: string | null;
@@ -32,6 +33,7 @@ export function Chat({ chatId }: ChatProps) {
   const router = useRouter();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
   // Handle URL-based navigation
   useEffect(() => {
@@ -77,6 +79,19 @@ export function Chat({ chatId }: ChatProps) {
       }
     }
   }, [currentConversation?.messages]);
+
+  // Track scroll to show/hide the button
+  useEffect(() => {
+    const container = messagesEndRef.current?.parentElement;
+    if (!container) return;
+    const onScroll = () => {
+      const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 100;
+      setShowScrollButton(!nearBottom);
+    };
+    onScroll();
+    container.addEventListener('scroll', onScroll, { passive: true });
+    return () => container.removeEventListener('scroll', onScroll);
+  }, [currentConversation?.id]);
 
   const handleRegenerateMessage = async (messageId: string) => {
     // In the regeneration, we only allow re-generating the last message
@@ -251,7 +266,7 @@ export function Chat({ chatId }: ChatProps) {
   }
 
   return (
-    <div className="h-full flex flex-col dark:bg-neutral-900 min-h-0">
+    <div className="h-full flex flex-col dark:bg-neutral-900 min-h-0 relative">
       {/* Messages */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4 px-4">
         {currentConversation.messages.length === 0 ? (
@@ -274,6 +289,8 @@ export function Chat({ chatId }: ChatProps) {
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      <ChatScrollToBottom visible={showScrollButton} onClick={scrollToBottom} />
 
       {/* Input */}
       <div className="flex-shrink-0 py-2 px-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">

@@ -26,6 +26,33 @@ button:disabled,
   cursor: default;
 }
 
+/* Hide backticks in code blocks while preserving code content */
+.prose pre code::before,
+.prose pre code::after {
+  content: none !important;
+}
+
+.prose code::before,
+.prose code::after {
+  content: none !important;
+}
+
+/* Ensure code blocks still look good without backticks */
+.prose pre {
+  @apply bg-neutral-100 dark:bg-neutral-800 rounded-lg p-2 overflow-x-auto;
+}
+
+.dark .prose pre {
+  @apply bg-neutral-800;
+}
+
+.prose code {
+  @apply bg-neutral-100 dark:bg-neutral-800 rounded-sm p-0.5 text-xs;
+}
+
+.dark .prose code {
+  @apply bg-neutral-800;
+}
 
 /* Mobile viewport height fix */
 @supports (-webkit-touch-callout: none) {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Copy, RefreshCcw, Trash } from "lucide-react";
+import { Check, Copy, PencilLine, RefreshCcw, Trash } from "lucide-react";
 import { useConversationStore } from "@/lib/stores/conversation";
 import { cn } from "@/lib/utils";
 
@@ -12,9 +12,10 @@ interface ChatActionButtonsProps {
 
     handleCopy: () => void;
     handleRegenerate: () => void;
+    onEdit?: () => void;
 }
 
-export default function ChatActionButtons({ handleCopy, copied, conversationId, handleRegenerate, isRegenerating = false, messageId }: ChatActionButtonsProps) {
+export default function ChatActionButtons({ handleCopy, copied, conversationId, handleRegenerate, isRegenerating = false, messageId, onEdit }: ChatActionButtonsProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const { isLastMessage, deleteMessage } = useConversationStore();
 
@@ -63,6 +64,15 @@ export default function ChatActionButtons({ handleCopy, copied, conversationId, 
             >
                 <Trash size={16} strokeWidth={1.5} />
             </button>
+            {onEdit && (
+                <button
+                    onClick={onEdit}
+                    className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                    title="Edit message"
+                >
+                    <PencilLine size={16} strokeWidth={1.5} />
+                </button>
+            )}
             <button
                 onClick={handleCopy}
                 className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"

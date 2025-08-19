@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Message } from '@/lib/stores/conversation';
+import { Message, useConversationStore } from '@/lib/stores/conversation';
 import { cn, formatDate } from '@/lib/utils';
 import { MemoizedMarkdown } from './MemoizedMarkdown';
 import ChatActionButtons from './ChatActionButtons';
 import { useEffect } from 'react';
 import { getAssetObjectURL, revokeObjectURL } from '@/lib/assets';
+import ChatEdit from './ChatEdit';
 
 interface ChatMessageProps {
   message: Message;
@@ -19,6 +20,9 @@ export function ChatMessage({ message, onRegenerate, isRegenerating = false, con
   const isUser = message.role === 'user';
   const [copied, setCopied] = useState(false);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const updateMessage = useConversationStore(s => s.updateMessage);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,8 +59,18 @@ export function ChatMessage({ message, onRegenerate, isRegenerating = false, con
   };
 
   const handleRegenerate = () => {
-      onRegenerate(message.id);
+      if (!isUser) onRegenerate(message.id);
   };
+
+  const saveEdit = (value: string) => {
+    updateMessage(message.id, { content: value, timestamp: Date.now() });
+    setIsEditing(false);
+  };
+
+  const isLongUserMessage = isUser && (message.content.length > 500 || (message.content.match(/\n/g)?.length || 0) > 8);
+  const displayUserContent = !isLongUserMessage || expanded
+    ? message.content
+    : `${message.content.slice(0, 500)}…`;
 
   return (
     <div className={cn(
@@ -86,7 +100,20 @@ export function ChatMessage({ message, onRegenerate, isRegenerating = false, con
               </div>
             )}
             {isUser ? (
-              <div className="whitespace-pre-wrap">{message.content}</div>
+              isEditing ? (
+                <ChatEdit
+                  initialValue={message.content}
+                  onCancel={() => setIsEditing(false)}
+                  onSave={saveEdit}
+                />
+              ) : (
+                <div className="whitespace-pre-wrap cursor-pointer select-text" onClick={() => { if (isLongUserMessage && !expanded) setExpanded(true); }}>
+                  {displayUserContent}
+                  {!expanded && isLongUserMessage && (
+                    <span className="ml-1 text-neutral-500 dark:text-neutral-400 underline">Show more</span>
+                  )}
+                </div>
+              )
             ) : (
               <div className="prose prose-neutral dark:prose-invert space-y-2 max-w-3xl prose-code:whitespace-pre-wrap">
                 <MemoizedMarkdown
@@ -111,6 +138,7 @@ export function ChatMessage({ message, onRegenerate, isRegenerating = false, con
               handleRegenerate={handleRegenerate}
               isRegenerating={isRegenerating}
               messageId={message.id}
+              onEdit={isUser ? () => setIsEditing(true) : undefined}
             />
           </div>
         </div>

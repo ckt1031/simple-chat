@@ -22,7 +22,7 @@ export default function ChatScrollToBottom({ visible, onClick, className }: Chat
         type="button"
         onClick={onClick}
         className={cn(
-          'pointer-events-auto cursor-pointer flex items-center justify-center p-2 rounded-full shadow-lg',
+          'pointer-events-auto flex items-center justify-center p-2 rounded-full shadow-lg',
           'bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-neutral-700 dark:hover:bg-neutral-600',
           'dark:border dark:border-neutral-600'
         )}

@@ -17,6 +17,16 @@ html, body {
   }
 }
 
+button,
+[role='button'] {
+  cursor: pointer;
+}
+button:disabled,
+[role='button']:disabled {
+  cursor: default;
+}
+
+
 /* Mobile viewport height fix */
 @supports (-webkit-touch-callout: none) {
   .h-screen {

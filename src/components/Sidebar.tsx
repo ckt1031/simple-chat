@@ -1,6 +1,6 @@
 'use client';
 
-import { SquarePen, Trash2, Settings, Loader2, Image as ImageIcon } from 'lucide-react';
+import { SquarePen, Trash2, Settings, Loader2, Image as ImageIcon, PanelLeftClose } from 'lucide-react';
 import { useGlobalStore } from '@/lib/stores/global';
 import { cn } from '@/lib/utils';
 import { useConversationStore } from '@/lib/stores/conversation';
@@ -61,10 +61,10 @@ export function Sidebar() {
             </h1>
             <button
               onClick={toggleSidebar}
-              className="text-neutral-500 dark:text-white rounded-full lg:hidden cursor-pointer"
+              className="text-neutral-500 dark:text-white rounded-full lg:hidden"
               aria-label="Close sidebar"
             >
-              ✕
+              <PanelLeftClose />
             </button>
           </div>
           <div className="px-1.5 flex items-center justify-between">
@@ -103,7 +103,7 @@ export function Sidebar() {
                     key={conversation.id}
                     onClick={() => handleSelectConversation(conversation.id)}
                     className={cn(
-                      'group flex items-center justify-between px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors',
+                      'group flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors',
                       currentConversationId === conversation.id
                         ? 'bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white'
                         : 'text-neutral-700 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700'

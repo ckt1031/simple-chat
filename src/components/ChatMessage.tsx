@@ -107,7 +107,7 @@ export function ChatMessage({ message, onRegenerate, isRegenerating = false, con
                   onSave={saveEdit}
                 />
               ) : (
-                <div className="whitespace-pre-wrap cursor-pointer select-text" onClick={() => { if (isLongUserMessage && !expanded) setExpanded(true); }}>
+                <div className="whitespace-pre-wrap select-text" onClick={() => { if (isLongUserMessage && !expanded) setExpanded(true); }}>
                   {displayUserContent}
                   {!expanded && isLongUserMessage && (
                     <span className="ml-1 text-neutral-500 dark:text-neutral-400 underline">Show more</span>

@@ -85,7 +85,7 @@ export function ChatInput({ onSend, onStop, disabled = false, placeholder = "Ask
           {attachments.map(att => (
             <div key={att.id} className="relative h-16 rounded-md overflow-hidden border border-neutral-200 dark:border-neutral-700">
               <img src={att.previewUrl} alt={att.name || 'image'} className="object-cover w-full h-full" />
-              <button type="button" onClick={() => removeAttachment(att.id)} className="absolute cursor-pointer top-1 right-1 bg-neutral-900 text-white rounded-full p-1">
+              <button type="button" onClick={() => removeAttachment(att.id)} className="absolute top-1 right-1 bg-neutral-900 text-white rounded-full p-1">
                 <X className="w-3 h-3" />
               </button>
             </div>

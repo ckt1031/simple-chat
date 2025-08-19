@@ -13,7 +13,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
   return (
     <div className={cn(
-      "flex w-full",
+      "flex w-full max-w-3xl mx-auto",
       isUser ? "justify-end" : "justify-start"
     )}>
       <div className={cn(
@@ -33,7 +33,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
               isUser ? (
                 <div className="whitespace-pre-wrap">{message.content}</div>
               ) : (
-                <div className="prose prose-neutral dark:prose-invert max-w-none w-full space-y-2">
+                <div className="prose prose-neutral dark:prose-invert space-y-2">
                   <MemoizedMarkdown
                     key={message.id}
                     id={message.id}

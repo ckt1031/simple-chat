@@ -42,7 +42,7 @@ export function Sidebar() {
 
       <div
         className={cn(
-          'fixed left-0 top-0 z-40 h-screen transform bg-neutral-100 dark:bg-neutral-800 border-r border-neutral-200 dark:border-neutral-800 shadow-lg',
+          'fixed left-0 top-0 z-40 h-screen transform bg-neutral-100 dark:bg-neutral-800 border-r md:border-0 border-neutral-200 dark:border-neutral-800 shadow-lg',
           ui.isSidebarOpen ? 'translate-x-0' : '-translate-x-full',
           'lg:relative lg:left-auto lg:top-auto lg:shadow-none',
           ui.isSidebarOpen ? 'lg:translate-x-0 lg:block' : 'lg:hidden'

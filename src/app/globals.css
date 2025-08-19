@@ -7,7 +7,22 @@
 /* Ensure proper height constraints */
 html, body {
   height: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
+}
+
+/* Mobile viewport height fix */
+@supports (-webkit-touch-callout: none) {
+  .h-screen {
+    height: -webkit-fill-available;
+  }
+}
+
+/* Ensure proper mobile layout */
+@media (max-width: 640px) {
+  .h-screen {
+    height: 100vh;
+    height: 100dvh;
+  }
 }
 
 /* Custom scrollbar for scrollable lists */

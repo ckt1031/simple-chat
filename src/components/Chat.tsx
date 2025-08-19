@@ -178,9 +178,9 @@ export function Chat({ chatId }: ChatProps) {
   // Show new chat interface when no conversation is selected
   if (!currentConversation) {
     return (
-      <div className="flex-1 flex flex-col min-h-0 dark:bg-neutral-900 overflow-hidden">
+      <div className="h-full flex flex-col dark:bg-neutral-900 min-h-0">
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4 px-4 min-h-0">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4 px-4">
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-4">
               <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">What&apos;s on your mind?</h2>
@@ -190,7 +190,7 @@ export function Chat({ chatId }: ChatProps) {
         </div>
 
         {/* Input */}
-        <div className="flex-shrink-0 p-4">
+        <div className="flex-shrink-0 p-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
           <ChatInput
             onSend={handleSendMessage}
             disabled={ui.isChatRequesting}
@@ -202,9 +202,9 @@ export function Chat({ chatId }: ChatProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 dark:bg-neutral-900 overflow-hidden">
+    <div className="h-full flex flex-col dark:bg-neutral-900 min-h-0">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4 px-4 min-h-0">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4 px-4">
         {currentConversation.messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-4">
@@ -220,14 +220,14 @@ export function Chat({ chatId }: ChatProps) {
         <div ref={messagesEndRef} />
       </div>
 
-              {/* Input */}
-        <div className="flex-shrink-0 p-4">
-          <ChatInput
-            onSend={handleSendMessage}
-            disabled={ui.isChatRequesting}
-            isLoading={ui.isChatRequesting}
-          />
-        </div>
+      {/* Input */}
+      <div className="flex-shrink-0 p-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+        <ChatInput
+          onSend={handleSendMessage}
+          disabled={ui.isChatRequesting}
+          isLoading={ui.isChatRequesting}
+        />
       </div>
-    );
-  }
+    </div>
+  );
+}

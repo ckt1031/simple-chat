@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 
 function parseMarkdownIntoBlocks(markdown: string): string[] {
   const tokens = marked.lexer(markdown);
@@ -12,7 +13,17 @@ function parseMarkdownIntoBlocks(markdown: string): string[] {
 
 const MemoizedMarkdownBlock = memo(
   ({ content }: { content: string }) => {
-    return <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>{content}</ReactMarkdown>;
+    return (
+      <ReactMarkdown 
+        remarkPlugins={[remarkGfm, remarkMath]} 
+        rehypePlugins={[rehypeKatex, rehypeRaw]}
+        components={{
+          br: ({ node, ...props }) => <br {...props} />,
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    );
   },
   (prevProps, nextProps) => {
     if (prevProps.content !== nextProps.content) return false;

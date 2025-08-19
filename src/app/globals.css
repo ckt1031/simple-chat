@@ -54,6 +54,13 @@ button:disabled,
   @apply bg-neutral-800;
 }
 
+/* Ensure br tags are properly rendered in markdown */
+.prose br {
+  display: block;
+  content: "";
+  margin-top: 0.5em;
+}
+
 /* Mobile viewport height fix */
 @supports (-webkit-touch-callout: none) {
   .h-screen {

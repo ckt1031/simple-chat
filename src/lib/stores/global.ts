@@ -41,13 +41,11 @@ export const useGlobalStore = create<GlobalStore>()(
         isSettingsOpen: false,
         isChatRequesting: false,
       },
-
       updateSettings: (newSettings) => {
         set((state) => ({
           general: { ...state.general, ...newSettings },
         }));
       },
-
       // UI Actions
       openSettings: () => {
         set((state) => ({ ui: { ...state.ui, isSettingsOpen: true } }));

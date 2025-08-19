@@ -31,11 +31,13 @@ export interface ConversationStore extends ConversationState {
     addMessage: (message: Omit<Message, 'id'>) => string;
     updateMessage: (id: string, updates: Partial<Omit<Message, 'id'>>) => void;
     appendToMessage: (id: string, text: string) => void;
+    isLastMessage: (conversationId: string, messageId: string) => boolean;
+    removeLastAssistantMessage: (messageId: string) => void;
 }
 
 export const useConversationStore = create<ConversationStore>()(
     persist(
-        (set) => ({
+        (set, get) => ({
             conversations: [],
             currentConversationId: null,
             isHydrated: false,
@@ -102,6 +104,30 @@ export const useConversationStore = create<ConversationStore>()(
                         };
                     }),
                 }));
+            },
+            isLastMessage: (conversationId: string, messageId: string) => {
+                const state = get();
+                const conversation = state.conversations.find(c => c.id === conversationId);
+                if (!conversation) return false;
+                return conversation.messages[conversation.messages.length - 1].id === messageId;
+            },
+            removeLastAssistantMessage: (messageId: string) => {
+                // Remove the last message if it's an assistant message, do not remove user or any earlier assistant messages
+                // Check if the last message is an assistant message
+                const state = get();
+                const conversation = state.conversations.find(c => c.id === state.currentConversationId);
+                if (!conversation) return;
+                
+                const lastMessage = conversation.messages[conversation.messages.length - 1];
+
+                if (lastMessage?.role === 'assistant' && lastMessage.id === messageId) {
+                    set((state) => ({
+                        conversations: state.conversations.map((c) => ({
+                            ...c,
+                            messages: c.messages.filter((m) => m.id !== lastMessage.id),
+                        })),
+                    }));
+                }
             },
         }),
         { 

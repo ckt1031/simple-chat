@@ -16,7 +16,7 @@ interface ChatProps {
 export function Chat({ chatId }: ChatProps) {
   const { ui, general, setChatRequesting } = useGlobalStore();
   const { hasEnabledProviders, officialProviders, customProviders } = useProviderStore();
-  const { conversations, currentConversationId, isHydrated, addMessage, appendToMessage, updateMessage, setCurrentConversation, createNewConversation } = useConversationStore();
+  const { conversations, currentConversationId, isHydrated, addMessage, appendToMessage, updateMessage, setCurrentConversation, createNewConversation, removeLastAssistantMessage } = useConversationStore();
   const router = useRouter();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -66,7 +66,20 @@ export function Chat({ chatId }: ChatProps) {
     }
   }, [currentConversation?.messages]);
 
-  const handleSendMessage = async (content: string) => {
+  const handleRegenerateMessage = async (messageId: string) => {
+    // In the regeneration, we only allow re-generating the last message
+    const lastMessage = currentConversation?.messages[currentConversation.messages.length - 1];
+    if (!lastMessage || lastMessage.id !== messageId) return;
+
+    const userMessage = [...(currentConversation?.messages ?? [])].reverse().find(m => m.role === 'user');
+    if (!userMessage) return;
+
+    // Remove the last AI generated message if it exists
+    removeLastAssistantMessage(messageId);
+    handleSendMessage(userMessage.content, true);
+  };
+
+  const handleSendMessage = async (content: string, isRegenerating = false) => {
     let conversationId = currentConversationId;
     
     // If no current conversation, create one first
@@ -82,7 +95,9 @@ export function Chat({ chatId }: ChatProps) {
       role: 'user',
       content,
     } as const;
-    addMessage(userMessage);
+    if (!isRegenerating) {
+      addMessage(userMessage);
+    }
 
     // Get enabled providers
     if (!hasEnabledProviders()) {
@@ -214,7 +229,13 @@ export function Chat({ chatId }: ChatProps) {
           </div>
         ) : (
           currentConversation.messages.map((message) => (
-            <ChatMessage key={message.id} message={message} />
+            <ChatMessage
+              conversationId={currentConversation.id}
+              key={message.id} 
+              message={message} 
+              onRegenerate={handleRegenerateMessage}
+              isRegenerating={false}
+            />
           ))
         )}
         <div ref={messagesEndRef} />

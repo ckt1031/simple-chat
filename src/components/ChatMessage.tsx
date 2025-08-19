@@ -1,15 +1,35 @@
 'use client';
 
+import { useState } from 'react';
 import { Message } from '@/lib/stores/conversation';
 import { cn, formatDate } from '@/lib/utils';
 import { MemoizedMarkdown } from './MemoizedMarkdown';
+import ChatActionButtons from './ChatActionButtons';
 
 interface ChatMessageProps {
   message: Message;
+  onRegenerate: (messageId: string) => void;
+  isRegenerating?: boolean;
+  conversationId: string;
 }
 
-export function ChatMessage({ message }: ChatMessageProps) {
+export function ChatMessage({ message, onRegenerate, isRegenerating = false, conversationId }: ChatMessageProps) {
   const isUser = message.role === 'user';
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy message:', err);
+    }
+  };
+
+  const handleRegenerate = () => {
+      onRegenerate(message.id);
+  };
 
   return (
     <div className={cn(
@@ -25,10 +45,12 @@ export function ChatMessage({ message }: ChatMessageProps) {
           "flex flex-col space-y-1",
           isUser ? "items-end" : "items-start"
         )}>
-          <div className={cn(
-            "py-2 rounded-2xl text-sm leading-relaxed",
-            isUser ? "px-4 bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white" : "px-2"
-          )}>
+          <div
+            className={cn(
+              "py-2 rounded-2xl text-sm leading-relaxed relative group",
+              isUser ? "px-4 bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white" : "px-2"
+            )}
+          >
             {
               isUser ? (
                 <div className="whitespace-pre-wrap">{message.content}</div>
@@ -43,10 +65,21 @@ export function ChatMessage({ message }: ChatMessageProps) {
               )
             }
           </div>
-
           {/* Timestamp */}
           <div className="text-xs text-neutral-500 dark:text-neutral-400 px-2">
             {formatDate(message.timestamp)}
+          </div>
+
+          {/* Action Buttons - Show below messages for both user and assistant */}
+          <div className="h-5">
+            <ChatActionButtons
+              handleCopy={handleCopy}
+              copied={copied}
+              conversationId={conversationId}
+              handleRegenerate={handleRegenerate}
+              isRegenerating={isRegenerating}
+              messageId={message.id}
+            />
           </div>
         </div>
       </div>

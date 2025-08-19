@@ -89,7 +89,7 @@ export function ChatMessage({ message, onRegenerate, isRegenerating = false, con
           <div
             className={cn(
               "py-2 rounded-2xl text-sm leading-relaxed relative group",
-              isUser ? "px-4 bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white" : "px-2"
+              isUser ? "px-4 bg-neutral-200 text-black dark:bg-neutral-800 dark:text-white" : "px-2"
             )}
           >
             {imageUrls.length > 0 && (

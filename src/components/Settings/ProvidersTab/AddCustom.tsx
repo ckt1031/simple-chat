@@ -1,4 +1,5 @@
 import { OfficialProvider } from '@/lib/stores/provider';
+import { ArrowLeft } from 'lucide-react';
 
 interface Props {
   officialList: { id: OfficialProvider; label: string }[];
@@ -12,9 +13,9 @@ export default function AddCustom({ officialList, onBack, onChoose }: Props) {
       <div className="flex items-center gap-2">
         <button
           onClick={onBack}
-          className="text-sm text-neutral-600 dark:text-neutral-300 hover:underline"
+          className="text-sm text-neutral-600 dark:text-neutral-300 hover:opacity-80"
         >
-          ← Back
+          <ArrowLeft />
         </button>
         <h3 className="text-lg font-semibold">Select API format</h3>
       </div>

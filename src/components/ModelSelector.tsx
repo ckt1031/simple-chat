@@ -5,6 +5,7 @@ import { ChevronDown, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useGlobalStore } from '@/lib/stores/global';
 import { OfficialProvider, OfficialProviderState, CustomProviderState, useProviderStore, Model, ModelWithProvider } from '@/lib/stores/provider';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 type ProviderGroup = {
   id: string;
@@ -62,29 +63,11 @@ export function ModelSelector() {
     return 'Select model';
   }, [general.selectedModel]);
 
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleDocumentClick(e: MouseEvent) {
-      if (!open) return;
-      const target = e.target as Node | null;
-      if (containerRef.current && target && !containerRef.current.contains(target)) {
-        setOpen(false);
-      }
-    }
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') setOpen(false);
-    }
-    document.addEventListener('mousedown', handleDocumentClick);
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', handleDocumentClick);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [open]);
+  useHotkeys('ctrl+m', () => setOpen(true));
+  useHotkeys('esc', () => setOpen(false));
 
   return (
-    <div ref={containerRef} className="relative">
+    <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
         className={cn(
@@ -100,7 +83,7 @@ export function ModelSelector() {
 
       {open && (
         <div className="absolute z-20 mt-2 w-[320px] rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg">
-          <div className="relative border-b border-neutral-200 dark:border-neutral-700">
+          <div className="relative border-neutral-200 dark:border-neutral-700">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
             <input
               autoFocus

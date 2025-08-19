@@ -8,6 +8,7 @@ import GeneralTab from '@/components/Settings/GeneralTab';
 import AboutTab from '@/components/Settings/AboutTab';
 import ProviderSettingsTab from '@/components/Settings/ProvidersTab';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 export function SettingsModal() {
   const tabs = useMemo(() => [
@@ -44,6 +45,8 @@ export function SettingsModal() {
     newParams.delete('settings');
     router.push(`/?${newParams.toString()}`);
   };
+
+  useHotkeys('esc', () => handleClose());
 
   if (!ui.isSettingsOpen) return null;
 

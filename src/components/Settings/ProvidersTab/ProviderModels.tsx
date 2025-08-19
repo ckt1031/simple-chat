@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { OfficialProvider, useProviderStore, OfficialProviderState, CustomProviderState, Model } from '@/lib/stores/provider';
 import listModels from '@/lib/api/list-models';
 import { cn } from '@/lib/utils';
+import { ArrowLeft } from 'lucide-react';
 
 interface Props {
   isCustom: boolean;
@@ -97,8 +98,9 @@ export default function ModelsManager({ isCustom, activeOfficial, activeCustomId
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <button onClick={onBack} className="text-sm text-neutral-600 dark:text-neutral-300 hover:underline">← Back</button>
-        <h3 className="text-lg font-semibold">Manage models</h3>
+        <button onClick={onBack} className="text-sm text-neutral-600 dark:text-neutral-300 hover:opacity-80">
+          <ArrowLeft />
+        </button>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

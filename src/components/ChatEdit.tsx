@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 interface ChatEditProps {
     initialValue: string;
@@ -22,16 +23,8 @@ export default function ChatEdit({ initialValue, onCancel, onSave, placeholder =
         el.style.height = `${Math.min(el.scrollHeight, 240)}px`;
     }, [value]);
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        // Cmd/Ctrl + Enter to save, Esc to cancel
-        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-            e.preventDefault();
-            submit();
-        } else if (e.key === 'Escape') {
-            e.preventDefault();
-            onCancel();
-        }
-    };
+    useHotkeys('esc', () => onCancel());
+    useHotkeys('shift+enter', () => submit(), { enableOnFormTags: ['TEXTAREA'] });
 
     const submit = () => {
         const trimmed = value.trim();
@@ -44,7 +37,6 @@ export default function ChatEdit({ initialValue, onCancel, onSave, placeholder =
                 ref={textareaRef}
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                onKeyDown={handleKeyDown}
                 placeholder={placeholder}
                 className={cn(
                     'w-full resize-none focus:outline-none text-sm leading-relaxed',

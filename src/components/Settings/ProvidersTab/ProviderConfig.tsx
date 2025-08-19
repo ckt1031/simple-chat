@@ -4,6 +4,7 @@ import { OfficialProvider, OfficialProviderState, CustomProviderState, useProvid
 import { useForm } from 'react-hook-form';
 import { z } from 'zod/mini';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { ArrowLeft } from 'lucide-react';
 
 interface Props {
   isCustom: boolean;
@@ -162,7 +163,9 @@ export default function ProviderConfig({ isCustom, activeOfficial, activeCustomI
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <button onClick={onBack} className="text-sm text-neutral-600 dark:text-neutral-300 hover:underline">← Back</button>
+        <button onClick={onBack} className="text-sm text-neutral-600 dark:text-neutral-300 hover:opacity-80">
+          <ArrowLeft />
+        </button>
         <h3 className="text-lg font-semibold">{title}</h3>
       </div>
       <ConfigForm provider={provider} />

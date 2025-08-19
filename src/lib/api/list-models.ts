@@ -1,8 +1,13 @@
 import openai from 'openai';
-import { Model, OfficialProvider, OfficialProviderState } from '../stores/provider';
+import { Model, OfficialProvider, ProviderState } from '../stores/provider';
 import { GoogleGenAI } from '@google/genai';
+import { defaultProviderConfig } from './sdk';
 
-export default async function listModels(format: OfficialProvider, provider: OfficialProviderState): Promise<Model[]> {
+export default async function listModels(format: OfficialProvider, provider: ProviderState): Promise<Model[]> {
+    if (!provider.apiBaseURL || provider.apiBaseURL.length === 0) {
+        provider.apiBaseURL = defaultProviderConfig[format].apiBaseURL;
+    }
+
     switch (format) {
         case OfficialProvider.OPENAI:
             return await listModelsOpenAI(provider);
@@ -15,7 +20,7 @@ export default async function listModels(format: OfficialProvider, provider: Off
     }
 }
 
-async function listGoogleGenAIModels(provider: OfficialProviderState) {
+async function listGoogleGenAIModels(provider: ProviderState) {
     const client = new GoogleGenAI({
         apiKey: provider.apiKey,
         httpOptions: {
@@ -40,7 +45,7 @@ async function listGoogleGenAIModels(provider: OfficialProviderState) {
     });
 }
 
-async function listOpenRouterModels(provider: OfficialProviderState) {
+async function listOpenRouterModels(provider: ProviderState) {
     const client = new openai({
         apiKey: provider.apiKey,
         baseURL: provider.apiBaseURL,
@@ -58,7 +63,7 @@ async function listOpenRouterModels(provider: OfficialProviderState) {
     }));
 }
 
-async function listModelsOpenAI(provider: OfficialProviderState) {
+async function listModelsOpenAI(provider: ProviderState) {
     const client = new openai({
         apiKey: provider.apiKey,
         baseURL: provider.apiBaseURL,

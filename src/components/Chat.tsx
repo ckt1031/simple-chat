@@ -5,7 +5,7 @@ import { useGlobalStore } from '@/lib/stores/global';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { Message, useConversationStore } from '@/lib/stores/conversation';
-import { OfficialProvider, useProviderStore } from '@/lib/stores/provider';
+import { useProviderStore } from '@/lib/stores/provider';
 import completionsStreaming from '@/lib/api/completions-streaming';
 import { useRouter } from 'next/navigation';
 import ChatScrollToBottom from './ChatScrollToBottom';
@@ -16,7 +16,7 @@ interface ChatProps {
 
 export function Chat({ chatId }: ChatProps) {
   const { general } = useGlobalStore();
-  const { hasEnabledProviders, officialProviders, customProviders } = useProviderStore();
+  const { hasEnabledProviders } = useProviderStore();
   const { 
     conversations, 
     currentConversationId, 
@@ -150,27 +150,6 @@ export function Chat({ chatId }: ChatProps) {
         timestamp: Date.now(),
         role: 'assistant',
         content: 'No model selected. Please choose a model from the selector above.',
-      });
-      return;
-    }
-
-    // Ensure the selected model's provider is enabled
-    let providerEnabled = false;
-    if (
-      selected.providerId === OfficialProvider.OPENAI ||
-      selected.providerId === OfficialProvider.GOOGLE ||
-      selected.providerId === OfficialProvider.OPENROUTER
-    ) {
-      providerEnabled = officialProviders[selected.providerId].enabled;
-    } else if (typeof selected.providerId === 'string') {
-      providerEnabled = !!customProviders[selected.providerId]?.enabled;
-    }
-
-    if (!providerEnabled) {
-      addMessage({
-        timestamp: Date.now(),
-        role: 'assistant',
-        content: "The selected model's provider is disabled. Please enable it in settings.",
       });
       return;
     }

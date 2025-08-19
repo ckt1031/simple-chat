@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useGlobalStore } from '@/lib/stores/global';
-import { OfficialProvider, OfficialProviderState, CustomProviderState, useProviderStore, Model, ModelWithProvider } from '@/lib/stores/provider';
+import { OfficialProvider, useProviderStore, Model, ModelWithProvider, ProviderState } from '@/lib/stores/provider';
 import { useHotkeys } from 'react-hotkeys-hook';
 
 type ProviderGroup = {
@@ -12,44 +12,48 @@ type ProviderGroup = {
   label: string;
   kind: 'official' | 'custom';
   officialKey?: OfficialProvider;
-  data: OfficialProviderState | CustomProviderState;
+  data: ProviderState;
 };
 
 export function ModelSelector() {
   const { general, updateSettings } = useGlobalStore();
-  const { officialProviders, customProviders } = useProviderStore();
+  const { getOfficialProviders, getCustomProviders } = useProviderStore();
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
 
   const groups: ProviderGroup[] = useMemo(() => {
-    const official: ProviderGroup[] = Object.entries(officialProviders)
-      .map(([key, prov]) => ({ key: key as OfficialProvider, prov }))
-      .filter(({ prov }) => prov.enabled)
-      .map(({ key, prov }) => ({
-        id: key,
-        label: key,
+    const official: ProviderGroup[] = getOfficialProviders()
+      .filter((prov) => prov.enabled)
+      .map((prov) => ({
+        id: prov.provider,
+        label: prov.provider,
         kind: 'official' as const,
-        officialKey: key,
+        officialKey: prov.provider,
         data: prov,
       }));
 
-    const customList: ProviderGroup[] = Object.entries(customProviders)
-      .map(([id, prov]) => ({ id, prov }))
-      .filter(({ prov }) => prov.enabled)
-      .map(({ id, prov }) => ({
-        id,
-        label: prov.displayName && prov.displayName.trim().length > 0 ? prov.displayName : id,
+    const customList: ProviderGroup[] = getCustomProviders()
+      .filter((prov) => prov.enabled)
+      .map((prov) => ({
+        id: prov.id,
+        label: prov.displayName && prov.displayName.trim().length > 0 ? prov.displayName : prov.id,
         kind: 'custom' as const,
         data: prov,
       }));
 
     return [...official, ...customList];
-  }, [officialProviders, customProviders]);
+  }, [getOfficialProviders, getCustomProviders]);
 
   const handleSelect = (providerId: string, model: Model) => {
     const displayName = model.name && model.name.trim().length > 0 ? model.name : undefined;
-    const next: ModelWithProvider = { id: model.id, name: displayName, enabled: model.enabled, source: model.source, providerId };
+    const next: ModelWithProvider = { 
+      id: model.id, 
+      name: displayName, 
+      enabled: model.enabled, 
+      source: model.source, 
+      providerId 
+    };
     updateSettings({ selectedModel: next });
     setOpen(false);
   };
@@ -101,8 +105,8 @@ export function ModelSelector() {
 
             {groups.map((group) => {
               const models = (group.data.models || [])
-                .filter((m) => m.enabled)
-                .filter((m) => {
+                .filter((m: Model) => m.enabled)
+                .filter((m: Model) => {
                   if (!query.trim()) return true;
                   const display = m.name && m.name.trim().length > 0 ? m.name : m.id;
                   return display.toLowerCase().includes(query.toLowerCase());
@@ -116,7 +120,7 @@ export function ModelSelector() {
                     {group.label}
                   </div>
                   <ul role="listbox" className="py-1">
-                    {models.map((m) => {
+                    {models.map((m: Model) => {
                       const display = m.name && m.name.trim().length > 0 ? m.name : m.id;
                       return (
                         <li key={`${group.id}:${m.id}`}>

@@ -16,30 +16,26 @@ export const defaultProviderConfig = {
 }
 
 export function getASDK(model: ModelWithProvider) {
-    const { officialProviders, customProviders } = useProviderStore.getState();
+    const { getProvider } = useProviderStore.getState();
 
     // Resolve the actual provider format and credentials
     let resolvedFormat: OfficialProvider | null = null;
     let apiKey = '';
     let apiBaseURL = '';
 
-    if (
-        model.providerId === OfficialProvider.OPENAI ||
-        model.providerId === OfficialProvider.GOOGLE ||
-        model.providerId === OfficialProvider.OPENROUTER
-    ) {
-        resolvedFormat = model.providerId as OfficialProvider;
-        const prov = officialProviders[resolvedFormat];
-        apiKey = prov.apiKey;
-        apiBaseURL = prov.apiBaseURL || defaultProviderConfig[resolvedFormat].apiBaseURL;
-    } else if (typeof model.providerId === 'string') {
-        const custom = customProviders[model.providerId];
-        if (!custom) {
-            throw new Error(`Unsupported provider: ${model.providerId}`);
-        }
-        resolvedFormat = custom.providerFormat;
-        apiKey = custom.apiKey;
-        apiBaseURL = custom.apiBaseURL || defaultProviderConfig[resolvedFormat].apiBaseURL;
+    const provider = getProvider(model.providerId);
+    if (!provider) {
+        throw new Error(`Provider not found: ${model.providerId}`);
+    }
+
+    if (provider.type === 'official') {
+        resolvedFormat = provider.provider;
+        apiKey = provider.apiKey;
+        apiBaseURL = provider.apiBaseURL || defaultProviderConfig[provider.provider].apiBaseURL;
+    } else if (provider.type === 'custom') {
+        resolvedFormat = provider.providerFormat;
+        apiKey = provider.apiKey;
+        apiBaseURL = provider.apiBaseURL || defaultProviderConfig[provider.providerFormat].apiBaseURL;
     }
 
     switch (resolvedFormat) {

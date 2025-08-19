@@ -1,96 +1,64 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { OfficialProvider, useProviderStore, OfficialProviderState, CustomProviderState, Model } from '@/lib/stores/provider';
+import { useState } from 'react';
+import { useProviderStore } from '@/lib/stores/provider';
 import listModels from '@/lib/api/list-models';
-import { cn } from '@/lib/utils';
 import { ArrowLeft, Plus, Search } from 'lucide-react';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import Card from '@/components/ui/Card';
 
 interface Props {
-  isCustom: boolean;
-  activeOfficial: OfficialProvider | null;
-  activeCustomId: string | null;
+  providerId: string;
   onBack: () => void;
 }
 
-export default function ModelsManager({ isCustom, activeOfficial, activeCustomId, onBack }: Props) {
-  const store = useProviderStore();
-  const provider: (OfficialProviderState | CustomProviderState) | null = useMemo(() => {
-    if (isCustom) {
-      return activeCustomId ? store.customProviders[activeCustomId] : null;
-    }
-    return activeOfficial ? store.officialProviders[activeOfficial] : null;
-  }, [isCustom, activeOfficial, activeCustomId, store.customProviders, store.officialProviders]);
-
-  const format: OfficialProvider | null = useMemo(() => {
-    if (!provider) return null;
-    return isCustom
-      ? (provider as CustomProviderState).providerFormat
-      : (activeOfficial as OfficialProvider);
-  }, [isCustom, provider, activeOfficial]);
+export default function ModelsManager({ providerId, onBack }: Props) {
+  const { getProvider, applyFetchedModels, clearFetchedModels, addCustomModel, updateModel, removeCustomModel } = useProviderStore();
+  const provider = getProvider(providerId);
 
   const [creating, setCreating] = useState<{ id: string; name: string }>({ id: '', name: '' });
   const [isFetching, setIsFetching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  if (!provider || !format) return null;
+  if (!provider) return null;
+
+  const format = provider.type === 'custom' ? provider.providerFormat : provider.provider;
 
   const onFetch = async () => {
     setIsFetching(true);
     try {
       const models = await listModels(format, provider);
-      if (isCustom && activeCustomId) {
-        store.applyFetchedModelsToCustom(activeCustomId, models);
-      } else if (!isCustom && activeOfficial) {
-        store.applyFetchedModelsToOfficial(activeOfficial, models);
-      }
+      applyFetchedModels(providerId, models);
     } finally {
       setIsFetching(false);
     }
   };
 
   const onClearFetched = () => {
-    if (isCustom && activeCustomId) {
-      store.clearFetchedModelsForCustom(activeCustomId);
-    } else if (!isCustom && activeOfficial) {
-      store.clearFetchedModelsForOfficial(activeOfficial);
-    }
+    clearFetchedModels(providerId);
   };
 
   const onCreate = () => {
     const id = creating.id.trim();
     const name = creating.name.trim() || id;
     if (!id) return;
-    if (isCustom && activeCustomId) {
-      store.addCustomModelToCustom(activeCustomId, { id, name });
-    } else if (!isCustom && activeOfficial) {
-      store.addCustomModelToOfficial(activeOfficial, { id, name });
+    
+    if (addCustomModel(providerId, { id, name })) {
+      setCreating({ id: '', name: '' });
     }
-    setCreating({ id: '', name: '' });
   };
 
   const onToggle = (modelId: string, enabled: boolean) => {
-    if (isCustom && activeCustomId) {
-      store.updateModelForCustom(activeCustomId, modelId, { enabled });
-    } else if (!isCustom && activeOfficial) {
-      store.updateModelForOfficial(activeOfficial, modelId, { enabled });
-    }
+    updateModel(providerId, modelId, { enabled });
   };
 
   const onUpdateField = (modelId: string, field: 'name' | 'id', value: string) => {
-    if (isCustom && activeCustomId) {
-      store.updateModelForCustom(activeCustomId, modelId, { [field]: value } as Partial<Model>);
-    } else if (!isCustom && activeOfficial) {
-      store.updateModelForOfficial(activeOfficial, modelId, { [field]: value } as Partial<Model>);
-    }
+    updateModel(providerId, modelId, { [field]: value });
   };
 
   const onRemoveCustomModel = (modelId: string) => {
-    if (isCustom && activeCustomId) {
-      store.removeCustomModelFromCustom(activeCustomId, modelId);
-    } else if (!isCustom && activeOfficial) {
-      store.removeCustomModelFromOfficial(activeOfficial, modelId);
-    }
+    removeCustomModel(providerId, modelId);
   };
 
   const fetchedModels = provider.models.filter((m) => m.source === 'fetch');
@@ -110,142 +78,141 @@ export default function ModelsManager({ isCustom, activeOfficial, activeCustomId
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <button onClick={onBack} className="text-sm text-neutral-600 dark:text-neutral-300 hover:opacity-80">
+        <Button variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft />
-        </button>
+        </Button>
         <h3 className="text-lg font-semibold">Manage models</h3>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <button
+        <Button
           onClick={onFetch}
           disabled={isFetching}
-          className={cn(
-            'text-sm px-3 py-2 rounded-md border border-neutral-900 dark:border-white bg-neutral-900 text-white dark:bg-white dark:text-neutral-900',
-            isFetching && 'opacity-60 cursor-not-allowed'
-          )}
+          variant="primary"
         >
           {isFetching ? 'Fetching…' : 'Fetch models'}
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={onClearFetched}
-          className="text-sm px-3 py-2 rounded-md border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+          variant="secondary"
         >
           Clear fetched
-        </button>
+        </Button>
       </div>
-      <div className="flex-1">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search models..."
-            className="w-full pl-10 pr-3 py-2 rounded-md border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
-          />
-        </div>
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
+        <Input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search models..."
+          className="pl-10"
+        />
       </div>
 
       <div className="space-y-3">
         <div className="flex flex-col gap-2">
           <h4 className="text-sm font-semibold">Custom models</h4>
-          <div className="space-y-2 p-4 border border-neutral-200 dark:border-neutral-800 rounded-lg">
-            <div className="text-sm font-medium">Add custom model</div>
+          <Card variant="bordered" className="p-4">
+            <div className="text-sm font-medium mb-2">Add custom model</div>
             <div className="flex flex-col md:flex-row gap-2 items-left">
-              <input
+              <Input
                 value={creating.id}
                 onChange={(e) => setCreating((s) => ({ ...s, id: e.target.value }))}
                 placeholder="gpt-4o"
-                className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
+                className="flex-1"
               />
-              <input
+              <Input
                 value={creating.name}
                 onChange={(e) => setCreating((s) => ({ ...s, name: e.target.value }))}
                 placeholder="Display name (optional)"
-                className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
+                className="flex-1"
               />
-              <button
+              <Button
                 onClick={onCreate}
-                className="text-sm px-3 py-2 rounded-md bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                variant="primary"
+                size="sm"
               >
                 <Plus />
-              </button>
+              </Button>
             </div>
+          </Card>
+        </div>
+
+        <Card variant="bordered">
+          <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
+            {filteredCustomModels.length === 0 && (
+              <div className="px-4 py-3 text-sm text-neutral-500">
+                {searchQuery ? 'No custom models match your search' : 'No custom models'}
+              </div>
+            )}
+            {filteredCustomModels.map((m) => (
+              <div key={m.id} className="px-4 py-3 grid grid-cols-1 md:grid-cols-6 gap-3 items-center">
+                <div className="md:col-span-2">
+                  <Input
+                    type="text"
+                    value={m.name || ''}
+                    onChange={(e) => onUpdateField(m.id, 'name', e.target.value)}
+                  />
+                </div>
+                <div className="md:col-span-3">
+                  <Input
+                    type="text"
+                    value={m.id}
+                    onChange={(e) => onUpdateField(m.id, 'id', e.target.value)}
+                  />
+                </div>
+                <div className="md:col-span-1 flex items-center justify-end gap-2">
+                  <label className="text-xs">Enabled</label>
+                  <input type="checkbox" checked={!!m.enabled} onChange={(e) => onToggle(m.id, e.target.checked)} />
+                  <Button
+                    onClick={() => onRemoveCustomModel(m.id)}
+                    variant="danger"
+                    size="sm"
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-        <div className="divide-y divide-neutral-200 dark:divide-neutral-800 border rounded-lg border-neutral-200 dark:border-neutral-800 overflow-hidden">
-          {filteredCustomModels.length === 0 && (
-            <div className="px-4 py-3 text-sm text-neutral-500">
-              {searchQuery ? 'No custom models match your search' : 'No custom models'}
-            </div>
-          )}
-          {filteredCustomModels.map((m) => (
-            <div key={m.id} className="px-4 py-3 grid grid-cols-1 md:grid-cols-6 gap-3 items-center">
-              <div className="md:col-span-2">
-                <input
-                  type="text"
-                  value={m.name || ''}
-                  onChange={(e) => onUpdateField(m.id, 'name', e.target.value)}
-                  className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
-                />
-              </div>
-              <div className="md:col-span-3">
-                <input
-                  type="text"
-                  value={m.id}
-                  onChange={(e) => onUpdateField(m.id, 'id', e.target.value)}
-                  className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
-                />
-              </div>
-              <div className="md:col-span-1 flex items-center justify-end gap-2">
-                <label className="text-xs">Enabled</label>
-                <input type="checkbox" checked={!!m.enabled} onChange={(e) => onToggle(m.id, e.target.checked)} />
-                <button
-                  onClick={() => onRemoveCustomModel(m.id)}
-                  className="text-xs px-2 py-1 rounded-md border border-red-200 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/20"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+        </Card>
       </div>
 
       <div className="space-y-3">
         <h4 className="text-sm font-semibold">Fetched models</h4>
-        <div className="divide-y divide-neutral-200 dark:divide-neutral-800 border rounded-lg border-neutral-200 dark:border-neutral-800 overflow-hidden">
-          {filteredFetchedModels.length === 0 && (
-            <div className="px-4 py-3 text-sm text-neutral-500">
-              {searchQuery ? 'No fetched models match your search' : 'No fetched models'}
-            </div>
-          )}
-          {filteredFetchedModels.map((m) => (
-            <div key={m.id} className="px-4 py-3 grid grid-cols-1 md:grid-cols-6 gap-3 items-center">
-              <div className="md:col-span-2">
-                <input
-                  type="text"
-                  value={m.name || ''}
-                  onChange={(e) => onUpdateField(m.id, 'name', e.target.value)}
-                  className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
-                />
+        <Card variant="bordered">
+          <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
+            {filteredFetchedModels.length === 0 && (
+              <div className="px-4 py-3 text-sm text-neutral-500">
+                {searchQuery ? 'No fetched models match your search' : 'No fetched models'}
               </div>
-              <div className="md:col-span-3">
-                <input
-                  type="text"
-                  value={m.id}
-                  onChange={(e) => onUpdateField(m.id, 'id', e.target.value)}
-                  className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
-                />
+            )}
+            {filteredFetchedModels.map((m) => (
+              <div key={m.id} className="px-4 py-3 grid grid-cols-1 md:grid-cols-6 gap-3 items-center">
+                <div className="md:col-span-2">
+                  <Input
+                    type="text"
+                    value={m.name || ''}
+                    onChange={(e) => onUpdateField(m.id, 'name', e.target.value)}
+                  />
+                </div>
+                <div className="md:col-span-3">
+                  <Input
+                    type="text"
+                    value={m.id}
+                    onChange={(e) => onUpdateField(m.id, 'id', e.target.value)}
+                  />
+                </div>
+                <div className="md:col-span-1 flex items-center justify-end">
+                  <label className="text-xs mr-2">Enabled</label>
+                  <input type="checkbox" checked={!!m.enabled} onChange={(e) => onToggle(m.id, e.target.checked)} />
+                </div>
               </div>
-              <div className="md:col-span-1 flex items-center justify-end">
-                <label className="text-xs mr-2">Enabled</label>
-                <input type="checkbox" checked={!!m.enabled} onChange={(e) => onToggle(m.id, e.target.checked)} />
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </Card>
       </div>
     </div>
   );

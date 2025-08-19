@@ -18,6 +18,12 @@ type StoredMessage = {
     content: string
     timestamp: number
     role: 'user' | 'assistant'
+    assets?: Array<{
+        id: string
+        type: 'image'
+        mimeType?: string
+        name?: string
+    }>
 }
 
 type StoredConversation = {

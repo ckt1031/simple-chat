@@ -88,7 +88,7 @@ export function Chat({ chatId }: ChatProps) {
 
     // Remove the last AI generated message if it exists
     removeLastAssistantMessage(messageId);
-    handleSendMessage(userMessage.content, true);
+    handleSendMessage(userMessage.content, true, userMessage.assets);
   };
 
   const handleStopGeneration = () => {
@@ -97,7 +97,7 @@ export function Chat({ chatId }: ChatProps) {
     }
   };
 
-  const handleSendMessage = async (content: string, isRegenerating = false) => {
+  const handleSendMessage = async (content: string, isRegenerating = false, assets?: Message['assets']) => {
     let conversationId = currentConversationId;
     
     // If no current conversation, create one first
@@ -112,6 +112,7 @@ export function Chat({ chatId }: ChatProps) {
       timestamp: Date.now(),
       role: 'user',
       content,
+      assets,
     } as const;
     if (!isRegenerating) {
       addMessage(userMessage);
@@ -237,9 +238,9 @@ export function Chat({ chatId }: ChatProps) {
         </div>
 
         {/* Input */}
-        <div className="flex-shrink-0 p-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+        <div className="flex-shrink-0 px-4 py-2 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
           <ChatInput
-            onSend={handleSendMessage}
+            onSend={(content, assets) => handleSendMessage(content, false, assets)}
             onStop={handleStopGeneration}
             disabled={false}
             isLoading={false}
@@ -275,9 +276,9 @@ export function Chat({ chatId }: ChatProps) {
       </div>
 
       {/* Input */}
-      <div className="flex-shrink-0 p-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+      <div className="flex-shrink-0 py-2 px-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
         <ChatInput
-          onSend={handleSendMessage}
+          onSend={(content, assets) => handleSendMessage(content, false, assets)}
           onStop={handleStopGeneration}
           disabled={currentConversation.isLoading}
           isLoading={currentConversation.isLoading}

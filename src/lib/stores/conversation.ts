@@ -16,6 +16,12 @@ export interface Message {
     content: string;
     timestamp: number;
     role: 'user' | 'assistant';
+    assets?: Array<{
+        id: string;
+        type: 'image';
+        mimeType?: string;
+        name?: string;
+    }>;
 }
 
 export interface ConversationState {
@@ -80,7 +86,10 @@ export const useConversationStore = create<ConversationStore>()(
                             // Update title if this is the first user message
                             let updatedTitle = c.title;
                             if (message.role === 'user' && c.messages.length === 0) {
-                                updatedTitle = message.content.slice(0, 50) + (message.content.length > 50 ? '...' : '');
+                                const base = (message.content && message.content.trim().length > 0)
+                                    ? message.content
+                                    : (message.assets && message.assets.length > 0 ? '(Image message)' : 'New chat');
+                                updatedTitle = base.slice(0, 50) + (base.length > 50 ? '...' : '');
                             }
                             return { ...c, messages: updatedMessages, title: updatedTitle };
                         }

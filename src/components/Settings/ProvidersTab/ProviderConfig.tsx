@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod/mini';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft } from 'lucide-react';
+import { defaultProviderConfig } from '@/lib/api/sdk';
+import { useMemo } from 'react';
 
 interface Props {
   isCustom: boolean;
@@ -16,6 +18,13 @@ interface Props {
 
 export default function ProviderConfig({ isCustom, activeOfficial, activeCustomId, onBack, onManageModels }: Props) {
   const { officialProviders, customProviders, updateOfficialProvider, updateCustomProvider, removeCustomProvider } = useProviderStore();
+
+  const providerDefaultBaseURL = useMemo(() => {
+    if (!isCustom && activeOfficial) {
+      return defaultProviderConfig[activeOfficial]?.apiBaseURL || '';
+    }
+    return '';
+  }, [isCustom, activeOfficial]);
 
   const title = isCustom ? 'Configure custom provider' : 'Configure provider';
 
@@ -91,14 +100,23 @@ export default function ProviderConfig({ isCustom, activeOfficial, activeCustomI
           <div className="space-y-1">
             <label className="text-sm font-medium">API base URL</label>
             <input
-              type="text"
-              placeholder="https://api.example.com"
+              type="url"
+              placeholder={providerDefaultBaseURL || "https://api.example.com"}
               className={cn(
                 'w-full rounded-md border bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600',
-                'border-neutral-300 dark:border-neutral-700'
+                'border-neutral-300 dark:border-neutral-700',
+                !provider.apiBaseURL && providerDefaultBaseURL && 'text-neutral-400'
               )}
               {...register('apiBaseURL')}
             />
+            {!isCustom && providerDefaultBaseURL && (
+              <div className="text-xs text-neutral-500">
+                {provider.apiBaseURL ? 'Custom URL set' : `Default: ${providerDefaultBaseURL}`}
+                {!provider.apiBaseURL && (
+                  <div className="mt-1">Leave empty to use the default URL</div>
+                )}
+              </div>
+            )}
             {errors.apiBaseURL && (
               <div className="text-xs text-red-600 dark:text-red-400">{errors.apiBaseURL.message}</div>
             )}

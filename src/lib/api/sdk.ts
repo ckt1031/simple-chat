@@ -3,6 +3,18 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 
+export const defaultProviderConfig = {
+    [OfficialProvider.OPENAI]: {
+        apiBaseURL: 'https://api.openai.com/v1',
+    },
+    [OfficialProvider.GOOGLE]: {
+        apiBaseURL: 'https://generativelanguage.googleapis.com/v1beta/models/',
+    },
+    [OfficialProvider.OPENROUTER]: {
+        apiBaseURL: 'https://openrouter.ai/api/v1',
+    },
+}
+
 export function getASDK(model: ModelWithProvider) {
     const { officialProviders, customProviders } = useProviderStore.getState();
 
@@ -19,7 +31,7 @@ export function getASDK(model: ModelWithProvider) {
         resolvedFormat = model.providerId as OfficialProvider;
         const prov = officialProviders[resolvedFormat];
         apiKey = prov.apiKey;
-        apiBaseURL = prov.apiBaseURL;
+        apiBaseURL = prov.apiBaseURL || defaultProviderConfig[resolvedFormat].apiBaseURL;
     } else if (typeof model.providerId === 'string') {
         const custom = customProviders[model.providerId];
         if (!custom) {
@@ -27,11 +39,7 @@ export function getASDK(model: ModelWithProvider) {
         }
         resolvedFormat = custom.providerFormat;
         apiKey = custom.apiKey;
-        apiBaseURL = custom.apiBaseURL;
-    }
-
-    if (!apiBaseURL) {
-        throw new Error('API key or base URL is not set');
+        apiBaseURL = custom.apiBaseURL || defaultProviderConfig[resolvedFormat].apiBaseURL;
     }
 
     switch (resolvedFormat) {

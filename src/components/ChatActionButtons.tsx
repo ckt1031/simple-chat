@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Copy, RefreshCcw } from "lucide-react";
+import { Check, Copy, RefreshCcw, Trash } from "lucide-react";
 import { useConversationStore } from "@/lib/stores/conversation";
 
 interface ChatActionButtonsProps {
     copied: boolean;
     isRegenerating?: boolean;
-    
+
     messageId: string;
     conversationId: string;
 
@@ -15,7 +15,7 @@ interface ChatActionButtonsProps {
 
 export default function ChatActionButtons({ handleCopy, copied, conversationId, handleRegenerate, isRegenerating = false, messageId }: ChatActionButtonsProps) {
     const containerRef = useRef<HTMLDivElement>(null);
-    const { isLastMessage } = useConversationStore();
+    const { isLastMessage, deleteMessage } = useConversationStore();
 
     // Show the buttons when the mouse is within 60px of the container (top/bottom/left/right)
     // This is a simple "proximity" effect using mousemove on the document.
@@ -42,12 +42,23 @@ export default function ChatActionButtons({ handleCopy, copied, conversationId, 
         };
     }, []);
 
+    const handleDelete = () => {
+        deleteMessage(conversationId, messageId);
+    };
+
     return (
         <div
             ref={containerRef}
             className={`flex space-x-2 mt-1 px-2 transition-opacity duration-200 ${visible ? "opacity-100" : "opacity-0"
                 }`}
         >
+            <button
+                onClick={handleDelete}
+                className="rounded-md text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors font-medium"
+                title="Delete message"
+            >
+                <Trash size={16} />
+            </button>
             <button
                 onClick={handleCopy}
                 className="rounded-md text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors font-medium"

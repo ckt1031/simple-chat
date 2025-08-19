@@ -32,6 +32,7 @@ export interface ConversationStore extends ConversationState {
     updateMessage: (id: string, updates: Partial<Omit<Message, 'id'>>) => void;
     appendToMessage: (id: string, text: string) => void;
     isLastMessage: (conversationId: string, messageId: string) => boolean;
+    deleteMessage: (conversationId: string, messageId: string) => void;
     removeLastAssistantMessage: (messageId: string) => void;
 }
 
@@ -110,6 +111,14 @@ export const useConversationStore = create<ConversationStore>()(
                 const conversation = state.conversations.find(c => c.id === conversationId);
                 if (!conversation) return false;
                 return conversation.messages[conversation.messages.length - 1].id === messageId;
+            },
+            deleteMessage: (conversationId: string, messageId: string) => {
+                set((state) => ({
+                    conversations: state.conversations.map((c) => ({
+                        ...c,
+                        messages: c.messages.filter((m) => m.id !== messageId),
+                    })),
+                }));
             },
             removeLastAssistantMessage: (messageId: string) => {
                 // Remove the last message if it's an assistant message, do not remove user or any earlier assistant messages

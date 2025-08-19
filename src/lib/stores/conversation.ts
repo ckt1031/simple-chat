@@ -46,6 +46,7 @@ export interface ConversationStore extends ConversationState {
     setConversationLoading: (conversationId: string, loading: boolean, abortController?: AbortController) => void;
     stopConversation: (conversationId: string) => void;
     resetAllLoadingStates: () => void;
+    removeAssetReferences: (assetId: string) => void;
 }
 
 export const useConversationStore = create<ConversationStore>()(
@@ -182,6 +183,19 @@ export const useConversationStore = create<ConversationStore>()(
                         ...c,
                         isLoading: false,
                         abortController: undefined,
+                    })),
+                }));
+            },
+            removeAssetReferences: (assetId: string) => {
+                set((state) => ({
+                    conversations: state.conversations.map((c) => ({
+                        ...c,
+                        messages: c.messages.map((m) => {
+                            if (!m.assets || m.assets.length === 0) return m;
+                            const filtered = m.assets.filter(a => a.id !== assetId);
+                            if (filtered.length === m.assets.length) return m;
+                            return { ...m, assets: filtered };
+                        }),
                     })),
                 }));
             },

@@ -1,10 +1,10 @@
 'use client';
 
-import { SquarePen, Trash2, Settings, Loader2 } from 'lucide-react';
+import { SquarePen, Trash2, Settings, Loader2, Image as ImageIcon } from 'lucide-react';
 import { useGlobalStore } from '@/lib/stores/global';
 import { cn } from '@/lib/utils';
 import { useConversationStore } from '@/lib/stores/conversation';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 export function Sidebar() {
   const {
@@ -16,6 +16,7 @@ export function Sidebar() {
 
   const { conversations, currentConversationId, deleteConversation } = useConversationStore();
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleSelectConversation = (id: string) => {
     router.push(`/?id=${id}`);
@@ -23,6 +24,10 @@ export function Sidebar() {
 
   const handleNewChat = () => {
     router.push('/');
+  };
+
+  const handleOpenLibrary = () => {
+    router.push('/library');
   };
 
   const handleDeleteConversation = (e: React.MouseEvent, id: string) => {
@@ -69,6 +74,21 @@ export function Sidebar() {
             >
               <SquarePen className="w-4 h-4" />
               <span>New chat</span>
+            </button>
+          </div>
+
+          <div className="px-1.5 mt-0.5">
+            <button
+              onClick={handleOpenLibrary}
+              className={cn(
+                'w-full flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+                pathname === '/library'
+                  ? 'bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white'
+                  : 'text-neutral-700 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700'
+              )}
+            >
+              <ImageIcon className="w-4 h-4" />
+              <span>Library</span>
             </button>
           </div>
 

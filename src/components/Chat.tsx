@@ -14,9 +14,21 @@ interface ChatProps {
 }
 
 export function Chat({ chatId }: ChatProps) {
-  const { ui, general, setChatRequesting } = useGlobalStore();
+  const { general } = useGlobalStore();
   const { hasEnabledProviders, officialProviders, customProviders } = useProviderStore();
-  const { conversations, currentConversationId, isHydrated, addMessage, appendToMessage, updateMessage, setCurrentConversation, createNewConversation, removeLastAssistantMessage } = useConversationStore();
+  const { 
+    conversations, 
+    currentConversationId, 
+    isHydrated, 
+    addMessage, 
+    appendToMessage, 
+    updateMessage, 
+    setCurrentConversation, 
+    createNewConversation, 
+    removeLastAssistantMessage,
+    setConversationLoading,
+    stopConversation
+  } = useConversationStore();
   const router = useRouter();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -77,6 +89,12 @@ export function Chat({ chatId }: ChatProps) {
     // Remove the last AI generated message if it exists
     removeLastAssistantMessage(messageId);
     handleSendMessage(userMessage.content, true);
+  };
+
+  const handleStopGeneration = () => {
+    if (currentConversationId) {
+      stopConversation(currentConversationId);
+    }
   };
 
   const handleSendMessage = async (content: string, isRegenerating = false) => {
@@ -145,8 +163,12 @@ export function Chat({ chatId }: ChatProps) {
     const convo = conversations.find((c) => c.id === conversationId);
     const messagesForAI = [...(convo?.messages ?? []), { ...userMessage }];
 
+    // Create abort controller for this request
+    const abortController = new AbortController();
+    
     try {
-      setChatRequesting(true);
+      setConversationLoading(conversationId, true, abortController);
+      
       // Create a placeholder assistant message to stream into
       const assistantId = addMessage({
         timestamp: Date.now(),
@@ -154,27 +176,37 @@ export function Chat({ chatId }: ChatProps) {
         content: '',
       });
 
-      const textStream = await completionsStreaming(selected, messagesForAI as Message[]);
+      const textStream = await completionsStreaming(selected, messagesForAI as Message[], abortController.signal);
       for await (const delta of textStream) {
         appendToMessage(assistantId, delta);
       }
     } catch (err: unknown) {
-      // If we created a placeholder, replace its content with the error; otherwise add a new error message
-      const errorText = `Failed to generate a response: ${err instanceof Error ? err.message : 'Unknown error'}`;
-      try {
-        // Attempt to update the last assistant message if it was just created
+      // Check if it was aborted
+      if (err instanceof Error && err.name === 'AbortError') {
+        // User stopped the generation, update the message to indicate it was stopped
         const convo = conversations.find((c) => c.id === conversationId);
         const last = convo?.messages[convo.messages.length - 1];
         if (last && last.role === 'assistant') {
-          updateMessage(last.id, { content: errorText });
-        } else {
+          updateMessage(last.id, { content: last.content + '\n\n*Generation stopped by user*' });
+        }
+      } else {
+        // If we created a placeholder, replace its content with the error; otherwise add a new error message
+        const errorText = `Failed to generate a response: ${err instanceof Error ? err.message : 'Unknown error'}`;
+        try {
+          // Attempt to update the last assistant message if it was just created
+          const convo = conversations.find((c) => c.id === conversationId);
+          const last = convo?.messages[convo.messages.length - 1];
+          if (last && last.role === 'assistant') {
+            updateMessage(last.id, { content: errorText });
+          } else {
+            addMessage({ timestamp: Date.now(), role: 'assistant', content: errorText });
+          }
+        } catch {
           addMessage({ timestamp: Date.now(), role: 'assistant', content: errorText });
         }
-      } catch {
-        addMessage({ timestamp: Date.now(), role: 'assistant', content: errorText });
       }
     } finally {
-      setChatRequesting(false);
+      setConversationLoading(conversationId, false);
     }
   };
 
@@ -208,8 +240,9 @@ export function Chat({ chatId }: ChatProps) {
         <div className="flex-shrink-0 p-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
           <ChatInput
             onSend={handleSendMessage}
-            disabled={ui.isChatRequesting}
-            isLoading={ui.isChatRequesting}
+            onStop={handleStopGeneration}
+            disabled={false}
+            isLoading={false}
           />
         </div>
       </div>
@@ -245,8 +278,9 @@ export function Chat({ chatId }: ChatProps) {
       <div className="flex-shrink-0 p-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
         <ChatInput
           onSend={handleSendMessage}
-          disabled={ui.isChatRequesting}
-          isLoading={ui.isChatRequesting}
+          onStop={handleStopGeneration}
+          disabled={currentConversation.isLoading}
+          isLoading={currentConversation.isLoading}
         />
       </div>
     </div>

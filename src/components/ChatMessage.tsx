@@ -55,7 +55,7 @@ export function ChatMessage({ message, onRegenerate, isRegenerating = false, con
               isUser ? (
                 <div className="whitespace-pre-wrap">{message.content}</div>
               ) : (
-                <div className="prose prose-neutral dark:prose-invert space-y-2">
+                <div className="prose prose-neutral dark:prose-invert space-y-2 max-w-full">
                   <MemoizedMarkdown
                     key={message.id}
                     id={message.id}

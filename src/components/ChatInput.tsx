@@ -1,17 +1,18 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Plus, Loader2 } from 'lucide-react';
+import { Plus, Loader2, Square, ArrowUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
+  onStop?: () => void;
   disabled?: boolean;
   placeholder?: string;
   isLoading?: boolean;
 }
 
-export function ChatInput({ onSend, disabled = false, placeholder = "Ask anything...", isLoading = false }: ChatInputProps) {
+export function ChatInput({ onSend, onStop, disabled = false, placeholder = "Ask anything...", isLoading = false }: ChatInputProps) {
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -62,24 +63,36 @@ export function ChatInput({ onSend, disabled = false, placeholder = "Ask anythin
           style={{ maxHeight: '120px' }}
         />
 
-        {/* Voice and Send Buttons */}
+        {/* Voice and Send/Stop Buttons */}
         <div className="flex items-center space-x-1">
-          <button
-            type="submit"
-            disabled={!message.trim() || disabled || isLoading}
-            className={cn(
-              "p-2 transition-colors rounded-full",
-              message.trim() && !disabled && !isLoading
-                  ? "bg-neutral-800 text-neutral-100 hover:bg-neutral-700 dark:bg-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-600"
-                : "bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-400 cursor-not-allowed"
-            )}
-          >
-            {isLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
-          </button>
+          {isLoading && onStop ? (
+            <button
+              type="button"
+              onClick={onStop}
+              className="p-2 transition-colors rounded-full bg-neutral-800 text-white hover:bg-neutral-700 dark:bg-neutral-700 dark:text-white dark:hover:bg-neutral-600"
+              aria-label="Stop generating"
+              title="Stop generating"
+            >
+              <Square className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={!message.trim() || disabled || isLoading}
+              className={cn(
+                "p-2 transition-colors rounded-full",
+                message.trim() && !disabled && !isLoading
+                    ? "bg-neutral-800 text-neutral-100 hover:bg-neutral-700 dark:bg-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-600"
+                  : "bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-400 cursor-not-allowed"
+              )}
+            >
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <ArrowUp  className="w-4 h-4" />
+              )}
+            </button>
+          )}
         </div>
       </div>
     </form>

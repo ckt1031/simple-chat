@@ -6,6 +6,8 @@ export interface Conversation {
     id: string;
     title: string;
     messages: Message[];
+    isLoading?: boolean;
+    abortController?: AbortController;
 }
 
 export interface Message {
@@ -34,6 +36,9 @@ export interface ConversationStore extends ConversationState {
     isLastMessage: (conversationId: string, messageId: string) => boolean;
     deleteMessage: (conversationId: string, messageId: string) => void;
     removeLastAssistantMessage: (messageId: string) => void;
+    setConversationLoading: (conversationId: string, loading: boolean, abortController?: AbortController) => void;
+    stopConversation: (conversationId: string) => void;
+    resetAllLoadingStates: () => void;
 }
 
 export const useConversationStore = create<ConversationStore>()(
@@ -45,7 +50,7 @@ export const useConversationStore = create<ConversationStore>()(
             createNewConversation: () => {
                 const newID = createIdGenerator({ size: 16 })();
                 set((state) => ({
-                    conversations: [{ id: newID, title: 'New chat', messages: [] },...state.conversations],
+                    conversations: [{ id: newID, title: 'New chat', messages: [], isLoading: false },...state.conversations],
                     currentConversationId: newID,
                 }));
                 return newID;
@@ -138,13 +143,55 @@ export const useConversationStore = create<ConversationStore>()(
                     }));
                 }
             },
+            setConversationLoading: (conversationId: string, loading: boolean, abortController?: AbortController) => {
+                set((state) => ({
+                    conversations: state.conversations.map((c) => 
+                        c.id === conversationId 
+                            ? { ...c, isLoading: loading, abortController: loading ? abortController : undefined }
+                            : c
+                    ),
+                }));
+            },
+            stopConversation: (conversationId: string) => {
+                const state = get();
+                const conversation = state.conversations.find(c => c.id === conversationId);
+                if (conversation?.abortController) {
+                    conversation.abortController.abort();
+                }
+                set((state) => ({
+                    conversations: state.conversations.map((c) => 
+                        c.id === conversationId 
+                            ? { ...c, isLoading: false, abortController: undefined }
+                            : c
+                    ),
+                }));
+            },
+            resetAllLoadingStates: () => {
+                set((state) => ({
+                    conversations: state.conversations.map((c) => ({
+                        ...c,
+                        isLoading: false,
+                        abortController: undefined,
+                    })),
+                }));
+            },
         }),
         { 
             name: 'conversation', 
             storage: createJSONStorage(() => localStorage),
+            partialize: (state) => ({
+                conversations: state.conversations.map(conv => ({
+                    ...conv,
+                    abortController: undefined // Exclude AbortController from persistence
+                })),
+                currentConversationId: state.currentConversationId,
+                isHydrated: state.isHydrated,
+            }),
             onRehydrateStorage: () => (state) => {
                 if (state) {
                     state.setHydrated(true);
+                    // Reset all loading states on rehydration to handle page reloads
+                    state.resetAllLoadingStates();
                 }
             },
         }

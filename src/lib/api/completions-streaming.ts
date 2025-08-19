@@ -3,13 +3,18 @@ import { ModelWithProvider } from '../stores/provider';
 import { Message } from '../stores/conversation';
 import { getASDK } from './sdk';
 
-export default async function completionsStreaming(model: ModelWithProvider, messages: Message[]) {
+export default async function completionsStreaming(
+    model: ModelWithProvider, 
+    messages: Message[], 
+    abortSignal?: AbortSignal
+) {
     const transform = smoothStream();
 
     const { textStream } = streamText({
         model: getASDK(model),
         messages: messages.map((m) => ({ role: m.role, content: m.content })),
         experimental_transform: transform,
+        abortSignal,
     });
 
     return textStream;

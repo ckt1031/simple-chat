@@ -1,6 +1,6 @@
 'use client';
 
-import { SquarePen, Trash2, Settings } from 'lucide-react';
+import { SquarePen, Trash2, Settings, Loader2 } from 'lucide-react';
 import { useGlobalStore } from '@/lib/stores/global';
 import { cn } from '@/lib/utils';
 import { useConversationStore } from '@/lib/stores/conversation';
@@ -89,10 +89,15 @@ export function Sidebar() {
                         : 'text-neutral-700 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700'
                     )}
                   >
-                    <span className="truncate">{conversation.title}</span>
+                    <div className="flex items-center space-x-2 min-w-0 flex-1">
+                      {conversation.isLoading && (
+                        <Loader2 className="w-3 h-3 animate-spin text-blue-500 flex-shrink-0" />
+                      )}
+                      <span className="truncate">{conversation.title}</span>
+                    </div>
                     <button
                       onClick={(e) => handleDeleteConversation(e, conversation.id)}
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded transition-all"
+                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded transition-all flex-shrink-0"
                     >
                       <Trash2 className="w-3 h-3 text-neutral-500 dark:text-neutral-400" />
                     </button>

@@ -1,8 +1,8 @@
-import { OfficialProvider, useProviderStore } from '@/lib/stores/provider';
-import { useNavigationStore } from '@/lib/stores/navigation';
-import { ArrowLeft } from 'lucide-react';
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
+import { OfficialProvider, useProviderStore } from "@/lib/stores/provider";
+import { useNavigationStore } from "@/lib/stores/navigation";
+import { ArrowLeft } from "lucide-react";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
 
 interface Props {
   officialList: { id: OfficialProvider; label: string }[];
@@ -26,7 +26,7 @@ export default function AddCustom({ officialList, onBack }: Props) {
         </Button>
         <h3 className="text-lg font-semibold">Select API format</h3>
       </div>
-      
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {officialList.map(({ id, label }) => (
           <Card
@@ -36,12 +36,12 @@ export default function AddCustom({ officialList, onBack }: Props) {
             onClick={() => handleChoose(id)}
           >
             <div className="text-sm font-medium">{label}</div>
-            <div className="text-xs text-neutral-500 mt-1">Use {label}-compatible API</div>
+            <div className="text-xs text-neutral-500 mt-1">
+              Use {label}-compatible API
+            </div>
           </Card>
         ))}
       </div>
     </div>
   );
 }
-
-

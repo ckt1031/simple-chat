@@ -1,14 +1,14 @@
-import { marked } from 'marked';
-import { memo, useMemo } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
+import { marked } from "marked";
+import { memo, useMemo } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 
 function parseMarkdownIntoBlocks(markdown: string): string[] {
   const tokens = marked.lexer(markdown);
-  return tokens.map(token => token.raw);
+  return tokens.map((token) => token.raw);
 }
 
 const MemoizedMarkdownBlock = memo(
@@ -17,17 +17,14 @@ const MemoizedMarkdownBlock = memo(
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex, rehypeRaw]}
-                  components={{
-            br: ({ node, ...props }) => <br {...props} />,
-            table: ({ node, ...props }) => (
-              <div className="overflow-x-auto w-full">
-                <table 
-                  className="table-auto min-w-xl" 
-                  {...props} 
-                />
-              </div>
-            ),
-          }}
+        components={{
+          br: ({ node, ...props }) => <br {...props} />,
+          table: ({ node, ...props }) => (
+            <div className="overflow-x-auto w-full">
+              <table className="table-auto min-w-xl" {...props} />
+            </div>
+          ),
+        }}
       >
         {content}
       </ReactMarkdown>
@@ -39,7 +36,7 @@ const MemoizedMarkdownBlock = memo(
   },
 );
 
-MemoizedMarkdownBlock.displayName = 'MemoizedMarkdownBlock';
+MemoizedMarkdownBlock.displayName = "MemoizedMarkdownBlock";
 
 export const MemoizedMarkdown = memo(
   ({ content, id }: { content: string; id: string }) => {
@@ -51,4 +48,4 @@ export const MemoizedMarkdown = memo(
   },
 );
 
-MemoizedMarkdown.displayName = 'MemoizedMarkdown';
+MemoizedMarkdown.displayName = "MemoizedMarkdown";

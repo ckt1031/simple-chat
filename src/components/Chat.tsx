@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { useGlobalStore } from '@/lib/stores/global';
-import { ChatMessage } from './ChatMessage';
-import { ChatInput } from './ChatInput';
-import { Message, useConversationStore } from '@/lib/stores/conversation';
-import { useProviderStore } from '@/lib/stores/provider';
-import completionsStreaming from '@/lib/api/completions-streaming';
-import { useRouter } from 'next/navigation';
-import ChatScrollToBottom from './ChatScrollToBottom';
+import { useEffect, useRef, useState } from "react";
+import { useGlobalStore } from "@/lib/stores/global";
+import { ChatMessage } from "./ChatMessage";
+import { ChatInput } from "./ChatInput";
+import { Message, useConversationStore } from "@/lib/stores/conversation";
+import { useProviderStore } from "@/lib/stores/provider";
+import completionsStreaming from "@/lib/api/completions-streaming";
+import { useRouter } from "next/navigation";
+import ChatScrollToBottom from "./ChatScrollToBottom";
 
 interface ChatProps {
   chatId: string | null;
@@ -17,18 +17,18 @@ interface ChatProps {
 export function Chat({ chatId }: ChatProps) {
   const { general } = useGlobalStore();
   const { hasEnabledProviders } = useProviderStore();
-  const { 
-    conversations, 
-    currentConversationId, 
-    isHydrated, 
-    addMessage, 
-    appendToMessage, 
-    updateMessage, 
-    setCurrentConversation, 
-    createNewConversation, 
+  const {
+    conversations,
+    currentConversationId,
+    isHydrated,
+    addMessage,
+    appendToMessage,
+    updateMessage,
+    setCurrentConversation,
+    createNewConversation,
     removeLastAssistantMessage,
     setConversationLoading,
-    stopConversation
+    stopConversation,
   } = useConversationStore();
   const router = useRouter();
 
@@ -39,15 +39,17 @@ export function Chat({ chatId }: ChatProps) {
   useEffect(() => {
     // Wait for store to be hydrated before processing URL
     if (!isHydrated) return;
-    
+
     if (chatId) {
       // Check if the chat ID exists
-      const conversationExists = conversations.find(conv => conv.id === chatId);
+      const conversationExists = conversations.find(
+        (conv) => conv.id === chatId,
+      );
       if (conversationExists) {
         setCurrentConversation(chatId);
       } else {
         // Invalid ID, redirect to new chat
-        router.push('/');
+        router.push("/");
       }
     } else {
       // No chat ID, clear current conversation (new chat state)
@@ -56,15 +58,15 @@ export function Chat({ chatId }: ChatProps) {
   }, [chatId, conversations, setCurrentConversation, router, isHydrated]);
 
   const currentConversation = conversations.find(
-    (conv) => conv.id === currentConversationId
+    (conv) => conv.id === currentConversationId,
   );
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'end',
-        inline: 'nearest'
+      messagesEndRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+        inline: "nearest",
       });
     }
   };
@@ -73,7 +75,9 @@ export function Chat({ chatId }: ChatProps) {
     // Only auto-scroll if we're near the bottom or if it's a new message
     const messagesContainer = messagesEndRef.current?.parentElement;
     if (messagesContainer) {
-      const isNearBottom = messagesContainer.scrollTop + messagesContainer.clientHeight >= messagesContainer.scrollHeight - 100;
+      const isNearBottom =
+        messagesContainer.scrollTop + messagesContainer.clientHeight >=
+        messagesContainer.scrollHeight - 100;
       if (isNearBottom || currentConversation?.messages.length === 1) {
         scrollToBottom();
       }
@@ -85,20 +89,25 @@ export function Chat({ chatId }: ChatProps) {
     const container = messagesEndRef.current?.parentElement;
     if (!container) return;
     const onScroll = () => {
-      const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 100;
+      const nearBottom =
+        container.scrollTop + container.clientHeight >=
+        container.scrollHeight - 100;
       setShowScrollButton(!nearBottom);
     };
     onScroll();
-    container.addEventListener('scroll', onScroll, { passive: true });
-    return () => container.removeEventListener('scroll', onScroll);
+    container.addEventListener("scroll", onScroll, { passive: true });
+    return () => container.removeEventListener("scroll", onScroll);
   }, [currentConversation?.id]);
 
   const handleRegenerateMessage = async (messageId: string) => {
     // In the regeneration, we only allow re-generating the last message
-    const lastMessage = currentConversation?.messages[currentConversation.messages.length - 1];
+    const lastMessage =
+      currentConversation?.messages[currentConversation.messages.length - 1];
     if (!lastMessage || lastMessage.id !== messageId) return;
 
-    const userMessage = [...(currentConversation?.messages ?? [])].reverse().find(m => m.role === 'user');
+    const userMessage = [...(currentConversation?.messages ?? [])]
+      .reverse()
+      .find((m) => m.role === "user");
     if (!userMessage) return;
 
     // Remove the last AI generated message if it exists
@@ -112,9 +121,13 @@ export function Chat({ chatId }: ChatProps) {
     }
   };
 
-  const handleSendMessage = async (content: string, isRegenerating = false, assets?: Message['assets']) => {
+  const handleSendMessage = async (
+    content: string,
+    isRegenerating = false,
+    assets?: Message["assets"],
+  ) => {
     let conversationId = currentConversationId;
-    
+
     // If no current conversation, create one first
     if (!conversationId) {
       conversationId = createNewConversation();
@@ -125,7 +138,7 @@ export function Chat({ chatId }: ChatProps) {
     // Add user message
     const userMessage = {
       timestamp: Date.now(),
-      role: 'user',
+      role: "user",
       content,
       assets,
     } as const;
@@ -137,8 +150,9 @@ export function Chat({ chatId }: ChatProps) {
     if (!hasEnabledProviders()) {
       addMessage({
         timestamp: Date.now(),
-        role: 'assistant',
-        content: 'No AI providers configured. Please add a provider in settings.',
+        role: "assistant",
+        content:
+          "No AI providers configured. Please add a provider in settings.",
       });
       return;
     }
@@ -148,8 +162,9 @@ export function Chat({ chatId }: ChatProps) {
     if (!selected) {
       addMessage({
         timestamp: Date.now(),
-        role: 'assistant',
-        content: 'No model selected. Please choose a model from the selector above.',
+        role: "assistant",
+        content:
+          "No model selected. Please choose a model from the selector above.",
       });
       return;
     }
@@ -160,44 +175,58 @@ export function Chat({ chatId }: ChatProps) {
 
     // Create abort controller for this request
     const abortController = new AbortController();
-    
+
     try {
       setConversationLoading(conversationId, true, abortController);
-      
+
       // Create a placeholder assistant message to stream into
       const assistantId = addMessage({
         timestamp: Date.now(),
-        role: 'assistant',
-        content: '',
+        role: "assistant",
+        content: "",
       });
 
-      const textStream = await completionsStreaming(selected, messagesForAI as Message[], abortController.signal);
+      const textStream = await completionsStreaming(
+        selected,
+        messagesForAI as Message[],
+        abortController.signal,
+      );
       for await (const delta of textStream) {
         appendToMessage(assistantId, delta);
       }
     } catch (err: unknown) {
       // Check if it was aborted
-      if (err instanceof Error && err.name === 'AbortError') {
+      if (err instanceof Error && err.name === "AbortError") {
         // User stopped the generation, update the message to indicate it was stopped
         const convo = conversations.find((c) => c.id === conversationId);
         const last = convo?.messages[convo.messages.length - 1];
-        if (last && last.role === 'assistant') {
-          updateMessage(last.id, { content: last.content + '\n\n*Generation stopped by user*' });
+        if (last && last.role === "assistant") {
+          updateMessage(last.id, {
+            content: last.content + "\n\n*Generation stopped by user*",
+          });
         }
       } else {
         // If we created a placeholder, replace its content with the error; otherwise add a new error message
-        const errorText = `Failed to generate a response: ${err instanceof Error ? err.message : 'Unknown error'}`;
+        const errorText = `Failed to generate a response: ${err instanceof Error ? err.message : "Unknown error"}`;
         try {
           // Attempt to update the last assistant message if it was just created
           const convo = conversations.find((c) => c.id === conversationId);
           const last = convo?.messages[convo.messages.length - 1];
-          if (last && last.role === 'assistant') {
+          if (last && last.role === "assistant") {
             updateMessage(last.id, { content: errorText });
           } else {
-            addMessage({ timestamp: Date.now(), role: 'assistant', content: errorText });
+            addMessage({
+              timestamp: Date.now(),
+              role: "assistant",
+              content: errorText,
+            });
           }
         } catch {
-          addMessage({ timestamp: Date.now(), role: 'assistant', content: errorText });
+          addMessage({
+            timestamp: Date.now(),
+            role: "assistant",
+            content: errorText,
+          });
         }
       }
     } finally {
@@ -220,13 +249,17 @@ export function Chat({ chatId }: ChatProps) {
   // Show new chat interface when no conversation is selected
   if (!currentConversation) {
     return (
-          <div className="h-full flex flex-col dark:bg-neutral-900 min-h-0 overflow-hidden">
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-2 sm:p-4 space-y-4 overflow-x-hidden">
+      <div className="h-full flex flex-col dark:bg-neutral-900 min-h-0 overflow-hidden">
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-2 sm:p-4 space-y-4 overflow-x-hidden">
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-4">
-              <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">What&apos;s on your mind?</h2>
-              <p className="text-neutral-600 dark:text-white">Start a conversation to begin chatting with AI.</p>
+              <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">
+                What&apos;s on your mind?
+              </h2>
+              <p className="text-neutral-600 dark:text-white">
+                Start a conversation to begin chatting with AI.
+              </p>
             </div>
           </div>
         </div>
@@ -234,7 +267,9 @@ export function Chat({ chatId }: ChatProps) {
         {/* Input */}
         <div className="flex-shrink-0 px-2 sm:px-4 py-2 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden">
           <ChatInput
-            onSend={(content, assets) => handleSendMessage(content, false, assets)}
+            onSend={(content, assets) =>
+              handleSendMessage(content, false, assets)
+            }
             onStop={handleStopGeneration}
             disabled={false}
             isLoading={false}
@@ -251,16 +286,20 @@ export function Chat({ chatId }: ChatProps) {
         {currentConversation.messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-4">
-              <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">What&apos;s on your mind?</h2>
-              <p className="text-neutral-600 dark:text-white">Start a conversation to begin chatting with AI.</p>
+              <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">
+                What&apos;s on your mind?
+              </h2>
+              <p className="text-neutral-600 dark:text-white">
+                Start a conversation to begin chatting with AI.
+              </p>
             </div>
           </div>
         ) : (
           currentConversation.messages.map((message) => (
             <ChatMessage
               conversationId={currentConversation.id}
-              key={message.id} 
-              message={message} 
+              key={message.id}
+              message={message}
               onRegenerate={handleRegenerateMessage}
               isRegenerating={false}
             />
@@ -274,7 +313,9 @@ export function Chat({ chatId }: ChatProps) {
       {/* Input */}
       <div className="flex-shrink-0 py-2 md:py-4 px-2 sm:px-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden">
         <ChatInput
-          onSend={(content, assets) => handleSendMessage(content, false, assets)}
+          onSend={(content, assets) =>
+            handleSendMessage(content, false, assets)
+          }
           onStop={handleStopGeneration}
           disabled={currentConversation.isLoading}
           isLoading={currentConversation.isLoading}

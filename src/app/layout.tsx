@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from 'next-themes';
-import { AppInitializer } from '@/components/AppInitializer';
+import { ThemeProvider } from "next-themes";
+import { AppInitializer } from "@/components/AppInitializer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,12 +17,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Simple Chat",
   description: "Comfortable AI Chat",
-
 };
 
 export const viewport: Viewport = {
-  width: 'device-width',
-}
+  width: "device-width",
+};
 
 export default function RootLayout({
   children,
@@ -31,11 +30,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased custom-scrollbar bg-neutral-50 dark:bg-neutral-900`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased custom-scrollbar bg-neutral-50 dark:bg-neutral-900`}
+      >
         <ThemeProvider>
-          <AppInitializer>
-            {children}
-          </AppInitializer>
+          <AppInitializer>{children}</AppInitializer>
         </ThemeProvider>
       </body>
     </html>

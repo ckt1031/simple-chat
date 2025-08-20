@@ -1,20 +1,23 @@
-'use client';
+"use client";
 
-import { SquarePen, Trash2, Settings, Loader2, Image as ImageIcon, PanelLeftClose } from 'lucide-react';
-import { useGlobalStore } from '@/lib/stores/global';
-import { cn } from '@/lib/utils';
-import { useConversationStore } from '@/lib/stores/conversation';
-import { usePathname, useRouter } from 'next/navigation';
+import {
+  SquarePen,
+  Trash2,
+  Settings,
+  Loader2,
+  Image as ImageIcon,
+  PanelLeftClose,
+} from "lucide-react";
+import { useGlobalStore } from "@/lib/stores/global";
+import { cn } from "@/lib/utils";
+import { useConversationStore } from "@/lib/stores/conversation";
+import { usePathname, useRouter } from "next/navigation";
 
 export function Sidebar() {
-  const {
-    ui,
-    toggleSidebar,
-    closeSidebar,
-    openSettings,
-  } = useGlobalStore();
+  const { ui, toggleSidebar, closeSidebar, openSettings } = useGlobalStore();
 
-  const { conversations, currentConversationId, deleteConversation } = useConversationStore();
+  const { conversations, currentConversationId, deleteConversation } =
+    useConversationStore();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -23,11 +26,11 @@ export function Sidebar() {
   };
 
   const handleNewChat = () => {
-    router.push('/');
+    router.push("/");
   };
 
   const handleOpenLibrary = () => {
-    router.push('/library');
+    router.push("/library");
   };
 
   const handleDeleteConversation = (e: React.MouseEvent, id: string) => {
@@ -35,22 +38,25 @@ export function Sidebar() {
     deleteConversation(id);
     // If we deleted the current conversation, redirect to new chat
     if (currentConversationId === id) {
-      router.push('/');
+      router.push("/");
     }
   };
 
   return (
     <>
       {ui.isSidebarOpen && (
-        <div className="fixed inset-0 z-30 bg-black/30 lg:hidden" onClick={closeSidebar} />
+        <div
+          className="fixed inset-0 z-30 bg-black/30 lg:hidden"
+          onClick={closeSidebar}
+        />
       )}
 
       <div
         className={cn(
-          'fixed left-0 top-0 z-40 h-screen transform bg-neutral-100 dark:bg-neutral-800 border-r md:border-0 border-neutral-200 dark:border-neutral-800 shadow-lg',
-          ui.isSidebarOpen ? 'translate-x-0' : '-translate-x-full',
-          'lg:relative lg:left-auto lg:top-auto lg:shadow-none',
-          ui.isSidebarOpen ? 'lg:translate-x-0 lg:block' : 'lg:hidden'
+          "fixed left-0 top-0 z-40 h-screen transform bg-neutral-100 dark:bg-neutral-800 border-r md:border-0 border-neutral-200 dark:border-neutral-800 shadow-lg",
+          ui.isSidebarOpen ? "translate-x-0" : "-translate-x-full",
+          "lg:relative lg:left-auto lg:top-auto lg:shadow-none",
+          ui.isSidebarOpen ? "lg:translate-x-0 lg:block" : "lg:hidden",
         )}
         style={{ width: 256 }}
       >
@@ -81,10 +87,10 @@ export function Sidebar() {
             <button
               onClick={handleOpenLibrary}
               className={cn(
-                'w-full flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors',
-                pathname === '/library'
-                  ? 'bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white'
-                  : 'text-neutral-700 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                "w-full flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                pathname === "/library"
+                  ? "bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white"
+                  : "text-neutral-700 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700",
               )}
             >
               <ImageIcon className="w-4 h-4" />
@@ -103,20 +109,24 @@ export function Sidebar() {
                     key={conversation.id}
                     onClick={() => handleSelectConversation(conversation.id)}
                     className={cn(
-                      'group flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer',
+                      "group flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer",
                       currentConversationId === conversation.id
-                        ? 'bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white'
-                        : 'text-neutral-700 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                        ? "bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white"
+                        : "text-neutral-700 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700",
                     )}
                   >
                     <div className="flex items-center space-x-2 min-w-0 flex-1">
                       {conversation.isLoading && (
                         <Loader2 className="w-3 h-3 animate-spin text-blue-500 flex-shrink-0" />
                       )}
-                      <span className="truncate select-none">{conversation.title}</span>
+                      <span className="truncate select-none">
+                        {conversation.title}
+                      </span>
                     </div>
                     <button
-                      onClick={(e) => handleDeleteConversation(e, conversation.id)}
+                      onClick={(e) =>
+                        handleDeleteConversation(e, conversation.id)
+                      }
                       className="opacity-0 group-hover:opacity-100 p-1 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded transition-all flex-shrink-0"
                     >
                       <Trash2 className="w-3 h-3 text-neutral-500 dark:text-neutral-400" />

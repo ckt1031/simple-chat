@@ -1,11 +1,11 @@
-import Switch from '@/components/Switch';
-import { ArrowLeft } from 'lucide-react';
-import { useProviderStore } from '@/lib/stores/provider';
-import { useNavigationStore } from '@/lib/stores/navigation';
-import { useProviderForm } from '@/lib/hooks/useProviderForm';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Card from '@/components/ui/Card';
+import Switch from "@/components/Switch";
+import { ArrowLeft } from "lucide-react";
+import { useProviderStore } from "@/lib/stores/provider";
+import { useNavigationStore } from "@/lib/stores/navigation";
+import { useProviderForm } from "@/lib/hooks/useProviderForm";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import Card from "@/components/ui/Card";
 
 interface Props {
   providerId: string;
@@ -38,7 +38,7 @@ export default function ProviderConfig({ providerId, onBack }: Props) {
     updateProvider(providerId, { enabled: checked });
   };
 
-  const title = isCustom ? 'Configure custom provider' : 'Configure provider';
+  const title = isCustom ? "Configure custom provider" : "Configure provider";
 
   return (
     <div className="space-y-4">
@@ -54,7 +54,9 @@ export default function ProviderConfig({ providerId, onBack }: Props) {
           <div className="flex items-center justify-between px-4 py-3">
             <div>
               <div className="text-sm font-medium">Enabled</div>
-              <div className="text-xs text-neutral-500">Enable or disable this provider</div>
+              <div className="text-xs text-neutral-500">
+                Enable or disable this provider
+              </div>
             </div>
             <Switch checked={provider.enabled} onChange={onToggle} />
           </div>
@@ -65,10 +67,10 @@ export default function ProviderConfig({ providerId, onBack }: Props) {
             <Input
               label="Display name"
               placeholder="My Provider"
-              {...form.register('displayName')}
+              {...form.register("displayName")}
             />
           )}
-          
+
           <Input
             label="API base URL"
             type="url"
@@ -76,27 +78,31 @@ export default function ProviderConfig({ providerId, onBack }: Props) {
             error={errors.apiBaseURL?.message}
             helperText={
               !isCustom && defaultBaseURL
-                ? provider.apiBaseURL ? 'Custom URL set' : `Default: ${defaultBaseURL}`
+                ? provider.apiBaseURL
+                  ? "Custom URL set"
+                  : `Default: ${defaultBaseURL}`
                 : undefined
             }
-            {...form.register('apiBaseURL')}
+            {...form.register("apiBaseURL")}
           />
-          
+
           <Input
             label="API key"
             type="password"
             placeholder="••••••••"
-            {...form.register('apiKey')}
+            {...form.register("apiKey")}
           />
-          
+
           <Card
             variant="bordered"
             className="w-full flex items-center justify-between px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 cursor-pointer"
             onClick={() => navigateToManageModels(providerId)}
           >
-            <div className='flex flex-col gap-1 items-start'>
+            <div className="flex flex-col gap-1 items-start">
               <div className="text-sm font-medium">Models</div>
-              <div className="text-xs text-neutral-500">Fetch and manage models</div>
+              <div className="text-xs text-neutral-500">
+                Fetch and manage models
+              </div>
             </div>
             <span className="text-neutral-400">›</span>
           </Card>
@@ -104,21 +110,15 @@ export default function ProviderConfig({ providerId, onBack }: Props) {
 
         <div className="flex items-center justify-between pt-2">
           {isCustom ? (
-            <Button
-              type="button"
-              variant="danger"
-              onClick={handleDelete}
-            >
+            <Button type="button" variant="danger" onClick={handleDelete}>
               Delete custom provider
             </Button>
-          ) : <span />}
+          ) : (
+            <span />
+          )}
 
           <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onBack}
-            >
+            <Button type="button" variant="secondary" onClick={onBack}>
               Cancel
             </Button>
             <Button
@@ -134,5 +134,3 @@ export default function ProviderConfig({ providerId, onBack }: Props) {
     </div>
   );
 }
-
-

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useTheme } from 'next-themes';
+import { useTheme } from "next-themes";
 
 export default function GeneralTab() {
   const { theme, setTheme } = useTheme();
@@ -16,9 +16,9 @@ export default function GeneralTab() {
           </label>
           <div className="flex gap-2">
             {[
-              { value: 'light', label: 'Light' },
-              { value: 'dark', label: 'Dark' },
-              { value: 'system', label: 'System' },
+              { value: "light", label: "Light" },
+              { value: "dark", label: "Dark" },
+              { value: "system", label: "System" },
             ].map((option) => (
               <button
                 key={option.value}
@@ -29,8 +29,8 @@ export default function GeneralTab() {
                   border
                   ${
                     theme === option.value
-                      ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 border-neutral-900 dark:border-neutral-100 shadow'
-                      : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                      ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 border-neutral-900 dark:border-neutral-100 shadow"
+                      : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700"
                   }
                   focus:outline-none focus:ring-2 focus:ring-neutral-500
                 `}
@@ -45,5 +45,3 @@ export default function GeneralTab() {
     </div>
   );
 }
-
-

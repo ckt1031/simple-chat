@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { Menu } from 'lucide-react';
-import { Sidebar } from '@/components/Sidebar';
-import { Chat } from '@/components/Chat';
-import { SettingsModal } from '@/components/SettingsModal';
-import { useGlobalStore } from '@/lib/stores/global';
-import { ModelSelector } from '@/components/ModelSelector';
-import { useSearchParams } from 'next/navigation';
-import { Suspense, useEffect } from 'react';
+import { Menu } from "lucide-react";
+import { Sidebar } from "@/components/Sidebar";
+import { Chat } from "@/components/Chat";
+import { SettingsModal } from "@/components/SettingsModal";
+import { useGlobalStore } from "@/lib/stores/global";
+import { ModelSelector } from "@/components/ModelSelector";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect } from "react";
 
 function HomePageContent() {
   const { toggleSidebar, openSettings } = useGlobalStore();
   const searchParams = useSearchParams();
-  const chatId = searchParams.get('id');
-  const settingsTab = searchParams.get('settings');
+  const chatId = searchParams.get("id");
+  const settingsTab = searchParams.get("settings");
 
   // Handle settings URL parameter
   useEffect(() => {

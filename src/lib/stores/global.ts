@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { ModelWithProvider } from './provider';
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { ModelWithProvider } from "./provider";
 
 export interface SettingsState {
   selectedModel: ModelWithProvider | null;
@@ -53,7 +53,9 @@ export const useGlobalStore = create<GlobalStore>()(
         set((state) => ({ ui: { ...state.ui, isSettingsOpen: false } }));
       },
       toggleSidebar: () => {
-        set((state) => ({ ui: { ...state.ui, isSidebarOpen: !state.ui.isSidebarOpen } }));
+        set((state) => ({
+          ui: { ...state.ui, isSidebarOpen: !state.ui.isSidebarOpen },
+        }));
       },
       openSidebar: () => {
         set((state) => ({ ui: { ...state.ui, isSidebarOpen: true } }));
@@ -66,13 +68,13 @@ export const useGlobalStore = create<GlobalStore>()(
       },
     }),
     {
-      name: 'global',
+      name: "global",
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (state) => {
         if (state) {
           state.ui.isHydrated = true;
         }
       },
-    }
-  )
+    },
+  ),
 );

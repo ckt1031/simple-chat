@@ -1,44 +1,51 @@
-import { FilePart, ImagePart, ModelMessage, smoothStream, streamText, TextPart } from 'ai';
-import { ModelWithProvider } from '../stores/provider';
-import { Message } from '../stores/conversation';
-import { getASDK } from './sdk';
-import { getAssetDataURL } from '../assets';
+import {
+  FilePart,
+  ImagePart,
+  ModelMessage,
+  smoothStream,
+  streamText,
+  TextPart,
+} from "ai";
+import { ModelWithProvider } from "../stores/provider";
+import { Message } from "../stores/conversation";
+import { getASDK } from "./sdk";
+import { getAssetDataURL } from "../assets";
 
 export default async function completionsStreaming(
-    model: ModelWithProvider,
-    messages: Message[],
-    abortSignal?: AbortSignal
+  model: ModelWithProvider,
+  messages: Message[],
+  abortSignal?: AbortSignal,
 ) {
-    const transform = smoothStream();
+  const transform = smoothStream();
 
-    const preparedMessages = await Promise.all(
-        messages.map(async (m) => {
-            if (m.assets && m.assets.length > 0) {
-                const parts: Array<TextPart | ImagePart | FilePart> = [];
-                const text = (m.content || '').trim();
-                if (text.length > 0) {
-                    parts.push({ type: 'text', text });
-                }
-                for (const a of m.assets) {
-                    if (a.type === 'image') {
-                        const dataUrl = await getAssetDataURL(a.id);
-                        if (dataUrl) {
-                            parts.push({ type: 'image', image: dataUrl });
-                        }
-                    }
-                }
-                return { role: m.role, content: parts } as ModelMessage;
+  const preparedMessages = await Promise.all(
+    messages.map(async (m) => {
+      if (m.assets && m.assets.length > 0) {
+        const parts: Array<TextPart | ImagePart | FilePart> = [];
+        const text = (m.content || "").trim();
+        if (text.length > 0) {
+          parts.push({ type: "text", text });
+        }
+        for (const a of m.assets) {
+          if (a.type === "image") {
+            const dataUrl = await getAssetDataURL(a.id);
+            if (dataUrl) {
+              parts.push({ type: "image", image: dataUrl });
             }
-            return { role: m.role, content: m.content } satisfies ModelMessage;
-        })
-    );
+          }
+        }
+        return { role: m.role, content: parts } as ModelMessage;
+      }
+      return { role: m.role, content: m.content } satisfies ModelMessage;
+    }),
+  );
 
-    const { textStream } = streamText({
-        model: getASDK(model),
-        messages: preparedMessages,
-        experimental_transform: transform,
-        abortSignal,
-    });
+  const { textStream } = streamText({
+    model: getASDK(model),
+    messages: preparedMessages,
+    experimental_transform: transform,
+    abortSignal,
+  });
 
-    return textStream;
+  return textStream;
 }

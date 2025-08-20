@@ -1,12 +1,16 @@
-import { useForm } from 'react-hook-form';
-import { z } from 'zod/mini';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useProviderStore, BaseProviderState, CustomProviderState } from '@/lib/stores/provider';
-import { defaultProviderConfig } from '@/lib/api/sdk';
+import { useForm } from "react-hook-form";
+import { z } from "zod/mini";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  useProviderStore,
+  BaseProviderState,
+  CustomProviderState,
+} from "@/lib/stores/provider";
+import { defaultProviderConfig } from "@/lib/api/sdk";
 
 const FormSchema = z.object({
   displayName: z.optional(z.string()),
-  apiBaseURL: z.optional(z.union([z.url(), z.literal('')])),
+  apiBaseURL: z.optional(z.union([z.url(), z.literal("")])),
   apiKey: z.optional(z.string()),
 });
 
@@ -17,21 +21,27 @@ interface UseProviderFormProps {
   onSuccess?: () => void;
 }
 
-export function useProviderForm({ providerId, onSuccess }: UseProviderFormProps) {
+export function useProviderForm({
+  providerId,
+  onSuccess,
+}: UseProviderFormProps) {
   const { getProvider, updateProvider, removeProvider } = useProviderStore();
   const provider = getProvider(providerId);
 
-  const isCustom = provider?.type === 'custom';
-  const defaultBaseURL = provider?.type === 'official' 
-    ? defaultProviderConfig[provider.provider]?.apiBaseURL || ''
-    : '';
+  const isCustom = provider?.type === "custom";
+  const defaultBaseURL =
+    provider?.type === "official"
+      ? defaultProviderConfig[provider.provider]?.apiBaseURL || ""
+      : "";
 
   const form = useForm({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      displayName: isCustom ? (provider as CustomProviderState)?.displayName : undefined,
-      apiBaseURL: provider?.apiBaseURL || '',
-      apiKey: provider?.apiKey || '',
+      displayName: isCustom
+        ? (provider as CustomProviderState)?.displayName
+        : undefined,
+      apiBaseURL: provider?.apiBaseURL || "",
+      apiKey: provider?.apiKey || "",
     },
   });
 
@@ -39,12 +49,12 @@ export function useProviderForm({ providerId, onSuccess }: UseProviderFormProps)
     if (!provider) return;
 
     const updates: Partial<BaseProviderState> = {
-      apiBaseURL: values.apiBaseURL ?? '',
-      apiKey: values.apiKey ?? '',
+      apiBaseURL: values.apiBaseURL ?? "",
+      apiKey: values.apiKey ?? "",
     };
 
     if (isCustom) {
-      (updates as Partial<CustomProviderState>).displayName = 
+      (updates as Partial<CustomProviderState>).displayName =
         values.displayName ?? (provider as CustomProviderState).displayName;
     }
 

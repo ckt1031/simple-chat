@@ -5,7 +5,8 @@
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 /* Ensure proper height constraints */
-html, body {
+html,
+body {
   height: 100%;
   overflow-x: hidden;
   word-wrap: break-word;
@@ -13,11 +14,11 @@ html, body {
 }
 
 button,
-[role='button'] {
+[role="button"] {
   cursor: pointer;
 }
 button:disabled,
-[role='button']:disabled {
+[role="button"]:disabled {
   cursor: default;
 }
 

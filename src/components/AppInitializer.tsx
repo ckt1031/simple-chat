@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useConversationStore } from '@/lib/stores/conversation';
-import { useGlobalStore } from '@/lib/stores/global';
-import { GlobalLoading } from './GlobalLoading';
+import { useEffect, useState } from "react";
+import { useConversationStore } from "@/lib/stores/conversation";
+import { useGlobalStore } from "@/lib/stores/global";
+import { GlobalLoading } from "./GlobalLoading";
 
 interface AppInitializerProps {
   children: React.ReactNode;
@@ -12,7 +12,9 @@ interface AppInitializerProps {
 export function AppInitializer({ children }: AppInitializerProps) {
   const [isInitialized, setIsInitialized] = useState(false);
   const [startTime] = useState(Date.now());
-  const isConversationHydrated = useConversationStore((state) => state.isHydrated);
+  const isConversationHydrated = useConversationStore(
+    (state) => state.isHydrated,
+  );
   const isGlobalHydrated = useGlobalStore((state) => state.ui.isHydrated);
 
   useEffect(() => {
@@ -20,7 +22,7 @@ export function AppInitializer({ children }: AppInitializerProps) {
     if (isConversationHydrated && isGlobalHydrated) {
       const elapsed = Date.now() - startTime;
       const minLoadingTime = 800; // Minimum 800ms loading time for smooth UX
-      
+
       if (elapsed >= minLoadingTime) {
         setIsInitialized(true);
       } else {

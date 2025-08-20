@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useProviderStore } from '@/lib/stores/provider';
-import listModels from '@/lib/api/list-models';
-import { ArrowLeft, Plus, Search } from 'lucide-react';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Card from '@/components/ui/Card';
+import { useState } from "react";
+import { useProviderStore } from "@/lib/stores/provider";
+import listModels from "@/lib/api/list-models";
+import { ArrowLeft, Plus, Search } from "lucide-react";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import Card from "@/components/ui/Card";
 
 interface Props {
   providerId: string;
@@ -14,16 +14,27 @@ interface Props {
 }
 
 export default function ModelsManager({ providerId, onBack }: Props) {
-  const { getProvider, applyFetchedModels, clearFetchedModels, addCustomModel, updateModel, removeCustomModel } = useProviderStore();
+  const {
+    getProvider,
+    applyFetchedModels,
+    clearFetchedModels,
+    addCustomModel,
+    updateModel,
+    removeCustomModel,
+  } = useProviderStore();
   const provider = getProvider(providerId);
 
-  const [creating, setCreating] = useState<{ id: string; name: string }>({ id: '', name: '' });
+  const [creating, setCreating] = useState<{ id: string; name: string }>({
+    id: "",
+    name: "",
+  });
   const [isFetching, setIsFetching] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   if (!provider) return null;
 
-  const format = provider.type === 'custom' ? provider.providerFormat : provider.provider;
+  const format =
+    provider.type === "custom" ? provider.providerFormat : provider.provider;
 
   const onFetch = async () => {
     setIsFetching(true);
@@ -43,9 +54,9 @@ export default function ModelsManager({ providerId, onBack }: Props) {
     const id = creating.id.trim();
     const name = creating.name.trim() || id;
     if (!id) return;
-    
+
     if (addCustomModel(providerId, { id, name })) {
-      setCreating({ id: '', name: '' });
+      setCreating({ id: "", name: "" });
     }
   };
 
@@ -53,7 +64,11 @@ export default function ModelsManager({ providerId, onBack }: Props) {
     updateModel(providerId, modelId, { enabled });
   };
 
-  const onUpdateField = (modelId: string, field: 'name' | 'id', value: string) => {
+  const onUpdateField = (
+    modelId: string,
+    field: "name" | "id",
+    value: string,
+  ) => {
     updateModel(providerId, modelId, { [field]: value });
   };
 
@@ -61,18 +76,20 @@ export default function ModelsManager({ providerId, onBack }: Props) {
     removeCustomModel(providerId, modelId);
   };
 
-  const fetchedModels = provider.models.filter((m) => m.source === 'fetch');
-  const customModels = provider.models.filter((m) => m.source === 'custom');
+  const fetchedModels = provider.models.filter((m) => m.source === "fetch");
+  const customModels = provider.models.filter((m) => m.source === "custom");
 
   // Filter models based on search query
-  const filteredFetchedModels = fetchedModels.filter((m) =>
-    m.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    m.id.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredFetchedModels = fetchedModels.filter(
+    (m) =>
+      m.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      m.id.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const filteredCustomModels = customModels.filter((m) =>
-    m.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    m.id.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredCustomModels = customModels.filter(
+    (m) =>
+      m.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      m.id.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -85,17 +102,10 @@ export default function ModelsManager({ providerId, onBack }: Props) {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <Button
-          onClick={onFetch}
-          disabled={isFetching}
-          variant="primary"
-        >
-          {isFetching ? 'Fetching…' : 'Fetch models'}
+        <Button onClick={onFetch} disabled={isFetching} variant="primary">
+          {isFetching ? "Fetching…" : "Fetch models"}
         </Button>
-        <Button
-          onClick={onClearFetched}
-          variant="secondary"
-        >
+        <Button onClick={onClearFetched} variant="secondary">
           Clear fetched
         </Button>
       </div>
@@ -119,21 +129,21 @@ export default function ModelsManager({ providerId, onBack }: Props) {
             <div className="flex flex-col md:flex-row gap-2 items-left">
               <Input
                 value={creating.id}
-                onChange={(e) => setCreating((s) => ({ ...s, id: e.target.value }))}
+                onChange={(e) =>
+                  setCreating((s) => ({ ...s, id: e.target.value }))
+                }
                 placeholder="gpt-4o"
                 className="flex-1"
               />
               <Input
                 value={creating.name}
-                onChange={(e) => setCreating((s) => ({ ...s, name: e.target.value }))}
+                onChange={(e) =>
+                  setCreating((s) => ({ ...s, name: e.target.value }))
+                }
                 placeholder="Display name (optional)"
                 className="flex-1"
               />
-              <Button
-                onClick={onCreate}
-                variant="primary"
-                size="sm"
-              >
+              <Button onClick={onCreate} variant="primary" size="sm">
                 <Plus />
               </Button>
             </div>
@@ -144,28 +154,39 @@ export default function ModelsManager({ providerId, onBack }: Props) {
           <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
             {filteredCustomModels.length === 0 && (
               <div className="px-4 py-3 text-sm text-neutral-500">
-                {searchQuery ? 'No custom models match your search' : 'No custom models'}
+                {searchQuery
+                  ? "No custom models match your search"
+                  : "No custom models"}
               </div>
             )}
             {filteredCustomModels.map((m) => (
-              <div key={m.id} className="px-4 py-3 grid grid-cols-1 md:grid-cols-6 gap-3 items-center">
+              <div
+                key={m.id}
+                className="px-4 py-3 grid grid-cols-1 md:grid-cols-6 gap-3 items-center"
+              >
                 <div className="md:col-span-2">
                   <Input
                     type="text"
-                    value={m.name || ''}
-                    onChange={(e) => onUpdateField(m.id, 'name', e.target.value)}
+                    value={m.name || ""}
+                    onChange={(e) =>
+                      onUpdateField(m.id, "name", e.target.value)
+                    }
                   />
                 </div>
                 <div className="md:col-span-3">
                   <Input
                     type="text"
                     value={m.id}
-                    onChange={(e) => onUpdateField(m.id, 'id', e.target.value)}
+                    onChange={(e) => onUpdateField(m.id, "id", e.target.value)}
                   />
                 </div>
                 <div className="md:col-span-1 flex items-center justify-end gap-2">
                   <label className="text-xs">Enabled</label>
-                  <input type="checkbox" checked={!!m.enabled} onChange={(e) => onToggle(m.id, e.target.checked)} />
+                  <input
+                    type="checkbox"
+                    checked={!!m.enabled}
+                    onChange={(e) => onToggle(m.id, e.target.checked)}
+                  />
                   <Button
                     onClick={() => onRemoveCustomModel(m.id)}
                     variant="danger"
@@ -186,28 +207,39 @@ export default function ModelsManager({ providerId, onBack }: Props) {
           <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
             {filteredFetchedModels.length === 0 && (
               <div className="px-4 py-3 text-sm text-neutral-500">
-                {searchQuery ? 'No fetched models match your search' : 'No fetched models'}
+                {searchQuery
+                  ? "No fetched models match your search"
+                  : "No fetched models"}
               </div>
             )}
             {filteredFetchedModels.map((m) => (
-              <div key={m.id} className="px-4 py-3 grid grid-cols-1 md:grid-cols-6 gap-3 items-center">
+              <div
+                key={m.id}
+                className="px-4 py-3 grid grid-cols-1 md:grid-cols-6 gap-3 items-center"
+              >
                 <div className="md:col-span-2">
                   <Input
                     type="text"
-                    value={m.name || ''}
-                    onChange={(e) => onUpdateField(m.id, 'name', e.target.value)}
+                    value={m.name || ""}
+                    onChange={(e) =>
+                      onUpdateField(m.id, "name", e.target.value)
+                    }
                   />
                 </div>
                 <div className="md:col-span-3">
                   <Input
                     type="text"
                     value={m.id}
-                    onChange={(e) => onUpdateField(m.id, 'id', e.target.value)}
+                    onChange={(e) => onUpdateField(m.id, "id", e.target.value)}
                   />
                 </div>
                 <div className="md:col-span-1 flex items-center justify-end">
                   <label className="text-xs mr-2">Enabled</label>
-                  <input type="checkbox" checked={!!m.enabled} onChange={(e) => onToggle(m.id, e.target.checked)} />
+                  <input
+                    type="checkbox"
+                    checked={!!m.enabled}
+                    onChange={(e) => onToggle(m.id, e.target.checked)}
+                  />
                 </div>
               </div>
             ))}

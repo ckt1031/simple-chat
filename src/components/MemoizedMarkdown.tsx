@@ -5,6 +5,8 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import rehypeHighlight from "rehype-highlight";
+import { CodeBlock } from "./Markdown/Codeblock";
 
 function parseMarkdownIntoBlocks(markdown: string): string[] {
   const tokens = marked.lexer(markdown);
@@ -16,14 +18,28 @@ const MemoizedMarkdownBlock = memo(
     return (
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex, rehypeRaw]}
+        rehypePlugins={[rehypeKatex, rehypeRaw, rehypeHighlight]}
         components={{
-          br: ({ node, ...props }) => <br {...props} />,
-          table: ({ node, ...props }) => (
+          br: ({ ...props }) => <br {...props} />,
+          table: ({ ...props }) => (
             <div className="overflow-x-auto w-full">
               <table className="table-auto min-w-xl" {...props} />
             </div>
           ),
+          pre: ({ children, ...props }) => {
+            const codeElement = children as React.ReactElement<{
+              className?: string;
+              children?: React.ReactNode;
+            }>;
+            if (codeElement?.type === "code") {
+              return (
+                <CodeBlock className={codeElement.props.className}>
+                  {codeElement.props.children}
+                </CodeBlock>
+              );
+            }
+            return <pre {...props}>{children}</pre>;
+          },
         }}
       >
         {content}

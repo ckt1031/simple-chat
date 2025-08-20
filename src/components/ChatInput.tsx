@@ -129,6 +129,8 @@ export function ChatInput({
       const value = e.currentTarget.value;
       setHasText(value.length > 0 || attachments.length > 0);
       setMessage(value);
+      e.currentTarget.style.height = "auto";
+      e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
     },
     [attachments.length],
   );
@@ -175,11 +177,11 @@ export function ChatInput({
           placeholder={placeholder}
           disabled={disabled}
           className={cn(
-            message.split("\n").length > 1 ? "h-[200px]" : "",
+            "h-full max-h-[200px]",
             "w-full resize-none border-0 focus:ring-0 focus:outline-none text-sm leading-relaxed placeholder-neutral-500 dark:placeholder-neutral-400 bg-transparent",
           )}
+          style={{ height: "auto" }}
           rows={1}
-          name="message"
         />
 
         {/* Send/Stop Buttons */}

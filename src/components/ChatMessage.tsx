@@ -107,8 +107,9 @@ function ChatMessageCmp({
             className={cn(
               "py-2 rounded-2xl text-sm leading-relaxed relative group break-words",
               isUser
-                ? "px-3 sm:px-4 bg-neutral-200 text-black dark:bg-neutral-800 dark:text-white max-w-full"
-                : "px-2 max-w-full",
+                ? "px-3 sm:px-4 bg-neutral-200 text-black dark:bg-neutral-800 dark:text-white"
+                : "px-2",
+              isEditing ? "w-full sm:w-auto" : "max-w-none",
             )}
           >
             {imageUrls.length > 0 && (

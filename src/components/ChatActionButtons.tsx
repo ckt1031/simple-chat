@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Copy, PencilLine, RefreshCcw, Trash } from "lucide-react";
 import { useConversationStore } from "@/lib/stores/conversation";
 import { useGlobalStore } from "@/lib/stores/global";
 import { cn } from "@/lib/utils";
+import isMobile from "@/lib/is-mobile";
 
 interface ChatActionButtonsProps {
   copied: boolean;
@@ -36,11 +37,12 @@ export default function ChatActionButtons({
   // For more advanced/production use, consider a library or a custom hook.
 
   // We'll use a state to control visibility
-  const [visible, setVisible] = useState(false);
+  const isDeviceMobile = useMemo(() => isMobile(), []);
+  const [visible, setVisible] = useState(isDeviceMobile);
 
   useEffect(() => {
     function handleMouseMove(e: MouseEvent) {
-      if (!containerRef.current) return;
+      if (!containerRef.current || isDeviceMobile) return;
       const rect = containerRef.current.getBoundingClientRect();
       const proximity = 60; // px
       const withinProximity =

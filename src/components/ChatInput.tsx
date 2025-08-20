@@ -46,7 +46,7 @@ export function ChatInput({ onSend, onStop, disabled = false, placeholder = "Ask
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 300)}px`;
       setIsSingleLine(message.split('\n').length <= 1);
     }
   }, [message]);
@@ -97,8 +97,8 @@ export function ChatInput({ onSend, onStop, disabled = false, placeholder = "Ask
 
       <div className={
         cn(
-          "relative flex items-center space-x-2 p-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full shadow-sm min-h-[44px] max-h-[120px] overflow-hidden",
-          isSingleLine ? "rounded-full" : "rounded-xl"
+          "relative flex items-center space-x-2 p-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full shadow-sm min-h-[44px] max-h-[300px]",
+          "rounded-xl",
         )
       }>
         {/* Plus Button */}
@@ -128,9 +128,9 @@ export function ChatInput({ onSend, onStop, disabled = false, placeholder = "Ask
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
-          className="custom-scrollbar w-full resize-none border-0 focus:ring-0 focus:outline-none text-sm leading-relaxed placeholder-neutral-500 dark:placeholder-neutral-400 bg-transparent min-h-[20px]"
+          className="custom-scrollbar w-full resize-none border-0 focus:ring-0 focus:outline-none text-sm leading-relaxed placeholder-neutral-500 dark:placeholder-neutral-400 bg-transparent"
           rows={1}
-          style={{ maxHeight: '120px' }}
+          name="message"
         />
 
         {/* Voice and Send/Stop Buttons */}

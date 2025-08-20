@@ -14,6 +14,9 @@ export interface Conversation {
 export interface Message {
   id: string;
   content: string;
+  reasoning?: string;
+  reasoningStartTime?: number;
+  reasoningEndTime?: number;
   timestamp: number;
   role: "user" | "assistant";
   assets?: Array<{
@@ -40,6 +43,8 @@ export interface ConversationStore extends ConversationState {
   addMessage: (message: Omit<Message, "id">) => string;
   updateMessage: (id: string, updates: Partial<Omit<Message, "id">>) => void;
   appendToMessage: (id: string, text: string) => void;
+  appendToReasoning: (id: string, text: string) => void;
+  endReasoning: (id: string) => void;
   isLastMessage: (conversationId: string, messageId: string) => boolean;
   deleteMessage: (conversationId: string, messageId: string) => void;
   removeLastAssistantMessage: (messageId: string) => void;
@@ -145,6 +150,41 @@ export const useConversationStore = create<ConversationStore>()(
               ),
             };
           }),
+        }));
+      },
+      appendToReasoning: (id: string, text: string) => {
+        set((state) => ({
+          conversations: state.conversations.map((c) => {
+            if (c.id !== state.currentConversationId) return c;
+            return {
+              ...c,
+              messages: c.messages.map((m) =>
+                m.id === id
+                  ? {
+                      ...m,
+                      reasoning: (m.reasoning || "") + text,
+                      reasoningStartTime:
+                        m.reasoningStartTime !== undefined
+                          ? m.reasoningStartTime
+                          : Date.now(),
+                    }
+                  : m,
+              ),
+            };
+          }),
+        }));
+      },
+      endReasoning: (id: string) => {
+        set((state) => ({
+          conversations: state.conversations.map((c) => ({
+            ...c,
+            messages: c.messages.map((m) => {
+              if (m.id === id && !m.reasoningEndTime) {
+                return { ...m, reasoningEndTime: Date.now() };
+              }
+              return m;
+            }),
+          })),
         }));
       },
       isLastMessage: (conversationId: string, messageId: string) => {

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { useGlobalStore } from "@/lib/stores/global";
-import { ChatMessage } from "./ChatMessage";
+import ChatMessage from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
 import { Message, useConversationStore } from "@/lib/stores/conversation";
 import { useProviderStore } from "@/lib/stores/provider";
@@ -22,6 +22,8 @@ export function Chat({ chatId }: ChatProps) {
     isHydrated,
     addMessage,
     appendToMessage,
+    endReasoning,
+    appendToReasoning,
     updateMessage,
     setCurrentConversation,
     createNewConversation,
@@ -173,13 +175,23 @@ export function Chat({ chatId }: ChatProps) {
           content: "",
         });
 
-        const textStream = await completionsStreaming(
+        const stream = await completionsStreaming(
           selected,
           messagesForAI as Message[],
           abortController.signal,
         );
-        for await (const delta of textStream) {
-          appendToMessage(assistantId, delta);
+
+        for await (const delta of stream.fullStream) {
+          if (delta.type === "text-delta") {
+            endReasoning(assistantId);
+            appendToMessage(assistantId, delta.text);
+          } else if (delta.type === "reasoning-start") {
+            updateMessage(assistantId, { reasoningStartTime: Date.now() });
+          } else if (delta.type === "reasoning-delta") {
+            appendToReasoning(assistantId, delta.text);
+          } else if (delta.type === "reasoning-end") {
+            endReasoning(assistantId);
+          }
         }
       } catch (err: unknown) {
         // Check if it was aborted
@@ -223,6 +235,7 @@ export function Chat({ chatId }: ChatProps) {
     [
       addMessage,
       appendToMessage,
+      appendToReasoning,
       conversations,
       createNewConversation,
       currentConversationId,

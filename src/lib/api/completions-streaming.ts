@@ -40,12 +40,10 @@ export default async function completionsStreaming(
     }),
   );
 
-  const { textStream } = streamText({
+  return streamText({
     model: getASDK(model),
     messages: preparedMessages,
     experimental_transform: transform,
     abortSignal,
   });
-
-  return textStream;
 }

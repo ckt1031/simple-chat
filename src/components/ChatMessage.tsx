@@ -8,6 +8,7 @@ import ChatActionButtons from "./ChatActionButtons";
 import { useEffect } from "react";
 import { getAssetObjectURL, revokeObjectURL } from "@/lib/assets";
 import ChatEdit from "./ChatEdit";
+import Reasoning from "./Reasoning";
 
 interface ChatMessageProps {
   message: Message;
@@ -16,7 +17,7 @@ interface ChatMessageProps {
   conversationId: string;
 }
 
-function ChatMessageCmp({
+function ChatMessage({
   message,
   onRegenerate,
   isRegenerating = false,
@@ -55,7 +56,10 @@ function ChatMessageCmp({
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(message.content);
+      const textToCopy = message.reasoning
+        ? `Reasoning:\n${message.reasoning}\n\nResponse:\n${message.content}`
+        : message.content;
+      await navigator.clipboard.writeText(textToCopy);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -155,6 +159,13 @@ function ChatMessageCmp({
               )
             ) : (
               <div className="break-words prose prose-sm md:prose-base lg:prose-md prose-neutral dark:prose-invert space-y-2 max-w-full overflow-hidden">
+                {message.reasoning && (
+                  <Reasoning
+                    reasoning={message.reasoning}
+                    reasoningStartTime={message.reasoningStartTime}
+                    reasoningEndTime={message.reasoningEndTime}
+                  />
+                )}
                 <MemoizedMarkdown
                   key={message.id}
                   id={message.id}
@@ -186,13 +197,4 @@ function ChatMessageCmp({
   );
 }
 
-export const ChatMessage = memo(ChatMessageCmp, (prev, next) => {
-  return (
-    prev.conversationId === next.conversationId &&
-    prev.isRegenerating === next.isRegenerating &&
-    prev.message.id === next.message.id &&
-    prev.message.content === next.message.content &&
-    prev.message.timestamp === next.message.timestamp &&
-    prev.message.role === next.message.role
-  );
-});
+export default memo(ChatMessage);

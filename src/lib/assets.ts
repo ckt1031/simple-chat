@@ -1,4 +1,3 @@
-import { createIdGenerator } from 'ai';
 import { createStore, get, set, del, keys } from 'idb-keyval';
 
 const assetsStore = createStore('simple-chat-assets', 'assets');
@@ -27,31 +26,27 @@ export async function saveImageAsset(file: File): Promise<AssetRecord> {
     const arrayBuffer = await file.arrayBuffer();
     const hash = await sha256Hex(arrayBuffer);
 
-    const existingId = (await get(`hash:${hash}`, assetsStore)) as string | undefined;
-    if (existingId) {
-        const existing = (await get(existingId, assetsStore)) as AssetRecord | undefined;
-        if (existing) return existing;
-    }
+    const existing = await get(hash, assetsStore);
 
-    const id = createIdGenerator({ prefix: 'asset', size: 16 })();
+    if (existing) return existing;
+
     const record: AssetRecord = {
-        id,
+        id: hash,
         type: 'image',
         mimeType: file.type || 'image/*',
         name: file.name,
         size: file.size,
         createdAt: Date.now(),
-        hash,
         blob: file,
     };
-    await set(id, record, assetsStore);
-    await set(`hash:${hash}`, id, assetsStore);
+
+    await set(hash, record, assetsStore);
+
     return record;
 }
 
 export async function getAssetRecord(id: string): Promise<AssetRecord | undefined> {
-    const rec = (await get(id, assetsStore)) as AssetRecord | undefined;
-    return rec;
+    return await get(id, assetsStore);
 }
 
 export async function getAssetObjectURL(id: string): Promise<string | undefined> {
@@ -92,13 +87,6 @@ export async function listImageAssets(): Promise<AssetRecord[]> {
 }
 
 export async function deleteAssetById(id: string): Promise<void> {
-    const rec = (await get(id, assetsStore)) as AssetRecord | undefined;
-    if (rec?.hash) {
-        const mappedId = (await get(`hash:${rec.hash}`, assetsStore)) as string | undefined;
-        if (mappedId === id) {
-            await del(`hash:${rec.hash}`, assetsStore);
-        }
-    }
     await del(id, assetsStore);
 }
 

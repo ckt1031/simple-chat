@@ -1,7 +1,7 @@
 import { createIdGenerator } from "ai";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { ConversationIndxedStorage } from "./storage";
+import { ConversationIndxedStorage } from "./utils/storage";
 
 export interface Conversation {
     id: string;

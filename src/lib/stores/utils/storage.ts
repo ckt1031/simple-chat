@@ -150,7 +150,7 @@ export const ConversationIndxedStorage: StateStorage = {
                 conversations: [],
             },
         }
-        await set(name, JSON.stringify(minimalRoot), conversationStore)
+        await set(name, minimalRoot, conversationStore)
     },
     removeItem: async (name: string): Promise<void> => {
         const index: ConversationIndex | undefined = await get(conversationIndexKey, conversationStore)

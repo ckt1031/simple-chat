@@ -60,11 +60,13 @@ export function ChatInput({ onSend, onStop, disabled = false, placeholder = "Ask
     const images = files.filter(f => f.type.startsWith('image/'));
     if (images.length === 0) return;
 
-    const saved = await Promise.all(images.map(async (file) => {
+    const createImageAttachment = async (file: File) => {
       const record = await saveImageAsset(file);
       const previewUrl = URL.createObjectURL(file);
       return { id: record.id, type: 'image' as const, mimeType: record.mimeType, name: record.name, previewUrl };
-    }));
+    }
+
+    const saved = await Promise.all(images.map(createImageAttachment));
     setAttachments(prev => [...prev, ...saved]);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -83,7 +85,7 @@ export function ChatInput({ onSend, onStop, disabled = false, placeholder = "Ask
       {attachments.length > 0 && (
         <div className="flex gap-2 overflow-x-auto p-1 mb-2">
           {attachments.map(att => (
-            <div key={att.id} className="relative h-16 rounded-md overflow-hidden border border-neutral-200 dark:border-neutral-700">
+            <div key={att.id} className="relative h-16 max-w-[20%] rounded-md overflow-hidden border border-neutral-200 dark:border-neutral-700">
               <img src={att.previewUrl} alt={att.name || 'image'} className="object-cover w-full h-full" />
               <button type="button" onClick={() => removeAttachment(att.id)} className="absolute top-1 right-1 bg-neutral-900 text-white rounded-full p-1">
                 <X className="w-3 h-3" />

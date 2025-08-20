@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from 'next-themes';
+import { AppInitializer } from '@/components/AppInitializer';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -21,9 +22,6 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 }
 
 export default function RootLayout({
@@ -33,9 +31,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased custom-scrollbar`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased custom-scrollbar bg-neutral-50 dark:bg-neutral-900`}>
         <ThemeProvider>
-          {children}
+          <AppInitializer>
+            {children}
+          </AppInitializer>
         </ThemeProvider>
       </body>
     </html>

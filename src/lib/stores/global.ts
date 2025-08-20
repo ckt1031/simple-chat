@@ -9,6 +9,7 @@ export interface SettingsState {
 export interface UIState {
   isSidebarOpen: boolean;
   isSettingsOpen: boolean;
+  isHydrated: boolean;
 }
 
 interface GlobalState {
@@ -37,6 +38,7 @@ export const useGlobalStore = create<GlobalStore>()(
       ui: {
         isSidebarOpen: true,
         isSettingsOpen: false,
+        isHydrated: false,
       },
       updateSettings: (newSettings) => {
         set((state) => ({
@@ -59,10 +61,18 @@ export const useGlobalStore = create<GlobalStore>()(
       closeSidebar: () => {
         set((state) => ({ ui: { ...state.ui, isSidebarOpen: false } }));
       },
+      setHydrated: (hydrated: boolean) => {
+        set((state) => ({ ui: { ...state.ui, isHydrated: hydrated } }));
+      },
     }),
     {
       name: 'global',
       storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.ui.isHydrated = true;
+        }
+      },
     }
   )
 );

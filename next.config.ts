@@ -1,3 +1,4 @@
+import getBuildMetadata from "@/build-meta";
 import type { NextConfig } from "next";
 
 const experimentalSettings: NextConfig["experimental"] = {};
@@ -13,6 +14,9 @@ const nextConfig: NextConfig = {
   output: "export",
   reactStrictMode: true,
   experimental: experimentalSettings,
+  env: {
+    ...getBuildMetadata(),
+  },
 };
 
 export default nextConfig;

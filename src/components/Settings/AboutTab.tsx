@@ -1,5 +1,7 @@
 "use client";
 
+import Version from "./Version";
+
 export default function AboutTab() {
   return (
     <div className="space-y-6">
@@ -11,6 +13,7 @@ export default function AboutTab() {
         </p>
         <p>Theme and appearance settings are stored locally in your browser.</p>
       </div>
+      <Version />
       <div className="text-xs text-neutral-500 dark:text-neutral-400">
         <p>© {new Date().getFullYear()} Simple Chat</p>
       </div>

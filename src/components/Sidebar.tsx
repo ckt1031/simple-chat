@@ -14,7 +14,10 @@ import { useConversationStore } from "@/lib/stores/conversation";
 import { usePathname, useRouter } from "next/navigation";
 
 export function Sidebar() {
-  const { ui, toggleSidebar, closeSidebar, openSettings } = useGlobalStore();
+  const isSidebarOpen = useGlobalStore((s) => s.ui.isSidebarOpen);
+  const toggleSidebar = useGlobalStore((s) => s.toggleSidebar);
+  const closeSidebar = useGlobalStore((s) => s.closeSidebar);
+  const openSettings = useGlobalStore((s) => s.openSettings);
 
   const { conversations, currentConversationId, deleteConversation } =
     useConversationStore();
@@ -44,7 +47,7 @@ export function Sidebar() {
 
   return (
     <>
-      {ui.isSidebarOpen && (
+      {isSidebarOpen && (
         <div
           className="fixed inset-0 z-30 bg-black/30 lg:hidden"
           onClick={closeSidebar}
@@ -54,9 +57,9 @@ export function Sidebar() {
       <div
         className={cn(
           "fixed left-0 top-0 z-40 h-screen transform bg-neutral-100 dark:bg-neutral-800 border-r md:border-0 border-neutral-200 dark:border-neutral-800 shadow-lg",
-          ui.isSidebarOpen ? "translate-x-0" : "-translate-x-full",
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full",
           "lg:relative lg:left-auto lg:top-auto lg:shadow-none",
-          ui.isSidebarOpen ? "lg:translate-x-0 lg:block" : "lg:hidden",
+          isSidebarOpen ? "lg:translate-x-0 lg:block" : "lg:hidden",
         )}
         style={{ width: 256 }}
       >

@@ -23,8 +23,10 @@ type ProviderGroup = {
 };
 
 export function ModelSelector() {
-  const { general, updateSettings } = useGlobalStore();
-  const { getOfficialProviders, getCustomProviders } = useProviderStore();
+  const selectedModel = useGlobalStore((s) => s.general.selectedModel);
+  const updateSettings = useGlobalStore((s) => s.updateSettings);
+  const getOfficialProviders = useProviderStore((s) => s.getOfficialProviders);
+  const getCustomProviders = useProviderStore((s) => s.getCustomProviders);
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -71,14 +73,13 @@ export function ModelSelector() {
   };
 
   const buttonLabel = useMemo(() => {
-    if (general.selectedModel) {
-      return general.selectedModel.name &&
-        general.selectedModel.name.trim().length > 0
-        ? general.selectedModel.name
-        : general.selectedModel.id;
+    if (selectedModel) {
+      return selectedModel.name && selectedModel.name.trim().length > 0
+        ? selectedModel.name
+        : selectedModel.id;
     }
     return "Select model";
-  }, [general.selectedModel]);
+  }, [selectedModel]);
 
   useHotkeys("ctrl+m", () => setOpen(true));
   useHotkeys("esc", () => setOpen(false));
@@ -150,9 +151,9 @@ export function ModelSelector() {
                           <button
                             className={cn(
                               "w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800/70 flex items-center justify-between",
-                              general.selectedModel &&
-                                general.selectedModel.id === m.id &&
-                                general.selectedModel.providerId === group.id
+                              selectedModel &&
+                                selectedModel.id === m.id &&
+                                selectedModel.providerId === group.id
                                 ? "bg-neutral-50 dark:bg-neutral-800"
                                 : "",
                             )}
@@ -161,9 +162,9 @@ export function ModelSelector() {
                             <span className="truncate max-w-[240px]">
                               {display}
                             </span>
-                            {general.selectedModel &&
-                              general.selectedModel.id === m.id &&
-                              general.selectedModel.providerId === group.id && (
+                            {selectedModel &&
+                              selectedModel.id === m.id &&
+                              selectedModel.providerId === group.id && (
                                 <span className="text-xs text-neutral-500">
                                   Selected
                                 </span>

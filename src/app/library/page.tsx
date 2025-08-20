@@ -23,7 +23,7 @@ type LibraryItem = {
 };
 
 function LibraryPageContent() {
-  const { toggleSidebar } = useGlobalStore();
+  const toggleSidebar = useGlobalStore((s) => s.toggleSidebar);
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { removeAssetReferences } = useConversationStore();

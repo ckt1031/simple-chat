@@ -15,7 +15,7 @@ interface ChatProps {
 }
 
 export function Chat({ chatId }: ChatProps) {
-  const { general } = useGlobalStore();
+  const selectedModel = useGlobalStore((s) => s.general.selectedModel);
   const { hasEnabledProviders } = useProviderStore();
   const {
     conversations,
@@ -144,7 +144,7 @@ export function Chat({ chatId }: ChatProps) {
     }
 
     // Ensure a model is selected
-    const selected = general.selectedModel;
+    const selected = selectedModel;
     if (!selected) {
       addMessage({
         timestamp: Date.now(),
@@ -224,7 +224,7 @@ export function Chat({ chatId }: ChatProps) {
     conversations,
     createNewConversation,
     currentConversationId,
-    general.selectedModel,
+    selectedModel,
     hasEnabledProviders,
     router,
     setConversationLoading,

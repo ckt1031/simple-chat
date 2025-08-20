@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useGlobalStore } from "@/lib/stores/global";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
@@ -33,7 +33,6 @@ export function Chat({ chatId }: ChatProps) {
   const router = useRouter();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [showScrollButton, setShowScrollButton] = useState(false);
 
   // Handle URL-based navigation
   useEffect(() => {
@@ -61,7 +60,7 @@ export function Chat({ chatId }: ChatProps) {
     (conv) => conv.id === currentConversationId,
   );
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({
         behavior: "smooth",
@@ -69,7 +68,7 @@ export function Chat({ chatId }: ChatProps) {
         inline: "nearest",
       });
     }
-  };
+  }, []);
 
   useEffect(() => {
     // Only auto-scroll if we're near the bottom or if it's a new message
@@ -84,22 +83,9 @@ export function Chat({ chatId }: ChatProps) {
     }
   }, [currentConversation?.messages]);
 
-  // Track scroll to show/hide the button
-  useEffect(() => {
-    const container = messagesEndRef.current?.parentElement;
-    if (!container) return;
-    const onScroll = () => {
-      const nearBottom =
-        container.scrollTop + container.clientHeight >=
-        container.scrollHeight - 100;
-      setShowScrollButton(!nearBottom);
-    };
-    onScroll();
-    container.addEventListener("scroll", onScroll, { passive: true });
-    return () => container.removeEventListener("scroll", onScroll);
-  }, [currentConversation?.id]);
+  // removed: showScrollButton state and effect; handled inside ChatScrollToBottom
 
-  const handleRegenerateMessage = async (messageId: string) => {
+  const handleRegenerateMessage = useCallback(async (messageId: string) => {
     // In the regeneration, we only allow re-generating the last message
     const lastMessage =
       currentConversation?.messages[currentConversation.messages.length - 1];
@@ -113,15 +99,15 @@ export function Chat({ chatId }: ChatProps) {
     // Remove the last AI generated message if it exists
     removeLastAssistantMessage(messageId);
     handleSendMessage(userMessage.content, true, userMessage.assets);
-  };
+  }, [currentConversation?.messages, removeLastAssistantMessage]);
 
-  const handleStopGeneration = () => {
+  const handleStopGeneration = useCallback(() => {
     if (currentConversationId) {
       stopConversation(currentConversationId);
     }
-  };
+  }, [currentConversationId, stopConversation]);
 
-  const handleSendMessage = async (
+  const handleSendMessage = useCallback(async (
     content: string,
     isRegenerating = false,
     assets?: Message["assets"],
@@ -232,7 +218,27 @@ export function Chat({ chatId }: ChatProps) {
     } finally {
       setConversationLoading(conversationId, false);
     }
-  };
+  }, [
+    addMessage,
+    appendToMessage,
+    conversations,
+    createNewConversation,
+    currentConversationId,
+    general.selectedModel,
+    hasEnabledProviders,
+    router,
+    setConversationLoading,
+    stopConversation,
+    updateMessage,
+  ]);
+
+  const onSend = useCallback(
+    (content: string, assets?: Message["assets"]) =>
+      handleSendMessage(content, false, assets),
+    [handleSendMessage],
+  );
+
+  const onStop = handleStopGeneration;
 
   // Show loading state while hydrating
   if (!isHydrated) {
@@ -266,14 +272,7 @@ export function Chat({ chatId }: ChatProps) {
 
         {/* Input */}
         <div className="flex-shrink-0 px-2 sm:px-4 py-2 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden">
-          <ChatInput
-            onSend={(content, assets) =>
-              handleSendMessage(content, false, assets)
-            }
-            onStop={handleStopGeneration}
-            disabled={false}
-            isLoading={false}
-          />
+          <ChatInput onSend={onSend} onStop={onStop} disabled={false} isLoading={false} />
         </div>
       </div>
     );
@@ -308,15 +307,13 @@ export function Chat({ chatId }: ChatProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      <ChatScrollToBottom visible={showScrollButton} onClick={scrollToBottom} />
+      <ChatScrollToBottom targetRef={messagesEndRef} onClick={scrollToBottom} />
 
       {/* Input */}
       <div className="flex-shrink-0 py-2 md:py-4 px-2 sm:px-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden">
         <ChatInput
-          onSend={(content, assets) =>
-            handleSendMessage(content, false, assets)
-          }
-          onStop={handleStopGeneration}
+          onSend={onSend}
+          onStop={onStop}
           disabled={currentConversation.isLoading}
           isLoading={currentConversation.isLoading}
         />

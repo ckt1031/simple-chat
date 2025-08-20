@@ -1,19 +1,36 @@
 "use client";
 
+import { useEffect, useState, type RefObject } from "react";
 import { ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ChatScrollToBottomProps {
-  visible: boolean;
+  targetRef: RefObject<HTMLDivElement | null>;
   onClick: () => void;
   className?: string;
 }
 
 export default function ChatScrollToBottom({
-  visible,
+  targetRef,
   onClick,
   className,
 }: ChatScrollToBottomProps) {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const container = targetRef.current?.parentElement;
+    if (!container) return;
+    const onScroll = () => {
+      const nearBottom =
+        container.scrollTop + container.clientHeight >=
+        container.scrollHeight - 100;
+      setVisible(!nearBottom);
+    };
+    onScroll();
+    container.addEventListener("scroll", onScroll, { passive: true });
+    return () => container.removeEventListener("scroll", onScroll);
+  }, [targetRef]);
+
   return (
     <div
       className={cn(

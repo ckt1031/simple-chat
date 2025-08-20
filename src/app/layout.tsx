@@ -30,6 +30,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Load only when dev */}
+        {process.env.NODE_ENV === "development" && (
+          <script crossOrigin="anonymous" src="//unpkg.com/react-scan/dist/auto.global.js" />
+        )}
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased custom-scrollbar bg-neutral-50 dark:bg-neutral-900`}
       >

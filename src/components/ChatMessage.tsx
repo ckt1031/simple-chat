@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { Message, useConversationStore } from "@/lib/stores/conversation";
 import { cn, formatDate } from "@/lib/utils";
 import { MemoizedMarkdown } from "./MemoizedMarkdown";
@@ -16,7 +16,7 @@ interface ChatMessageProps {
   conversationId: string;
 }
 
-export function ChatMessage({
+function ChatMessageCmp({
   message,
   onRegenerate,
   isRegenerating = false,
@@ -184,3 +184,17 @@ export function ChatMessage({
     </div>
   );
 }
+
+export const ChatMessage = memo(
+  ChatMessageCmp,
+  (prev, next) => {
+    return (
+      prev.conversationId === next.conversationId &&
+      prev.isRegenerating === next.isRegenerating &&
+      prev.message.id === next.message.id &&
+      prev.message.content === next.message.content &&
+      prev.message.timestamp === next.message.timestamp &&
+      prev.message.role === next.message.role
+    );
+  },
+);

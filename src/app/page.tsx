@@ -3,24 +3,15 @@
 import { Menu } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { Chat } from "@/components/Chat";
-import { SettingsModal } from "@/components/SettingsModal";
+import { SettingsModal } from "@/components/Settings/Modal";
 import { useGlobalStore } from "@/lib/stores/global";
 import { ModelSelector } from "@/components/ModelSelector";
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect } from "react";
 
 function HomePageContent() {
-  const { toggleSidebar, openSettings } = useGlobalStore();
-  const searchParams = useSearchParams();
-  const chatId = searchParams.get("id");
-  const settingsTab = searchParams.get("settings");
-
-  // Handle settings URL parameter
-  useEffect(() => {
-    if (settingsTab) {
-      openSettings();
-    }
-  }, [settingsTab, openSettings]);
+  const toggleSidebar = useGlobalStore((s) => s.toggleSidebar);
+  const chatId = useSearchParams().get("id");
 
   return (
     <div className="h-screen flex bg-white dark:bg-neutral-900 overflow-hidden">

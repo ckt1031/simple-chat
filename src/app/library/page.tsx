@@ -9,7 +9,7 @@ import {
 } from "@/lib/assets";
 import { Trash2, Menu } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
-import { SettingsModal } from "@/components/SettingsModal";
+import { SettingsModal } from "@/components/Settings/Modal";
 import { useGlobalStore } from "@/lib/stores/global";
 import { useConversationStore } from "@/lib/stores/conversation";
 

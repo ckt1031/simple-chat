@@ -82,21 +82,24 @@ export function Chat({ chatId }: ChatProps) {
     }
   }, [currentConversation?.messages]);
 
-  const handleRegenerateMessage = useCallback(async (messageId: string) => {
-    // In the regeneration, we only allow re-generating the last message
-    const lastMessage =
-      currentConversation?.messages[currentConversation.messages.length - 1];
-    if (!lastMessage || lastMessage.id !== messageId) return;
+  const handleRegenerateMessage = useCallback(
+    async (messageId: string) => {
+      // In the regeneration, we only allow re-generating the last message
+      const lastMessage =
+        currentConversation?.messages[currentConversation.messages.length - 1];
+      if (!lastMessage || lastMessage.id !== messageId) return;
 
-    const userMessage = [...(currentConversation?.messages ?? [])]
-      .reverse()
-      .find((m) => m.role === "user");
-    if (!userMessage) return;
+      const userMessage = [...(currentConversation?.messages ?? [])]
+        .reverse()
+        .find((m) => m.role === "user");
+      if (!userMessage) return;
 
-    // Remove the last AI generated message if it exists
-    removeLastAssistantMessage(messageId);
-    handleSendMessage(userMessage.content, true, userMessage.assets);
-  }, [currentConversation?.messages, removeLastAssistantMessage]);
+      // Remove the last AI generated message if it exists
+      removeLastAssistantMessage(messageId);
+      handleSendMessage(userMessage.content, true, userMessage.assets);
+    },
+    [currentConversation?.messages, removeLastAssistantMessage],
+  );
 
   const handleStopGeneration = useCallback(() => {
     if (currentConversationId) {
@@ -104,130 +107,133 @@ export function Chat({ chatId }: ChatProps) {
     }
   }, [currentConversationId, stopConversation]);
 
-  const handleSendMessage = useCallback(async (
-    content: string,
-    isRegenerating = false,
-    assets?: Message["assets"],
-  ) => {
-    let conversationId = currentConversationId;
+  const handleSendMessage = useCallback(
+    async (
+      content: string,
+      isRegenerating = false,
+      assets?: Message["assets"],
+    ) => {
+      let conversationId = currentConversationId;
 
-    // If no current conversation, create one first
-    if (!conversationId) {
-      conversationId = createNewConversation();
-      // Update URL with the new conversation ID
-      router.push(`/?id=${conversationId}`);
-    }
-
-    // Add user message
-    const userMessage = {
-      timestamp: Date.now(),
-      role: "user",
-      content,
-      assets,
-    } as const;
-    if (!isRegenerating) {
-      addMessage(userMessage);
-    }
-
-    // Get enabled providers
-    if (!hasEnabledProviders()) {
-      addMessage({
-        timestamp: Date.now(),
-        role: "assistant",
-        content:
-          "No AI providers configured. Please add a provider in settings.",
-      });
-      return;
-    }
-
-    // Ensure a model is selected
-    const selected = selectedModel;
-    if (!selected) {
-      addMessage({
-        timestamp: Date.now(),
-        role: "assistant",
-        content:
-          "No model selected. Please choose a model from the selector above.",
-      });
-      return;
-    }
-
-    // Build the message list to send (include the just-added user message)
-    const convo = conversations.find((c) => c.id === conversationId);
-    const messagesForAI = [...(convo?.messages ?? []), { ...userMessage }];
-
-    // Create abort controller for this request
-    const abortController = new AbortController();
-
-    try {
-      setConversationLoading(conversationId, true, abortController);
-
-      // Create a placeholder assistant message to stream into
-      const assistantId = addMessage({
-        timestamp: Date.now(),
-        role: "assistant",
-        content: "",
-      });
-
-      const textStream = await completionsStreaming(
-        selected,
-        messagesForAI as Message[],
-        abortController.signal,
-      );
-      for await (const delta of textStream) {
-        appendToMessage(assistantId, delta);
+      // If no current conversation, create one first
+      if (!conversationId) {
+        conversationId = createNewConversation();
+        // Update URL with the new conversation ID
+        router.push(`/?id=${conversationId}`);
       }
-    } catch (err: unknown) {
-      // Check if it was aborted
-      if (err instanceof Error && err.name === "AbortError") {
-        // User stopped the generation, update the message to indicate it was stopped
-        const convo = conversations.find((c) => c.id === conversationId);
-        const last = convo?.messages[convo.messages.length - 1];
-        if (last && last.role === "assistant") {
-          updateMessage(last.id, {
-            content: last.content + "\n\n*Generation stopped by user*",
-          });
+
+      // Add user message
+      const userMessage = {
+        timestamp: Date.now(),
+        role: "user",
+        content,
+        assets,
+      } as const;
+      if (!isRegenerating) {
+        addMessage(userMessage);
+      }
+
+      // Get enabled providers
+      if (!hasEnabledProviders()) {
+        addMessage({
+          timestamp: Date.now(),
+          role: "assistant",
+          content:
+            "No AI providers configured. Please add a provider in settings.",
+        });
+        return;
+      }
+
+      // Ensure a model is selected
+      const selected = selectedModel;
+      if (!selected) {
+        addMessage({
+          timestamp: Date.now(),
+          role: "assistant",
+          content:
+            "No model selected. Please choose a model from the selector above.",
+        });
+        return;
+      }
+
+      // Build the message list to send (include the just-added user message)
+      const convo = conversations.find((c) => c.id === conversationId);
+      const messagesForAI = [...(convo?.messages ?? []), { ...userMessage }];
+
+      // Create abort controller for this request
+      const abortController = new AbortController();
+
+      try {
+        setConversationLoading(conversationId, true, abortController);
+
+        // Create a placeholder assistant message to stream into
+        const assistantId = addMessage({
+          timestamp: Date.now(),
+          role: "assistant",
+          content: "",
+        });
+
+        const textStream = await completionsStreaming(
+          selected,
+          messagesForAI as Message[],
+          abortController.signal,
+        );
+        for await (const delta of textStream) {
+          appendToMessage(assistantId, delta);
         }
-      } else {
-        // If we created a placeholder, replace its content with the error; otherwise add a new error message
-        const errorText = `Failed to generate a response: ${err instanceof Error ? err.message : "Unknown error"}`;
-        try {
-          // Attempt to update the last assistant message if it was just created
+      } catch (err: unknown) {
+        // Check if it was aborted
+        if (err instanceof Error && err.name === "AbortError") {
+          // User stopped the generation, update the message to indicate it was stopped
           const convo = conversations.find((c) => c.id === conversationId);
           const last = convo?.messages[convo.messages.length - 1];
           if (last && last.role === "assistant") {
-            updateMessage(last.id, { content: errorText });
-          } else {
+            updateMessage(last.id, {
+              content: last.content + "\n\n*Generation stopped by user*",
+            });
+          }
+        } else {
+          // If we created a placeholder, replace its content with the error; otherwise add a new error message
+          const errorText = `Failed to generate a response: ${err instanceof Error ? err.message : "Unknown error"}`;
+          try {
+            // Attempt to update the last assistant message if it was just created
+            const convo = conversations.find((c) => c.id === conversationId);
+            const last = convo?.messages[convo.messages.length - 1];
+            if (last && last.role === "assistant") {
+              updateMessage(last.id, { content: errorText });
+            } else {
+              addMessage({
+                timestamp: Date.now(),
+                role: "assistant",
+                content: errorText,
+              });
+            }
+          } catch {
             addMessage({
               timestamp: Date.now(),
               role: "assistant",
               content: errorText,
             });
           }
-        } catch {
-          addMessage({
-            timestamp: Date.now(),
-            role: "assistant",
-            content: errorText,
-          });
         }
+      } finally {
+        setConversationLoading(conversationId, false);
       }
-    } finally {
-      setConversationLoading(conversationId, false);
-    }
-  }, [
-    addMessage,
-    appendToMessage,
-    conversations,
-    createNewConversation,
-    currentConversationId,
-    selectedModel,
-    hasEnabledProviders,
-    router,
-    setConversationLoading,
-    stopConversation,
-    updateMessage,
-  ]);
+    },
+    [
+      addMessage,
+      appendToMessage,
+      conversations,
+      createNewConversation,
+      currentConversationId,
+      selectedModel,
+      hasEnabledProviders,
+      router,
+      setConversationLoading,
+      stopConversation,
+      updateMessage,
+    ],
+  );
 
   const onSend = useCallback(
     (content: string, assets?: Message["assets"]) =>
@@ -269,7 +275,12 @@ export function Chat({ chatId }: ChatProps) {
 
         {/* Input */}
         <div className="flex-shrink-0 px-2 sm:px-4 py-2 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden">
-          <ChatInput onSend={onSend} onStop={onStop} disabled={false} isLoading={false} />
+          <ChatInput
+            onSend={onSend}
+            onStop={onStop}
+            disabled={false}
+            isLoading={false}
+          />
         </div>
       </div>
     );

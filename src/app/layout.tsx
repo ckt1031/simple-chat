@@ -33,7 +33,11 @@ export default function RootLayout({
       <head>
         {/* Load only when dev */}
         {process.env.NODE_ENV === "development" && (
-          <script crossOrigin="anonymous" src="//unpkg.com/react-scan/dist/auto.global.js" />
+          <script
+            crossOrigin="anonymous"
+            src="//unpkg.com/react-scan/dist/auto.global.js"
+            async
+          />
         )}
       </head>
       <body

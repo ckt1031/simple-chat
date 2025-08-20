@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useCallback } from "react";
+import { useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useHotkeys } from "react-hotkeys-hook";
 

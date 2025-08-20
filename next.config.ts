@@ -1,16 +1,16 @@
-import type { NextConfig } from 'next';
+import type { NextConfig } from "next";
 
-const experimentalSettings: NextConfig['experimental'] = {};
+const experimentalSettings: NextConfig["experimental"] = {};
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === "production") {
   experimentalSettings.sri = {
-    algorithm: 'sha384',
+    algorithm: "sha384",
   };
   experimentalSettings.reactCompiler = true;
 }
 
 const nextConfig: NextConfig = {
-  output: 'export',
+  output: "export",
   reactStrictMode: true,
   experimental: experimentalSettings,
 };

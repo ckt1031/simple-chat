@@ -45,12 +45,14 @@ export function ChatInput({
       if (disabled) return;
       const text = (textareaRef.current?.value || "").trim();
       if (text || attachments.length > 0) {
-        const assetsForSend = attachments.map(({ id, type, mimeType, name }) => ({
-          id,
-          type,
-          mimeType,
-          name,
-        }));
+        const assetsForSend = attachments.map(
+          ({ id, type, mimeType, name }) => ({
+            id,
+            type,
+            mimeType,
+            name,
+          }),
+        );
         onSend(text, assetsForSend);
         if (textareaRef.current) textareaRef.current.value = "";
         // Revoke preview URLs and clear attachments
@@ -99,7 +101,9 @@ export function ChatInput({
     setAttachments((prev) => {
       const next = [...prev, ...saved];
       // Adding an attachment means there is content to send
-      setHasText((textareaRef.current?.value || "").trim().length > 0 || next.length > 0);
+      setHasText(
+        (textareaRef.current?.value || "").trim().length > 0 || next.length > 0,
+      );
       return next;
     });
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -117,18 +121,25 @@ export function ChatInput({
     });
   }, []);
 
-  const canSend = (hasText || attachments.length > 0) && !disabled && !isLoading;
+  const canSend =
+    (hasText || attachments.length > 0) && !disabled && !isLoading;
 
-  const handleTextareaInput = useCallback((e: React.FormEvent<HTMLTextAreaElement>) => {
-    const value = e.currentTarget.value;
-    setHasText(value.length > 0 || attachments.length > 0);
-    setMessage(value);
-  }, [attachments.length]);
+  const handleTextareaInput = useCallback(
+    (e: React.FormEvent<HTMLTextAreaElement>) => {
+      const value = e.currentTarget.value;
+      setHasText(value.length > 0 || attachments.length > 0);
+      setMessage(value);
+    },
+    [attachments.length],
+  );
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto">
       {/* Attachments preview */}
-      <InputAttachmentsPreview attachments={attachments} onRemove={removeAttachment} />
+      <InputAttachmentsPreview
+        attachments={attachments}
+        onRemove={removeAttachment}
+      />
 
       <div
         className={cn(
@@ -163,18 +174,20 @@ export function ChatInput({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
-          className={
-            cn(
-              message.split("\n").length > 1 ? "h-[200px]" : "",
-              "w-full resize-none border-0 focus:ring-0 focus:outline-none text-sm leading-relaxed placeholder-neutral-500 dark:placeholder-neutral-400 bg-transparent"
-            )
-          }
+          className={cn(
+            message.split("\n").length > 1 ? "h-[200px]" : "",
+            "w-full resize-none border-0 focus:ring-0 focus:outline-none text-sm leading-relaxed placeholder-neutral-500 dark:placeholder-neutral-400 bg-transparent",
+          )}
           rows={1}
           name="message"
         />
 
         {/* Send/Stop Buttons */}
-        <SendStopButton isLoading={isLoading} onStop={onStop} disabled={!canSend} />
+        <SendStopButton
+          isLoading={isLoading}
+          onStop={onStop}
+          disabled={!canSend}
+        />
       </div>
     </form>
   );

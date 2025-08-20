@@ -14,12 +14,20 @@ function parseMarkdownIntoBlocks(markdown: string): string[] {
 const MemoizedMarkdownBlock = memo(
   ({ content }: { content: string }) => {
     return (
-      <ReactMarkdown 
-        remarkPlugins={[remarkGfm, remarkMath]} 
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex, rehypeRaw]}
-        components={{
-          br: ({ node, ...props }) => <br {...props} />,
-        }}
+                  components={{
+            br: ({ node, ...props }) => <br {...props} />,
+            table: ({ node, ...props }) => (
+              <div className="overflow-x-auto w-full">
+                <table 
+                  className="table-auto min-w-xl" 
+                  {...props} 
+                />
+              </div>
+            ),
+          }}
       >
         {content}
       </ReactMarkdown>

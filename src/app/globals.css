@@ -8,6 +8,8 @@
 html, body {
   height: 100%;
   overflow-x: hidden;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 button,
@@ -33,6 +35,7 @@ button:disabled,
 /* Ensure code blocks still look good without backticks */
 .prose pre {
   @apply bg-neutral-100 dark:bg-neutral-800 rounded-lg p-2 overflow-x-auto;
+  max-width: 100%;
 }
 
 .dark .prose pre {
@@ -41,6 +44,7 @@ button:disabled,
 
 .prose code {
   @apply bg-neutral-100 dark:bg-neutral-800 rounded-sm p-0.5 text-xs;
+  word-break: break-word;
 }
 
 .dark .prose code {
@@ -52,6 +56,28 @@ button:disabled,
   display: block;
   content: "";
   margin-top: 0.5em;
+}
+
+/* Improve table rendering */
+.prose table {
+  @apply w-full border-collapse border border-neutral-300 dark:border-neutral-600;
+}
+
+.prose th {
+  @apply border border-neutral-300 dark:border-neutral-600 px-3 py-2 text-left font-semibold bg-neutral-100 dark:bg-neutral-800;
+}
+
+.prose td {
+  @apply border border-neutral-300 dark:border-neutral-600 px-3 py-2;
+  word-break: break-word;
+}
+
+/* Ensure proper text wrapping in prose */
+.prose p,
+.prose div,
+.prose li {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Mobile viewport height fix */
@@ -95,4 +121,27 @@ button:disabled,
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: rgb(82 82 82); /* neutral-700 */
+}
+
+/* Improve horizontal scrolling for tables and code blocks */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background-color: rgb(163 163 163);
+  border-radius: 3px;
+}
+
+.dark .overflow-x-auto::-webkit-scrollbar-thumb {
+  background-color: rgb(82 82 82);
 }

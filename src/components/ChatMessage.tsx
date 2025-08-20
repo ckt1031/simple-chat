@@ -74,28 +74,40 @@ export function ChatMessage({ message, onRegenerate, isRegenerating = false, con
 
   return (
     <div className={cn(
-      "flex w-full max-w-3xl mx-auto",
+      "flex w-full max-w-4xl mx-auto overflow-x-hidden",
       isUser ? "justify-end" : "justify-start"
     )}>
       <div className={cn(
-        "flex space-x-3",
-        isUser ? "max-w-[80%] flex-row-reverse space-x-reverse" : "flex-row"
+        "flex space-x-3 w-full",
+        isUser ? "max-w-[85%] sm:max-w-[80%] flex-row-reverse space-x-reverse" : "flex-row"
       )}>
         {/* Message Content */}
         <div className={cn(
-          "flex flex-col space-y-1",
+          "flex flex-col space-y-1 min-w-0 flex-1",
           isUser ? "items-end" : "items-start"
         )}>
           <div
             className={cn(
-              "py-2 rounded-2xl text-sm leading-relaxed relative group",
-              isUser ? "px-4 bg-neutral-200 text-black dark:bg-neutral-800 dark:text-white" : "px-2"
+              "py-2 rounded-2xl text-sm leading-relaxed relative group break-words",
+              isUser 
+                ? "px-3 sm:px-4 bg-neutral-200 text-black dark:bg-neutral-800 dark:text-white max-w-full" 
+                : "px-2 max-w-full"
             )}
           >
             {imageUrls.length > 0 && (
-              <div className={cn("mb-2 grid gap-2", imageUrls.length === 1 ? "grid-cols-1" : "grid-cols-2") }>
+              <div className={cn(
+                "mb-2 grid gap-2", 
+                imageUrls.length === 1 
+                  ? "grid-cols-1" 
+                  : "grid-cols-1 sm:grid-cols-2"
+              )}>
                 {imageUrls.map((src, idx) => (
-                  <img key={idx} src={src} alt="attachment" className="rounded-md max-h-32 object-contain bg-neutral-100 dark:bg-neutral-800" />
+                  <img 
+                    key={idx} 
+                    src={src} 
+                    alt="attachment" 
+                    className="rounded-md max-h-32 object-contain bg-neutral-100 dark:bg-neutral-800 w-full" 
+                  />
                 ))}
               </div>
             )}
@@ -107,7 +119,10 @@ export function ChatMessage({ message, onRegenerate, isRegenerating = false, con
                   onSave={saveEdit}
                 />
               ) : (
-                <div className="whitespace-pre-wrap select-text" onClick={() => { if (isLongUserMessage && !expanded) setExpanded(true); }}>
+                <div 
+                  className="whitespace-pre-wrap select-text break-words overflow-hidden" 
+                  onClick={() => { if (isLongUserMessage && !expanded) setExpanded(true); }}
+                >
                   {displayUserContent}
                   {!expanded && isLongUserMessage && (
                     <span className="ml-1 text-neutral-500 dark:text-neutral-400 underline">Show more</span>
@@ -115,7 +130,7 @@ export function ChatMessage({ message, onRegenerate, isRegenerating = false, con
                 </div>
               )
             ) : (
-              <div className="prose prose-neutral dark:prose-invert space-y-2 max-w-3xl prose-code:whitespace-pre-wrap">
+              <div className="break-words prose prose-sm md:prose-base lg:prose-md prose-neutral dark:prose-invert space-y-2 max-w-full overflow-hidden">
                 <MemoizedMarkdown
                   key={message.id}
                   id={message.id}

@@ -220,9 +220,9 @@ export function Chat({ chatId }: ChatProps) {
   // Show new chat interface when no conversation is selected
   if (!currentConversation) {
     return (
-      <div className="h-full flex flex-col dark:bg-neutral-900 min-h-0">
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4 px-4">
+          <div className="h-full flex flex-col dark:bg-neutral-900 min-h-0 overflow-hidden">
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-2 sm:p-4 space-y-4 overflow-x-hidden">
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-4">
               <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">What&apos;s on your mind?</h2>
@@ -232,7 +232,7 @@ export function Chat({ chatId }: ChatProps) {
         </div>
 
         {/* Input */}
-        <div className="flex-shrink-0 px-4 py-2 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+        <div className="flex-shrink-0 px-2 sm:px-4 py-2 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden">
           <ChatInput
             onSend={(content, assets) => handleSendMessage(content, false, assets)}
             onStop={handleStopGeneration}
@@ -245,9 +245,9 @@ export function Chat({ chatId }: ChatProps) {
   }
 
   return (
-    <div className="h-full flex flex-col dark:bg-neutral-900 min-h-0 relative">
+    <div className="h-full flex flex-col dark:bg-neutral-900 min-h-0 relative overflow-hidden">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4 px-4">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-2 sm:p-4 space-y-4 overflow-x-hidden">
         {currentConversation.messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-4">
@@ -272,7 +272,7 @@ export function Chat({ chatId }: ChatProps) {
       <ChatScrollToBottom visible={showScrollButton} onClick={scrollToBottom} />
 
       {/* Input */}
-      <div className="flex-shrink-0 py-2 px-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+      <div className="flex-shrink-0 py-2 px-2 sm:px-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden">
         <ChatInput
           onSend={(content, assets) => handleSendMessage(content, false, assets)}
           onStop={handleStopGeneration}

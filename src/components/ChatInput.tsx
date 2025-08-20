@@ -80,12 +80,12 @@ export function ChatInput({ onSend, onStop, disabled = false, placeholder = "Ask
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-3xl mx-auto">
+    <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto">
       {/* Attachments preview */}
       {attachments.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto p-1 mb-2">
+        <div className="flex gap-2 overflow-x-auto p-1 mb-2 custom-scrollbar">
           {attachments.map(att => (
-            <div key={att.id} className="relative h-16 max-w-[20%] rounded-md overflow-hidden border border-neutral-200 dark:border-neutral-700">
+            <div key={att.id} className="relative h-16 w-20 sm:max-w-[20%] rounded-md overflow-hidden border border-neutral-200 dark:border-neutral-700 flex-shrink-0">
               <img src={att.previewUrl} alt={att.name || 'image'} className="object-cover w-full h-full" />
               <button type="button" onClick={() => removeAttachment(att.id)} className="absolute top-1 right-1 bg-neutral-900 text-white rounded-full p-1">
                 <X className="w-3 h-3" />
@@ -97,7 +97,7 @@ export function ChatInput({ onSend, onStop, disabled = false, placeholder = "Ask
 
       <div className={
         cn(
-          "relative flex items-center space-x-2 p-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full shadow-sm min-h-[44px] max-h-[120px]",
+          "relative flex items-center space-x-2 p-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full shadow-sm min-h-[44px] max-h-[120px] overflow-hidden",
           isSingleLine ? "rounded-full" : "rounded-xl"
         )
       }>

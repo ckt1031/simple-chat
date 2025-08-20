@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { Loader2, Square, ArrowUp, Image as ImageIcon, X } from "lucide-react";
+import { useState, useRef, useCallback } from "react";
+import { Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { saveImageAsset } from "@/lib/assets";
+import InputAttachmentsPreview from "./InputAttachmentsPreview";
+import SendStopButton from "./SendStopButton";
 
 interface ChatInputProps {
   onSend: (
@@ -24,6 +26,7 @@ export function ChatInput({
   isLoading = false,
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
+  const [hasText, setHasText] = useState(false);
   const [attachments, setAttachments] = useState<
     {
       id: string;
@@ -36,29 +39,38 @@ export function ChatInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if ((message.trim() || attachments.length > 0) && !disabled) {
-      const assetsForSend = attachments.map(({ id, type, mimeType, name }) => ({
-        id,
-        type,
-        mimeType,
-        name,
-      }));
-      onSend(message.trim(), assetsForSend);
-      setMessage("");
-      // Revoke preview URLs and clear attachments
-      attachments.forEach((a) => URL.revokeObjectURL(a.previewUrl));
-      setAttachments([]);
-    }
-  };
+  const handleSubmit = useCallback(
+    (e?: React.FormEvent) => {
+      if (e) e.preventDefault();
+      if (disabled) return;
+      const text = (textareaRef.current?.value || "").trim();
+      if (text || attachments.length > 0) {
+        const assetsForSend = attachments.map(({ id, type, mimeType, name }) => ({
+          id,
+          type,
+          mimeType,
+          name,
+        }));
+        onSend(text, assetsForSend);
+        if (textareaRef.current) textareaRef.current.value = "";
+        // Revoke preview URLs and clear attachments
+        attachments.forEach((a) => URL.revokeObjectURL(a.previewUrl));
+        setAttachments([]);
+        setMessage("");
+      }
+    },
+    [attachments, disabled, onSend],
+  );
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit(e);
-    }
-  };
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSubmit();
+      }
+    },
+    [handleSubmit],
+  );
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -84,44 +96,39 @@ export function ChatInput({
     };
 
     const saved = await Promise.all(images.map(createImageAttachment));
-    setAttachments((prev) => [...prev, ...saved]);
+    setAttachments((prev) => {
+      const next = [...prev, ...saved];
+      // Adding an attachment means there is content to send
+      setHasText((textareaRef.current?.value || "").trim().length > 0 || next.length > 0);
+      return next;
+    });
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const removeAttachment = (id: string) => {
+  const removeAttachment = useCallback((id: string) => {
     setAttachments((prev) => {
       const target = prev.find((a) => a.id === id);
       if (target) URL.revokeObjectURL(target.previewUrl);
-      return prev.filter((a) => a.id !== id);
+      const next = prev.filter((a) => a.id !== id);
+      // Update hasText depending on remaining attachments and current text
+      const currentText = (textareaRef.current?.value || "").trim();
+      setHasText(currentText.length > 0 || next.length > 0);
+      return next;
     });
-  };
+  }, []);
+
+  const canSend = (hasText || attachments.length > 0) && !disabled && !isLoading;
+
+  const handleTextareaInput = useCallback((e: React.FormEvent<HTMLTextAreaElement>) => {
+    const value = e.currentTarget.value;
+    setHasText(value.length > 0 || attachments.length > 0);
+    setMessage(value);
+  }, [attachments.length]);
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto">
       {/* Attachments preview */}
-      {attachments.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto p-1 mb-2 custom-scrollbar">
-          {attachments.map((att) => (
-            <div
-              key={att.id}
-              className="relative h-16 w-20 sm:max-w-[20%] rounded-md overflow-hidden border border-neutral-200 dark:border-neutral-700 flex-shrink-0"
-            >
-              <img
-                src={att.previewUrl}
-                alt={att.name || "image"}
-                className="object-cover w-full h-full"
-              />
-              <button
-                type="button"
-                onClick={() => removeAttachment(att.id)}
-                className="absolute top-1 right-1 bg-neutral-900 text-white rounded-full p-1"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+      <InputAttachmentsPreview attachments={attachments} onRemove={removeAttachment} />
 
       <div
         className={cn(
@@ -152,52 +159,22 @@ export function ChatInput({
         <textarea
           ref={textareaRef}
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={handleTextareaInput}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
-          className="custom-scrollbar w-full resize-none border-0 focus:ring-0 focus:outline-none text-sm leading-relaxed placeholder-neutral-500 dark:placeholder-neutral-400 bg-transparent"
+          className={
+            cn(
+              message.split("\n").length > 1 ? "h-[200px]" : "",
+              "w-full resize-none border-0 focus:ring-0 focus:outline-none text-sm leading-relaxed placeholder-neutral-500 dark:placeholder-neutral-400 bg-transparent"
+            )
+          }
           rows={1}
           name="message"
         />
 
-        {/* Voice and Send/Stop Buttons */}
-        <div className="flex items-center space-x-1">
-          {isLoading && onStop ? (
-            <button
-              type="button"
-              onClick={onStop}
-              className="p-2 transition-colors rounded-full bg-neutral-800 text-white hover:bg-neutral-700 dark:bg-neutral-700 dark:text-white dark:hover:bg-neutral-600"
-              aria-label="Stop generating"
-              title="Stop generating"
-            >
-              <Square className="w-4 h-4" strokeWidth={1.5} />
-            </button>
-          ) : (
-            <button
-              type="submit"
-              disabled={
-                !(message.trim() || attachments.length > 0) ||
-                disabled ||
-                isLoading
-              }
-              className={cn(
-                "p-2 transition-colors rounded-full",
-                (message.trim() || attachments.length > 0) &&
-                  !disabled &&
-                  !isLoading
-                  ? "bg-neutral-800 text-neutral-100 hover:bg-neutral-700 dark:bg-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-600"
-                  : "bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-400 cursor-not-allowed",
-              )}
-            >
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" strokeWidth={1.5} />
-              ) : (
-                <ArrowUp className="w-4 h-4" strokeWidth={1.5} />
-              )}
-            </button>
-          )}
-        </div>
+        {/* Send/Stop Buttons */}
+        <SendStopButton isLoading={isLoading} onStop={onStop} disabled={!canSend} />
       </div>
     </form>
   );

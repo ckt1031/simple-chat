@@ -8,7 +8,6 @@ import { Message, useConversationStore } from "@/lib/stores/conversation";
 import { useProviderStore } from "@/lib/stores/provider";
 import completionsStreaming from "@/lib/api/completions-streaming";
 import { useRouter } from "next/navigation";
-import ChatScrollToBottom from "./ChatScrollToBottom";
 
 interface ChatProps {
   chatId: string | null;
@@ -82,8 +81,6 @@ export function Chat({ chatId }: ChatProps) {
       }
     }
   }, [currentConversation?.messages]);
-
-  // removed: showScrollButton state and effect; handled inside ChatScrollToBottom
 
   const handleRegenerateMessage = useCallback(async (messageId: string) => {
     // In the regeneration, we only allow re-generating the last message
@@ -306,8 +303,6 @@ export function Chat({ chatId }: ChatProps) {
         )}
         <div ref={messagesEndRef} />
       </div>
-
-      <ChatScrollToBottom targetRef={messagesEndRef} onClick={scrollToBottom} />
 
       {/* Input */}
       <div className="flex-shrink-0 py-3 px-2 sm:px-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden">

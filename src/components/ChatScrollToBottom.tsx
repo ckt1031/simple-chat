@@ -34,7 +34,7 @@ export default function ChatScrollToBottom({
   return (
     <div
       className={cn(
-        "absolute z-10 left-1/2 -translate-x-1/2 bottom-20 pointer-events-none transition-opacity duration-200",
+        "absolute z-10 left-1/2 -translate-x-1/2 top-5 pointer-events-none transition-opacity duration-200",
         visible ? "opacity-100" : "opacity-0",
         className,
       )}

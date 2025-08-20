@@ -51,6 +51,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-katex": "^3.0.4",
+    "babel-plugin-react-compiler": "19.1.0-rc.2",
     "eslint": "^9",
     "eslint-config-next": "15.5.0",
     "eslint-config-prettier": "10.1.8",

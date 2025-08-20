@@ -30,7 +30,7 @@ function HomePageContent() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-0 w-full h-full overflow-hidden">
         {/* Header */}
-        <div className="flex items-center p-2 sm:p-3 flex-row gap-2 flex-shrink-0 border-b border-neutral-200 dark:border-neutral-800 overflow-hidden">
+        <div className="flex items-center p-2 sm:p-3 flex-row gap-2 flex-shrink-0 border-b border-neutral-200 dark:border-neutral-800">
           <button
             onClick={toggleSidebar}
             className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors flex-shrink-0"
@@ -39,9 +39,7 @@ function HomePageContent() {
             <Menu className="w-5 h-5" />
           </button>
           {/* Model Selector here */}
-          <div className="flex-1 min-w-0 overflow-hidden">
-            <ModelSelector />
-          </div>
+          <ModelSelector />
         </div>
 
         {/* Chat Area fills full width; sidebar overlays */}

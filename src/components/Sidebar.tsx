@@ -103,7 +103,7 @@ export function Sidebar() {
                     key={conversation.id}
                     onClick={() => handleSelectConversation(conversation.id)}
                     className={cn(
-                      'group flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors',
+                      'group flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer',
                       currentConversationId === conversation.id
                         ? 'bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white'
                         : 'text-neutral-700 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700'
@@ -113,7 +113,7 @@ export function Sidebar() {
                       {conversation.isLoading && (
                         <Loader2 className="w-3 h-3 animate-spin text-blue-500 flex-shrink-0" />
                       )}
-                      <span className="truncate">{conversation.title}</span>
+                      <span className="truncate select-none">{conversation.title}</span>
                     </div>
                     <button
                       onClick={(e) => handleDeleteConversation(e, conversation.id)}

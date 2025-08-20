@@ -1,11 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useGlobalStore } from '@/lib/stores/global';
 import { OfficialProvider, useProviderStore, Model, ModelWithProvider, ProviderState } from '@/lib/stores/provider';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { useClickAway } from 'react-use';
 
 type ProviderGroup = {
   id: string;
@@ -21,6 +22,7 @@ export function ModelSelector() {
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const dropdownRef = useRef(null);
 
   const groups: ProviderGroup[] = useMemo(() => {
     const official: ProviderGroup[] = getOfficialProviders()
@@ -47,12 +49,12 @@ export function ModelSelector() {
 
   const handleSelect = (providerId: string, model: Model) => {
     const displayName = model.name && model.name.trim().length > 0 ? model.name : undefined;
-    const next: ModelWithProvider = { 
-      id: model.id, 
-      name: displayName, 
-      enabled: model.enabled, 
-      source: model.source, 
-      providerId 
+    const next: ModelWithProvider = {
+      id: model.id,
+      name: displayName,
+      enabled: model.enabled,
+      source: model.source,
+      providerId
     };
     updateSettings({ selectedModel: next });
     setOpen(false);
@@ -69,6 +71,7 @@ export function ModelSelector() {
 
   useHotkeys('ctrl+m', () => setOpen(true));
   useHotkeys('esc', () => setOpen(false));
+  useClickAway(dropdownRef, () => setOpen(false));
 
   return (
     <div className="relative">
@@ -86,7 +89,7 @@ export function ModelSelector() {
       </button>
 
       {open && (
-        <div className="absolute z-20 mt-2 w-[280px] sm:w-[320px] rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg max-h-[80vh] overflow-hidden">
+        <div ref={dropdownRef} className="absolute z-20 mt-2 w-[280px] sm:w-[320px] rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg max-h-[80vh] overflow-hidden">
           <div className="relative border-neutral-200 dark:border-neutral-700">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
             <input

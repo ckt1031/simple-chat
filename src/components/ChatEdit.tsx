@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { useHotkeys } from "react-hotkeys-hook";
 
@@ -17,37 +17,27 @@ export default function ChatEdit({
   onSave,
   placeholder = "Edit your message...",
 }: ChatEditProps) {
-  const [value, setValue] = useState(initialValue);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // Auto-resize with a max height; scroll when exceeded
-  useEffect(() => {
-    if (!textareaRef.current) return;
-    const el = textareaRef.current;
-    el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 240)}px`;
-  }, [value]);
 
   useHotkeys("esc", () => onCancel());
   useHotkeys("shift+enter", () => submit(), { enableOnFormTags: ["TEXTAREA"] });
 
   const submit = () => {
-    const trimmed = value.trim();
-    onSave(trimmed);
+    onSave(textareaRef.current?.value.trim() ?? "");
   };
 
   return (
-    <div className="py-1 max-h-[250px] sm:min-w-[400px] md:min-w-[500px]">
+    <div className="py-1 max-h-[350px] sm:min-w-[400px] md:min-w-[500px]">
       <textarea
         ref={textareaRef}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
+        defaultValue={initialValue}
         placeholder={placeholder}
         className={cn(
           "w-full resize-none focus:outline-none text-sm leading-relaxed",
           "placeholder-neutral-500 dark:placeholder-neutral-400",
-          "max-h-[180px] pr-0.5",
+          "pr-0.5 h-[250px]",
         )}
+        rows={1}
       />
 
       <div className="mt-3 flex items-center justify-end gap-2">

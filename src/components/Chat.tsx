@@ -310,7 +310,7 @@ export function Chat({ chatId }: ChatProps) {
       <ChatScrollToBottom targetRef={messagesEndRef} onClick={scrollToBottom} />
 
       {/* Input */}
-      <div className="flex-shrink-0 py-2 md:py-4 px-2 sm:px-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden">
+      <div className="flex-shrink-0 py-3 px-2 sm:px-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden">
         <ChatInput
           onSend={onSend}
           onStop={onStop}

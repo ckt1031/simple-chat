@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useGlobalStore } from "@/lib/stores/global";
-import ChatMessage from "./ChatMessage";
+import MessageItem from "./MessageItem";
 import { ChatInput } from "./ChatInput";
 import { Message, useConversationStore } from "@/lib/stores/conversation";
 import { useProviderStore } from "@/lib/stores/provider";
@@ -16,21 +16,42 @@ interface ChatProps {
 export function Chat({ chatId }: ChatProps) {
   const selectedModel = useGlobalStore((s) => s.general.selectedModel);
   const { hasEnabledProviders } = useProviderStore();
-  const {
-    conversations,
-    currentConversationId,
-    isHydrated,
-    addMessage,
-    appendToMessage,
-    endReasoning,
-    appendToReasoning,
-    updateMessage,
-    setCurrentConversation,
-    createNewConversation,
-    removeLastAssistantMessage,
-    setConversationLoading,
-    stopConversation,
-  } = useConversationStore();
+  const currentConversationId = useConversationStore(
+    (s) => s.currentConversationId,
+  );
+  const isHydrated = useConversationStore((s) => s.isHydrated);
+  const addMessage = useConversationStore((s) => s.addMessage);
+  const appendToMessage = useConversationStore((s) => s.appendToMessage);
+  const endReasoning = useConversationStore((s) => s.endReasoning);
+  const appendToReasoning = useConversationStore((s) => s.appendToReasoning);
+  const updateMessage = useConversationStore((s) => s.updateMessage);
+  const setCurrentConversation = useConversationStore(
+    (s) => s.setCurrentConversation,
+  );
+  const createNewConversation = useConversationStore(
+    (s) => s.createNewConversation,
+  );
+  const removeLastAssistantMessage = useConversationStore(
+    (s) => s.removeLastAssistantMessage,
+  );
+  const setConversationLoading = useConversationStore(
+    (s) => s.setConversationLoading,
+  );
+  const stopConversation = useConversationStore((s) => s.stopConversation);
+
+  // Track only a stable key of message ids for current conversation to avoid re-renders during token streaming
+  const messageIdsKey = useConversationStore((s) => {
+    const conv = s.conversations.find((c) => c.id === s.currentConversationId);
+    return conv ? conv.messages.map((m) => m.id).join(",") : "";
+  });
+  const messageIds: string[] = useMemo(() => {
+    return messageIdsKey ? messageIdsKey.split(",") : [];
+  }, [messageIdsKey]);
+
+  const isCurrentLoading = useConversationStore((s) => {
+    const conv = s.conversations.find((c) => c.id === s.currentConversationId);
+    return Boolean(conv?.isLoading);
+  });
   const router = useRouter();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -42,9 +63,9 @@ export function Chat({ chatId }: ChatProps) {
 
     if (chatId) {
       // Check if the chat ID exists
-      const conversationExists = conversations.find(
-        (conv) => conv.id === chatId,
-      );
+      const conversationExists = useConversationStore
+        .getState()
+        .conversations.find((conv) => conv.id === chatId);
       if (conversationExists) {
         setCurrentConversation(chatId);
       } else {
@@ -55,11 +76,9 @@ export function Chat({ chatId }: ChatProps) {
       // No chat ID, clear current conversation (new chat state)
       setCurrentConversation(null);
     }
-  }, [chatId, conversations, setCurrentConversation, router, isHydrated]);
+  }, [chatId, setCurrentConversation, router, isHydrated]);
 
-  const currentConversation = conversations.find(
-    (conv) => conv.id === currentConversationId,
-  );
+  const hasConversation = currentConversationId != null;
 
   const scrollToBottom = useCallback(() => {
     if (messagesEndRef.current) {
@@ -78,30 +97,21 @@ export function Chat({ chatId }: ChatProps) {
       const isNearBottom =
         messagesContainer.scrollTop + messagesContainer.clientHeight >=
         messagesContainer.scrollHeight - 100;
-      if (isNearBottom || currentConversation?.messages.length === 1) {
+      if (isNearBottom || messageIds.length === 1) {
         scrollToBottom();
       }
     }
-  }, [currentConversation?.messages]);
+  }, [messageIds.length, scrollToBottom]);
 
-  const handleRegenerateMessage = useCallback(
-    async (messageId: string) => {
-      // In the regeneration, we only allow re-generating the last message
-      const lastMessage =
-        currentConversation?.messages[currentConversation.messages.length - 1];
-      if (!lastMessage || lastMessage.id !== messageId) return;
-
-      const userMessage = [...(currentConversation?.messages ?? [])]
-        .reverse()
-        .find((m) => m.role === "user");
-      if (!userMessage) return;
-
-      // Remove the last AI generated message if it exists
-      removeLastAssistantMessage(messageId);
-      handleSendMessage(userMessage.content, true, userMessage.assets);
-    },
-    [currentConversation?.messages, removeLastAssistantMessage],
-  );
+  // Stable ref for send handler to avoid changing onRegenerate identity
+  const handleSendMessageRef = useRef<
+    | ((
+        content: string,
+        isRegenerating?: boolean,
+        assets?: Message["assets"],
+      ) => Promise<void>)
+    | null
+  >(null);
 
   const handleStopGeneration = useCallback(() => {
     if (currentConversationId) {
@@ -159,7 +169,9 @@ export function Chat({ chatId }: ChatProps) {
       }
 
       // Build the message list to send (include the just-added user message)
-      const convo = conversations.find((c) => c.id === conversationId);
+      const convo = useConversationStore
+        .getState()
+        .conversations.find((c) => c.id === conversationId);
       const messagesForAI = [...(convo?.messages ?? []), { ...userMessage }];
 
       // Create abort controller for this request
@@ -197,7 +209,9 @@ export function Chat({ chatId }: ChatProps) {
         // Check if it was aborted
         if (err instanceof Error && err.name === "AbortError") {
           // User stopped the generation, update the message to indicate it was stopped
-          const convo = conversations.find((c) => c.id === conversationId);
+          const convo = useConversationStore
+            .getState()
+            .conversations.find((c) => c.id === conversationId);
           const last = convo?.messages[convo.messages.length - 1];
           if (last && last.role === "assistant") {
             updateMessage(last.id, {
@@ -209,7 +223,9 @@ export function Chat({ chatId }: ChatProps) {
           const errorText = `Failed to generate a response: ${err instanceof Error ? err.message : "Unknown error"}`;
           try {
             // Attempt to update the last assistant message if it was just created
-            const convo = conversations.find((c) => c.id === conversationId);
+            const convo = useConversationStore
+              .getState()
+              .conversations.find((c) => c.id === conversationId);
             const last = convo?.messages[convo.messages.length - 1];
             if (last && last.role === "assistant") {
               updateMessage(last.id, { content: errorText });
@@ -236,17 +252,42 @@ export function Chat({ chatId }: ChatProps) {
       addMessage,
       appendToMessage,
       appendToReasoning,
-      conversations,
       createNewConversation,
       currentConversationId,
       selectedModel,
       hasEnabledProviders,
       router,
       setConversationLoading,
-      stopConversation,
       updateMessage,
     ],
   );
+
+  // Keep the latest handleSendMessage without changing the regenerate callback identity
+  useEffect(() => {
+    handleSendMessageRef.current = handleSendMessage;
+  }, [handleSendMessage]);
+
+  const handleRegenerateMessage = useCallback(async (messageId: string) => {
+    // Access latest state directly to avoid re-creating this callback on stream updates
+    const { conversations, currentConversationId, removeLastAssistantMessage } =
+      useConversationStore.getState();
+
+    const conv = conversations.find((c) => c.id === currentConversationId);
+    const lastMessage = conv?.messages[conv.messages.length - 1];
+    if (!lastMessage || lastMessage.id !== messageId) return;
+
+    const userMessage = [...(conv?.messages ?? [])]
+      .reverse()
+      .find((m) => m.role === "user");
+    if (!userMessage) return;
+
+    removeLastAssistantMessage(messageId);
+    await handleSendMessageRef.current?.(
+      userMessage.content,
+      true,
+      userMessage.assets,
+    );
+  }, []);
 
   const onSend = useCallback(
     (content: string, assets?: Message["assets"]) =>
@@ -269,7 +310,7 @@ export function Chat({ chatId }: ChatProps) {
   }
 
   // Show new chat interface when no conversation is selected
-  if (!currentConversation) {
+  if (!hasConversation) {
     return (
       <div className="h-full flex flex-col dark:bg-neutral-900 min-h-0 overflow-hidden">
         {/* Messages */}
@@ -303,7 +344,7 @@ export function Chat({ chatId }: ChatProps) {
     <div className="h-full flex flex-col dark:bg-neutral-900 min-h-0 relative overflow-hidden">
       {/* Messages */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-2 sm:p-4 space-y-4 overflow-x-hidden">
-        {currentConversation.messages.length === 0 ? (
+        {messageIds.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-4">
               <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">
@@ -315,11 +356,11 @@ export function Chat({ chatId }: ChatProps) {
             </div>
           </div>
         ) : (
-          currentConversation.messages.map((message) => (
-            <ChatMessage
-              conversationId={currentConversation.id}
-              key={message.id}
-              message={message}
+          messageIds.map((messageId) => (
+            <MessageItem
+              key={messageId}
+              conversationId={currentConversationId as string}
+              messageId={messageId}
               onRegenerate={handleRegenerateMessage}
               isRegenerating={false}
             />
@@ -333,8 +374,8 @@ export function Chat({ chatId }: ChatProps) {
         <ChatInput
           onSend={onSend}
           onStop={onStop}
-          disabled={currentConversation.isLoading}
-          isLoading={currentConversation.isLoading}
+          disabled={isCurrentLoading}
+          isLoading={isCurrentLoading}
         />
       </div>
     </div>

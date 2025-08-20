@@ -39,8 +39,6 @@ function Reasoning({
     }
   }, [reasoningStartTime, reasoningEndTime]);
 
-  console.log("Reasoning ended", reasoningEndTime);
-
   const getTimeText = (seconds: number) => {
     if (seconds === 1) return "1 second";
     return `${seconds} seconds`;

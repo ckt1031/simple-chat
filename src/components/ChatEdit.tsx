@@ -27,7 +27,7 @@ export default function ChatEdit({
   };
 
   return (
-    <div className="py-1 max-h-[350px] sm:min-w-[400px] md:min-w-[500px]">
+    <div className="py-1 max-h-[350px]">
       <textarea
         ref={textareaRef}
         defaultValue={initialValue}

@@ -105,11 +105,11 @@ function ChatMessageCmp({
         >
           <div
             className={cn(
-              "py-2 rounded-2xl text-sm leading-relaxed relative group break-words",
+              "py-2 rounded-2xl text-sm leading-relaxed relative group break-words max-w-full",
               isUser
                 ? "px-3 sm:px-4 bg-neutral-200 text-black dark:bg-neutral-800 dark:text-white"
                 : "px-2",
-              isEditing ? "w-full sm:w-auto" : "max-w-none",
+              isEditing && isUser && "w-full",
             )}
           >
             {imageUrls.length > 0 && (

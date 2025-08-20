@@ -10,6 +10,7 @@ import {
 import { Trash2, Menu } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { SettingsModal } from "@/components/Settings/Modal";
+import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 import { useGlobalStore } from "@/lib/stores/global";
 import { useConversationStore } from "@/lib/stores/conversation";
 
@@ -24,6 +25,9 @@ type LibraryItem = {
 
 function LibraryPageContent() {
   const toggleSidebar = useGlobalStore((s) => s.toggleSidebar);
+  const openDeleteConfirmation = useGlobalStore(
+    (s) => s.openDeleteConfirmation,
+  );
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { removeAssetReferences } = useConversationStore();
@@ -74,6 +78,15 @@ function LibraryPageContent() {
     removeAssetReferences(id);
   };
 
+  const handleDeleteWithConfirmation = (id: string) => {
+    const target = items.find((i) => i.id === id);
+    openDeleteConfirmation(
+      "Delete Image",
+      `Are you sure you want to delete "${target?.name || "this image"}"? This action cannot be undone.`,
+      () => handleDelete(id),
+    );
+  };
+
   return (
     <div className="h-screen flex bg-white dark:bg-neutral-900 overflow-hidden">
       <Sidebar />
@@ -120,7 +133,7 @@ function LibraryPageContent() {
                     <button
                       aria-label="Delete image"
                       title="Delete image"
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => handleDeleteWithConfirmation(item.id)}
                       className="absolute right-2 top-2 rounded-full bg-black/70 p-1 text-white opacity-0 transition-opacity hover:bg-black group-hover:opacity-100"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -133,6 +146,7 @@ function LibraryPageContent() {
         </div>
       </div>
       <SettingsModal />
+      <DeleteConfirmationModal />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import {
   BaseProviderState,
   CustomProviderState,
 } from "@/lib/stores/provider";
+import { useGlobalStore } from "@/lib/stores/global";
 import { defaultProviderConfig } from "@/lib/api/sdk";
 
 const FormSchema = z.object({
@@ -26,6 +27,9 @@ export function useProviderForm({
   onSuccess,
 }: UseProviderFormProps) {
   const { getProvider, updateProvider, removeProvider } = useProviderStore();
+  const openDeleteConfirmation = useGlobalStore(
+    (s) => s.openDeleteConfirmation,
+  );
   const provider = getProvider(providerId);
 
   const isCustom = provider?.type === "custom";
@@ -64,8 +68,14 @@ export function useProviderForm({
 
   const handleDelete = () => {
     if (isCustom) {
-      removeProvider(providerId);
-      onSuccess?.();
+      openDeleteConfirmation(
+        "Delete Provider",
+        `Are you sure you want to delete "${provider?.displayName || "this provider"}"? This action cannot be undone.`,
+        () => {
+          removeProvider(providerId);
+          onSuccess?.();
+        },
+      );
     }
   };
 

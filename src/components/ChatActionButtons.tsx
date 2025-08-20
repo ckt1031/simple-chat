@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, Copy, PencilLine, RefreshCcw, Trash } from "lucide-react";
 import { useConversationStore } from "@/lib/stores/conversation";
+import { useGlobalStore } from "@/lib/stores/global";
 import { cn } from "@/lib/utils";
 
 interface ChatActionButtonsProps {
@@ -26,6 +27,9 @@ export default function ChatActionButtons({
 }: ChatActionButtonsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { isLastMessage, deleteMessage } = useConversationStore();
+  const openDeleteConfirmation = useGlobalStore(
+    (s) => s.openDeleteConfirmation,
+  );
 
   // Show the buttons when the mouse is within 60px of the container (top/bottom/left/right)
   // This is a simple "proximity" effect using mousemove on the document.
@@ -53,7 +57,11 @@ export default function ChatActionButtons({
   }, []);
 
   const handleDelete = () => {
-    deleteMessage(conversationId, messageId);
+    openDeleteConfirmation(
+      "Delete Message",
+      "Are you sure you want to delete this message? This action cannot be undone.",
+      () => deleteMessage(conversationId, messageId),
+    );
   };
 
   return (

@@ -18,6 +18,9 @@ export function Sidebar() {
   const toggleSidebar = useGlobalStore((s) => s.toggleSidebar);
   const closeSidebar = useGlobalStore((s) => s.closeSidebar);
   const openSettings = useGlobalStore((s) => s.openSettings);
+  const openDeleteConfirmation = useGlobalStore(
+    (s) => s.openDeleteConfirmation,
+  );
 
   const { conversations, currentConversationId, deleteConversation } =
     useConversationStore();
@@ -38,11 +41,17 @@ export function Sidebar() {
 
   const handleDeleteConversation = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    deleteConversation(id);
-    // If we deleted the current conversation, redirect to new chat
-    if (currentConversationId === id) {
-      router.push("/");
-    }
+    openDeleteConfirmation(
+      "Delete Conversation",
+      "Are you sure you want to delete this conversation? This action cannot be undone.",
+      () => {
+        deleteConversation(id);
+        // If we deleted the current conversation, redirect to new chat
+        if (currentConversationId === id) {
+          router.push("/");
+        }
+      },
+    );
   };
 
   return (

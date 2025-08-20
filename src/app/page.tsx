@@ -4,6 +4,7 @@ import { Menu } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { Chat } from "@/components/Chat";
 import { SettingsModal } from "@/components/Settings/Modal";
+import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 import { useGlobalStore } from "@/lib/stores/global";
 import { ModelSelector } from "@/components/ModelSelector";
 import { Suspense } from "react";
@@ -41,6 +42,9 @@ function HomePageContent() {
 
       {/* Settings Modal with global state */}
       <SettingsModal />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal />
     </div>
   );
 }

@@ -10,6 +10,12 @@ export interface UIState {
   isSidebarOpen: boolean;
   isSettingsOpen: boolean;
   isHydrated: boolean;
+  deleteConfirmation: {
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: (() => void) | null;
+  };
 }
 
 interface GlobalState {
@@ -27,6 +33,14 @@ interface GlobalStore extends GlobalState {
   toggleSidebar: () => void;
   openSidebar: () => void;
   closeSidebar: () => void;
+
+  // Delete Confirmation Actions
+  openDeleteConfirmation: (
+    title: string,
+    message: string,
+    onConfirm: () => void,
+  ) => void;
+  closeDeleteConfirmation: () => void;
 }
 
 export const useGlobalStore = create<GlobalStore>()(
@@ -39,6 +53,12 @@ export const useGlobalStore = create<GlobalStore>()(
         isSidebarOpen: true,
         isSettingsOpen: false,
         isHydrated: false,
+        deleteConfirmation: {
+          isOpen: false,
+          title: "",
+          message: "",
+          onConfirm: null,
+        },
       },
       updateSettings: (newSettings) => {
         set((state) => ({
@@ -66,12 +86,49 @@ export const useGlobalStore = create<GlobalStore>()(
       setHydrated: (hydrated: boolean) => {
         set((state) => ({ ui: { ...state.ui, isHydrated: hydrated } }));
       },
+
+      // Delete Confirmation Actions
+      openDeleteConfirmation: (title, message, onConfirm) => {
+        set((state) => ({
+          ui: {
+            ...state.ui,
+            deleteConfirmation: {
+              isOpen: true,
+              title,
+              message,
+              onConfirm,
+            },
+          },
+        }));
+      },
+      closeDeleteConfirmation: () => {
+        set((state) => ({
+          ui: {
+            ...state.ui,
+            deleteConfirmation: {
+              isOpen: false,
+              title: "",
+              message: "",
+              onConfirm: null,
+            },
+          },
+        }));
+      },
     }),
     {
       name: "global",
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (state) => {
         if (state) {
+          // Ensure defaults after rehydration
+          if (!state.ui.deleteConfirmation) {
+            state.ui.deleteConfirmation = {
+              isOpen: false,
+              title: "",
+              message: "",
+              onConfirm: null,
+            };
+          }
           state.ui.isHydrated = true;
         }
       },

@@ -19,6 +19,13 @@ export interface Message {
   reasoningEndTime?: number;
   timestamp: number;
   role: "user" | "assistant";
+  // Unified error and abort metadata for rendering notices in UI
+  error?: {
+    message: string;
+    code?: string | number;
+    kind?: "http" | "provider" | "unknown";
+  };
+  aborted?: boolean;
   assets?: Array<{
     id: string;
     type: "image";

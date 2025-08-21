@@ -150,8 +150,12 @@ export function Chat({ chatId }: ChatProps) {
         addMessage({
           timestamp: Date.now(),
           role: "assistant",
-          content:
-            "No AI providers configured. Please add a provider in settings.",
+          content: "",
+          error: {
+            message:
+              "No AI providers configured. Please add a provider in settings.",
+            kind: "provider",
+          },
         });
         return;
       }
@@ -162,8 +166,12 @@ export function Chat({ chatId }: ChatProps) {
         addMessage({
           timestamp: Date.now(),
           role: "assistant",
-          content:
-            "No model selected. Please choose a model from the selector above.",
+          content: "",
+          error: {
+            message:
+              "No model selected. Please choose a model from the selector above.",
+            kind: "provider",
+          },
         });
         return;
       }
@@ -208,19 +216,24 @@ export function Chat({ chatId }: ChatProps) {
       } catch (err: unknown) {
         // Check if it was aborted
         if (err instanceof Error && err.name === "AbortError") {
-          // User stopped the generation, update the message to indicate it was stopped
+          // User stopped the generation; mark last assistant message as aborted
           const convo = useConversationStore
             .getState()
             .conversations.find((c) => c.id === conversationId);
           const last = convo?.messages[convo.messages.length - 1];
           if (last && last.role === "assistant") {
-            updateMessage(last.id, {
-              content: last.content + "\n\n*Generation stopped by user*",
-            });
+            updateMessage(last.id, { aborted: true });
           }
         } else {
-          // If we created a placeholder, replace its content with the error; otherwise add a new error message
+          // Attach error metadata to the assistant message (or create one)
           const errorText = `Failed to generate a response: ${err instanceof Error ? err.message : "Unknown error"}`;
+          const errorKind: "http" | "provider" | "unknown" =
+            err instanceof Error && /provider|api key|model/i.test(err.message)
+              ? "provider"
+              : err && typeof (err as any).status === "number"
+                ? "http"
+                : "unknown";
+          const errorCode = (err as any)?.status ?? (err as any)?.code;
           try {
             // Attempt to update the last assistant message if it was just created
             const convo = useConversationStore
@@ -228,19 +241,35 @@ export function Chat({ chatId }: ChatProps) {
               .conversations.find((c) => c.id === conversationId);
             const last = convo?.messages[convo.messages.length - 1];
             if (last && last.role === "assistant") {
-              updateMessage(last.id, { content: errorText });
+              updateMessage(last.id, {
+                error: {
+                  message: errorText,
+                  kind: errorKind,
+                  code: errorCode,
+                },
+              });
             } else {
               addMessage({
                 timestamp: Date.now(),
                 role: "assistant",
-                content: errorText,
+                content: "",
+                error: {
+                  message: errorText,
+                  kind: errorKind,
+                  code: errorCode,
+                },
               });
             }
           } catch {
             addMessage({
               timestamp: Date.now(),
               role: "assistant",
-              content: errorText,
+              content: "",
+              error: {
+                message: errorText,
+                kind: errorKind,
+                code: errorCode,
+              },
             });
           }
         }

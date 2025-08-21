@@ -25,22 +25,19 @@ type ProviderGroup = {
 
 export function ModelSelector() {
   const { selectedModel, updateSettings } = useGlobalStore(
-    useShallow(
-      (state) => ({
-        selectedModel: state.general.selectedModel,
-        updateSettings: state.updateSettings,
-      }),
-    ),
+    useShallow((state) => ({
+      selectedModel: state.general.selectedModel,
+      updateSettings: state.updateSettings,
+    })),
   );
-  const { providers, getOfficialProviders, getCustomProviders } = useProviderStore(
-    useShallow(
-      (state) => ({
+  const { providers, getOfficialProviders, getCustomProviders } =
+    useProviderStore(
+      useShallow((state) => ({
         providers: state.providers,
         getOfficialProviders: state.getOfficialProviders,
         getCustomProviders: state.getCustomProviders,
-      }),
-    ),
-  );
+      })),
+    );
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");

@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { getAssetObjectURL, revokeObjectURL } from "@/lib/assets";
 import ChatEdit from "./ChatEdit";
 import Reasoning from "./Reasoning";
+import { Alert } from "./ui";
 
 interface ChatMessageProps {
   message: Message;
@@ -102,6 +103,21 @@ function ChatMessage({
               isEditing && isUser && "w-full",
             )}
           >
+            {/* Error box inside assistant bubble */}
+            {!isUser && message.error && (
+              <div className="mb-2">
+                <Alert variant="error" title="Error" compact>
+                  <div>
+                    {message.error.message}
+                    {message.error.code != null && (
+                      <span className="ml-1 opacity-80">
+                        (code: {String(message.error.code)})
+                      </span>
+                    )}
+                  </div>
+                </Alert>
+              </div>
+            )}
             {imageUrls.length > 0 && (
               <div
                 className={cn(
@@ -152,11 +168,13 @@ function ChatMessage({
                     reasoningEndTime={message.reasoningEndTime}
                   />
                 )}
-                <MemoizedMarkdown
-                  key={message.id}
-                  id={message.id}
-                  content={message.content}
-                />
+                {!message.error && (
+                  <MemoizedMarkdown
+                    key={message.id}
+                    id={message.id}
+                    content={message.content}
+                  />
+                )}
               </div>
             )}
           </div>
@@ -175,6 +193,14 @@ function ChatMessage({
               onEdit={isUser ? () => setIsEditing(true) : undefined}
             />
           </div>
+          {/* Abort notice below the message */}
+          {!isUser && message.aborted && (
+            <div className="px-2 w-full">
+              <Alert variant="warning" title="Generation stopped" compact>
+                The response was aborted by the user.
+              </Alert>
+            </div>
+          )}
         </div>
       </div>
     </div>

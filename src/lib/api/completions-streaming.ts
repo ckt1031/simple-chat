@@ -45,6 +45,12 @@ export default async function completionsStreaming(
     messages: preparedMessages,
     abortSignal,
     experimental_transform: transform,
+    onError: (err) => {
+      // Surface more explicit errors (e.g., HTTP) to the caller via thrown error
+      // The caller will attach error metadata to the assistant message
+      // We simply rethrow to keep existing control flow
+      throw err;
+    },
     providerOptions: {
       google: {
         safetySettings: [

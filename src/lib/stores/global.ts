@@ -16,6 +16,10 @@ export interface UIState {
     message: string;
     onConfirm: (() => void) | null;
   };
+  editTitle: {
+    isOpen: boolean;
+    conversationId: string | null;
+  };
 }
 
 interface GlobalState {
@@ -41,6 +45,10 @@ interface GlobalStore extends GlobalState {
     onConfirm: () => void,
   ) => void;
   closeDeleteConfirmation: () => void;
+
+  // Edit Title Modal Actions
+  openEditTitle: (conversationId: string) => void;
+  closeEditTitle: () => void;
 }
 
 export const useGlobalStore = create<GlobalStore>()(
@@ -58,6 +66,10 @@ export const useGlobalStore = create<GlobalStore>()(
           title: "",
           message: "",
           onConfirm: null,
+        },
+        editTitle: {
+          isOpen: false,
+          conversationId: null,
         },
       },
       updateSettings: (newSettings) => {
@@ -114,6 +126,24 @@ export const useGlobalStore = create<GlobalStore>()(
           },
         }));
       },
+
+      // Edit Title Modal Actions
+      openEditTitle: (conversationId) => {
+        set((state) => ({
+          ui: {
+            ...state.ui,
+            editTitle: { isOpen: true, conversationId },
+          },
+        }));
+      },
+      closeEditTitle: () => {
+        set((state) => ({
+          ui: {
+            ...state.ui,
+            editTitle: { isOpen: false, conversationId: null },
+          },
+        }));
+      },
     }),
     {
       name: "global",
@@ -127,6 +157,12 @@ export const useGlobalStore = create<GlobalStore>()(
               title: "",
               message: "",
               onConfirm: null,
+            };
+          }
+          if (!state.ui.editTitle) {
+            state.ui.editTitle = {
+              isOpen: false,
+              conversationId: null,
             };
           }
           state.ui.isHydrated = true;

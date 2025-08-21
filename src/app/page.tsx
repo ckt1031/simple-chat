@@ -5,14 +5,25 @@ import { Sidebar } from "@/components/Sidebar";
 import { Chat } from "@/components/Chat";
 import { SettingsModal } from "@/components/Settings/Modal";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
+import EditTitleModal from "@/components/EditTitleModal";
 import { useGlobalStore } from "@/lib/stores/global";
 import { ModelSelector } from "@/components/ModelSelector";
 import { Suspense } from "react";
+import ChatOptionMenu from "@/components/ChatOptionMenu";
 import { useSearchParams } from "next/navigation";
+import { useConversationStore } from "@/lib/stores/conversation";
+import { useRouter } from "next/navigation";
 
 function HomePageContent() {
   const toggleSidebar = useGlobalStore((s) => s.toggleSidebar);
+  const openEditTitle = useGlobalStore((s) => s.openEditTitle);
   const chatId = useSearchParams().get("id");
+  const { currentConversationId, deleteConversation } = useConversationStore();
+  const openDeleteConfirmation = useGlobalStore(
+    (s) => s.openDeleteConfirmation,
+  );
+
+  const router = useRouter();
 
   return (
     <div className="h-screen flex bg-white dark:bg-neutral-900 overflow-hidden">
@@ -32,6 +43,29 @@ function HomePageContent() {
           </button>
           {/* Model Selector here */}
           <ModelSelector />
+          {/* Mobile actions menu on the right */}
+          <div className="ml-auto lg:hidden relative">
+            <ChatOptionMenu
+              onEdit={() => {
+                if (currentConversationId) openEditTitle(currentConversationId);
+              }}
+              onDelete={() => {
+                if (!currentConversationId) return;
+                openDeleteConfirmation(
+                  "Delete Conversation",
+                  "Are you sure you want to delete this conversation? This action cannot be undone.",
+                  () => {
+                    deleteConversation(currentConversationId);
+                    router.push("/");
+                  },
+                );
+              }}
+              size="md"
+              align="right"
+              disabled={!currentConversationId}
+              buttonClassName="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+            />
+          </div>
         </div>
 
         {/* Chat Area fills full width; sidebar overlays */}
@@ -45,6 +79,9 @@ function HomePageContent() {
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal />
+
+      {/* Edit Title Modal */}
+      <EditTitleModal />
     </div>
   );
 }

@@ -124,7 +124,7 @@ export function Conversations() {
               </span>
             )}
           </div>
-          <div className="relative flex-shrink-0 opacity-0 group-hover:opacity-100">
+          <div className="relative flex-shrink-0">
             <ChatOptionMenu
               onEdit={() => globalStore.openEditTitle(conversation.id)}
               onDelete={() => handleDeleteConversation(conversation.id)}

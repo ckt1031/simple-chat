@@ -2,7 +2,10 @@ import { Model, OfficialProvider, ProviderState } from "../stores/provider";
 import type { Model as GoogleGenAIModel } from "@google/genai";
 import { defaultProviderConfig } from "./sdk";
 import { GoogleModelListSchema } from "./schema/google";
-import { OpenAIListModelsSchema, OpenRouterListModelsResponseSchema } from "./schema/openai";
+import {
+  OpenAIListModelsSchema,
+  OpenRouterListModelsResponseSchema,
+} from "./schema/openai";
 
 export default async function listModels(
   format: OfficialProvider,

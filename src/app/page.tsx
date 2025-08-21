@@ -57,6 +57,7 @@ function HomePageContent() {
           {/* Mobile actions menu on the right */}
           <div className="ml-auto lg:hidden relative">
             <ChatOptionMenu
+              alwaysShowButton={true}
               onEdit={() => {
                 if (currentConversationId) openEditTitle(currentConversationId);
               }}

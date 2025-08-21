@@ -59,6 +59,11 @@ export function ChatInput({
         attachments.forEach((a) => URL.revokeObjectURL(a.previewUrl));
         setAttachments([]);
         setMessage("");
+        // Reset the textarea height
+        if (textareaRef.current) {
+          textareaRef.current.style.height = "auto";
+          textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+        }
       }
     },
     [attachments, disabled, onSend],

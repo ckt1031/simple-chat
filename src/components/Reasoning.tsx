@@ -1,5 +1,6 @@
 import { ChevronRightIcon } from "lucide-react";
 import { memo, useEffect, useState } from "react";
+import { MemoizedMarkdown } from "./MemoizedMarkdown";
 
 interface ReasoningProps {
   reasoning: string;
@@ -63,7 +64,7 @@ function Reasoning({
       </button>
       {isExpanded && (
         <div className="text-sm text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap border-l-4 border-neutral-200 dark:border-neutral-800 pl-2">
-          {reasoning}
+          <MemoizedMarkdown content={reasoning} id="reasoning" />
         </div>
       )}
     </div>

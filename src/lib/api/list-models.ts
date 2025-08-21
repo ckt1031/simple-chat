@@ -1,8 +1,8 @@
-import openai from "openai";
 import { Model, OfficialProvider, ProviderState } from "../stores/provider";
 import type { Model as GoogleGenAIModel } from "@google/genai";
 import { defaultProviderConfig } from "./sdk";
 import { GoogleModelListSchema } from "./schema/google";
+import { OpenAIListModelsSchema, OpenRouterListModelsResponseSchema } from "./schema/openai";
 
 export default async function listModels(
   format: OfficialProvider,
@@ -69,33 +69,36 @@ async function listGoogleGenAIModels(provider: ProviderState) {
 }
 
 async function listOpenRouterModels(provider: ProviderState) {
-  const client = new openai({
-    apiKey: provider.apiKey,
-    baseURL: provider.apiBaseURL,
-    dangerouslyAllowBrowser: true,
+  const url = new URL(`${provider.apiBaseURL}/models`);
+
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${provider.apiKey}`,
+    },
   });
 
-  const response = await client.models.list();
+  const data = await response.json();
 
-  return response.data.map((model) => ({
+  return OpenRouterListModelsResponseSchema.parse(data).models.map((model) => ({
     id: model.id,
-    // 'name' present in OpenRouter models
-    name: "name" in model ? (model.name as string) : model.id,
+    name: model.name,
     enabled: provider.models.find((m) => m.id === model.id)?.enabled ?? false,
     source: "fetch" as const,
   }));
 }
 
 async function listModelsOpenAI(provider: ProviderState) {
-  const client = new openai({
-    apiKey: provider.apiKey,
-    baseURL: provider.apiBaseURL,
-    dangerouslyAllowBrowser: true,
+  const url = new URL(`${provider.apiBaseURL}/models`);
+
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${provider.apiKey}`,
+    },
   });
 
-  const response = await client.models.list();
+  const data = await response.json();
 
-  return response.data.map((model) => ({
+  return OpenAIListModelsSchema.parse(data).data.map((model) => ({
     id: model.id,
     name: model.id,
     enabled: provider.models.find((m) => m.id === model.id)?.enabled ?? false,

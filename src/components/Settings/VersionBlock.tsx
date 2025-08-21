@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 function isoToLocalized(iso: string | undefined) {
   if (!iso) return "Unknown";
 
@@ -12,7 +14,7 @@ function isoToLocalized(iso: string | undefined) {
   });
 }
 
-export default function Version() {
+function VersionBlock() {
   const info = [
     {
       label: "Next.js",
@@ -59,3 +61,5 @@ export default function Version() {
     </div>
   );
 }
+
+export default memo(VersionBlock);

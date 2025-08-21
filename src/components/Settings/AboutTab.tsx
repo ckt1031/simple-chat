@@ -1,6 +1,6 @@
 "use client";
 
-import Version from "./Version";
+import Version from "./VersionBlock";
 
 export default function AboutTab() {
   return (

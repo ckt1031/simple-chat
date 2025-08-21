@@ -42,7 +42,7 @@ export function CodeBlock({ children, className }: CodeBlockProps) {
           isExpanded ? "max-h-full" : "max-h-[200px]",
           "m-0 rounded-b-lg",
           // Override global prose pre background
-          "!bg-neutral-800"
+          "!bg-neutral-800",
         )}
       >
         <code className="block m-2 whitespace-pre-wrap !bg-transparent">

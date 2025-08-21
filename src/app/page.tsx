@@ -13,14 +13,25 @@ import ChatOptionMenu from "@/components/ChatOptionMenu";
 import { useSearchParams } from "next/navigation";
 import { useConversationStore } from "@/lib/stores/conversation";
 import { useRouter } from "next/navigation";
+import { useShallow } from "zustand/react/shallow";
 
 function HomePageContent() {
-  const toggleSidebar = useGlobalStore((s) => s.toggleSidebar);
-  const openEditTitle = useGlobalStore((s) => s.openEditTitle);
   const chatId = useSearchParams().get("id");
-  const { currentConversationId, deleteConversation } = useConversationStore();
-  const openDeleteConfirmation = useGlobalStore(
-    (s) => s.openDeleteConfirmation,
+
+  const { toggleSidebar, openEditTitle, openDeleteConfirmation } =
+    useGlobalStore(
+      useShallow((s) => ({
+        toggleSidebar: s.toggleSidebar,
+        openEditTitle: s.openEditTitle,
+        openDeleteConfirmation: s.openDeleteConfirmation,
+      })),
+    );
+
+  const { currentConversationId, deleteConversation } = useConversationStore(
+    useShallow((s) => ({
+      currentConversationId: s.currentConversationId,
+      deleteConversation: s.deleteConversation,
+    })),
   );
 
   const router = useRouter();

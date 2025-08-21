@@ -1,46 +1,67 @@
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useConversationStore } from "@/lib/stores/conversation";
+import { Conversation, useConversationStore } from "@/lib/stores/conversation";
 import { useGlobalStore } from "@/lib/stores/global";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import ChatOptionMenu from "@/components/ChatOptionMenu";
+import { useShallow } from "zustand/react/shallow";
 
 export function Conversations() {
-  const openDeleteConfirmation = useGlobalStore(
-    (s) => s.openDeleteConfirmation,
+  const globalStore = useGlobalStore(
+    useShallow((s) => ({
+      openDeleteConfirmation: s.openDeleteConfirmation,
+      openEditTitle: s.openEditTitle,
+    })),
   );
-  const openEditTitle = useGlobalStore((s) => s.openEditTitle);
-  const { conversations, currentConversationId, deleteConversation } =
-    useConversationStore();
-  const updateConversationTitle = useConversationStore(
-    (s) => s.updateConversationTitle,
+
+  const convStore = useConversationStore(
+    useShallow((s) => ({
+      currentConversationId: s.currentConversationId,
+      deleteConversation: s.deleteConversation,
+      updateConversationTitle: s.updateConversationTitle,
+    })),
+  );
+
+  const conversationCompare = useCallback(
+    (a: Conversation[], b: Conversation[]) => {
+      if (a.length !== b.length) return false;
+      for (let i = 0; i < a.length; i++) {
+        if (a[i].id !== b[i].id || a[i].title !== b[i].title) return false;
+      }
+      return true;
+    },
+    [],
+  );
+
+  const conversations = useConversationStore(
+    (s) => s.conversations,
+    conversationCompare,
   );
 
   const router = useRouter();
 
   const handleDeleteConversation = (id: string) => {
-    openDeleteConfirmation(
+    globalStore.openDeleteConfirmation(
       "Delete Conversation",
       "Are you sure you want to delete this conversation? This action cannot be undone.",
       () => {
-        deleteConversation(id);
+        convStore.deleteConversation(id);
         // If we deleted the current conversation, redirect to new chat
-        if (currentConversationId === id) {
-          router.push("/");
+        if (convStore.currentConversationId === id) {
+          router.replace("/");
         }
       },
     );
   };
 
   const handleSelectConversation = (id: string) => {
-    router.push(`/?id=${id}`);
+    router.replace(`/?id=${id}`);
   };
 
   // Inline edit state
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState<string>("");
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const startInlineEdit = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -52,7 +73,10 @@ export function Conversations() {
   const saveInlineEdit = () => {
     if (!editingId) return;
     const trimmed = editingValue.trim();
-    updateConversationTitle(editingId, trimmed.length ? trimmed : "New chat");
+    convStore.updateConversationTitle(
+      editingId,
+      trimmed.length ? trimmed : "New chat",
+    );
     setEditingId(null);
   };
 
@@ -68,7 +92,7 @@ export function Conversations() {
           onClick={() => handleSelectConversation(conversation.id)}
           className={cn(
             "group flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer",
-            currentConversationId === conversation.id
+            convStore.currentConversationId === conversation.id
               ? "bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white"
               : "text-neutral-700 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700",
           )}
@@ -102,7 +126,7 @@ export function Conversations() {
           </div>
           <div className="relative flex-shrink-0 opacity-0 group-hover:opacity-100">
             <ChatOptionMenu
-              onEdit={() => openEditTitle(conversation.id)}
+              onEdit={() => globalStore.openEditTitle(conversation.id)}
               onDelete={() => handleDeleteConversation(conversation.id)}
               size="sm"
               align="right"

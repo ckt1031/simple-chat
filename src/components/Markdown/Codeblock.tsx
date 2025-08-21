@@ -29,6 +29,10 @@ export function CodeBlock({ children, className }: CodeBlockProps) {
     };
   }, [children]);
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(children as string);
+  };
+
   return (
     <div className="relative group">
       {/* Code content */}
@@ -45,6 +49,16 @@ export function CodeBlock({ children, className }: CodeBlockProps) {
           {children}
         </code>
       </pre>
+
+      {/* Top right copy button */}
+      <div className="absolute top-2 right-2 p-2">
+        <button
+          onClick={handleCopy}
+          className="flex items-center gap-1 p-2 text-xs bg-neutral-700 text-neutral-300 rounded hover:bg-neutral-600 transition-colors"
+        >
+          <Copy className="w-3 h-3" />
+        </button>
+      </div>
 
       {/* Expand/collapse button for long code */}
       {shouldShowExpand && (

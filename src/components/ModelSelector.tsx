@@ -13,6 +13,7 @@ import {
 } from "@/lib/stores/provider";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useClickAway } from "react-use";
+import { useShallow } from "zustand/react/shallow";
 
 type ProviderGroup = {
   id: string;
@@ -23,10 +24,23 @@ type ProviderGroup = {
 };
 
 export function ModelSelector() {
-  const selectedModel = useGlobalStore((s) => s.general.selectedModel);
-  const updateSettings = useGlobalStore((s) => s.updateSettings);
-  const getOfficialProviders = useProviderStore((s) => s.getOfficialProviders);
-  const getCustomProviders = useProviderStore((s) => s.getCustomProviders);
+  const { selectedModel, updateSettings } = useGlobalStore(
+    useShallow(
+      (state) => ({
+        selectedModel: state.general.selectedModel,
+        updateSettings: state.updateSettings,
+      }),
+    ),
+  );
+  const { providers, getOfficialProviders, getCustomProviders } = useProviderStore(
+    useShallow(
+      (state) => ({
+        providers: state.providers,
+        getOfficialProviders: state.getOfficialProviders,
+        getCustomProviders: state.getCustomProviders,
+      }),
+    ),
+  );
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -56,7 +70,7 @@ export function ModelSelector() {
       }));
 
     return [...official, ...customList];
-  }, [getOfficialProviders, getCustomProviders]);
+  }, [providers, getOfficialProviders, getCustomProviders]);
 
   const handleSelect = (providerId: string, model: Model) => {
     const displayName =

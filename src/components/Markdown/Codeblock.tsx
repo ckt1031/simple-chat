@@ -37,9 +37,13 @@ export function CodeBlock({ children, className }: CodeBlockProps) {
           className,
           isExpanded ? "max-h-full" : "max-h-[200px]",
           "m-0 rounded-b-lg",
+          // Override global prose pre background
+          "!bg-neutral-800"
         )}
       >
-        <code className="block m-2 whitespace-pre-wrap">{children}</code>
+        <code className="block m-2 whitespace-pre-wrap !bg-transparent">
+          {children}
+        </code>
       </pre>
 
       {/* Expand/collapse button for long code */}

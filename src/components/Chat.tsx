@@ -131,7 +131,7 @@ export function Chat({ chatId }: ChatProps) {
       if (!conversationId) {
         conversationId = createNewConversation();
         // Update URL with the new conversation ID
-        router.push(`/?id=${conversationId}`);
+        window.history.pushState(null, "", `/?id=${conversationId}`);
       }
 
       // Add user message

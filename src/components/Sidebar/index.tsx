@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import { useShallow } from "zustand/shallow";
 import { Conversations } from "./Conversations";
+import Link from "next/link";
 
 export function Sidebar() {
   const { isSidebarOpen, toggleSidebar, closeSidebar, openSettings } =
@@ -23,16 +24,7 @@ export function Sidebar() {
       })),
     );
 
-  const router = useRouter();
   const pathname = usePathname();
-
-  const handleNewChat = () => {
-    router.replace("/");
-  };
-
-  const handleOpenLibrary = () => {
-    router.replace("/library");
-  };
 
   return (
     <>
@@ -66,18 +58,18 @@ export function Sidebar() {
             </button>
           </div>
           <div className="px-1.5 flex items-center justify-between">
-            <button
-              onClick={handleNewChat}
+            <Link
+              href="/"
               className="w-full flex items-center space-x-2 px-3 py-2 text-sm font-medium text-neutral-700 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg transition-colors"
             >
               <SquarePen className="w-4 h-4" />
               <span>New chat</span>
-            </button>
+            </Link>
           </div>
 
           <div className="px-1.5 mt-0.5">
-            <button
-              onClick={handleOpenLibrary}
+            <Link
+              href="/library"
               className={cn(
                 "w-full flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors",
                 pathname === "/library"
@@ -87,7 +79,7 @@ export function Sidebar() {
             >
               <ImageIcon className="w-4 h-4" />
               <span>Library</span>
-            </button>
+            </Link>
           </div>
 
           <div className="flex-1 overflow-y-auto">

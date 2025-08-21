@@ -24,7 +24,6 @@ function ChatMessage({
   conversationId,
 }: ChatMessageProps) {
   const isUser = message.role === "user";
-  const [copied, setCopied] = useState(false);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -53,19 +52,6 @@ function ChatMessage({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [message.id]);
-
-  const handleCopy = async () => {
-    try {
-      const textToCopy = message.reasoning
-        ? `Reasoning:\n${message.reasoning}\n\nResponse:\n${message.content}`
-        : message.content;
-      await navigator.clipboard.writeText(textToCopy);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy message:", err);
-    }
-  };
 
   const handleRegenerate = () => {
     if (!isUser) onRegenerate(message.id);
@@ -182,8 +168,6 @@ function ChatMessage({
           {/* Action Buttons - Show below messages for both user and assistant */}
           <div className="h-5">
             <ChatActionButtons
-              handleCopy={handleCopy}
-              copied={copied}
               conversationId={conversationId}
               handleRegenerate={handleRegenerate}
               isRegenerating={isRegenerating}

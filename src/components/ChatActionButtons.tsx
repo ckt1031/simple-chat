@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { Check, Copy, PencilLine, RefreshCcw, Trash } from "lucide-react";
 import { useConversationStore } from "@/lib/stores/conversation";
 import { useGlobalStore } from "@/lib/stores/global";
@@ -6,20 +6,16 @@ import { cn } from "@/lib/utils";
 import isMobile from "@/lib/is-mobile";
 
 interface ChatActionButtonsProps {
-  copied: boolean;
   isRegenerating?: boolean;
 
   messageId: string;
   conversationId: string;
 
-  handleCopy: () => void;
   handleRegenerate: () => void;
   onEdit?: () => void;
 }
 
-export default function ChatActionButtons({
-  handleCopy,
-  copied,
+function ChatActionButtons({
   conversationId,
   handleRegenerate,
   isRegenerating = false,
@@ -27,7 +23,8 @@ export default function ChatActionButtons({
   onEdit,
 }: ChatActionButtonsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { isLastMessage, deleteMessage } = useConversationStore();
+  const isLastMessage = useConversationStore((s) => s.isLastMessage);
+  const deleteMessage = useConversationStore((s) => s.deleteMessage);
   const openDeleteConfirmation = useGlobalStore(
     (s) => s.openDeleteConfirmation,
   );
@@ -66,6 +63,27 @@ export default function ChatActionButtons({
     );
   };
 
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyInternal = async () => {
+    try {
+      const state = useConversationStore.getState();
+      const conversation = state.conversations.find(
+        (c) => c.id === conversationId,
+      );
+      const message = conversation?.messages.find((m) => m.id === messageId);
+      if (!message) return;
+      const textToCopy = message.reasoning
+        ? `Reasoning:\n${message.reasoning}\n\nResponse:\n${message.content}`
+        : message.content;
+      await navigator.clipboard.writeText(textToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // no-op
+    }
+  };
+
   return (
     <div
       ref={containerRef}
@@ -92,7 +110,7 @@ export default function ChatActionButtons({
         </button>
       )}
       <button
-        onClick={handleCopy}
+        onClick={handleCopyInternal}
         className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
         title={copied ? "Copied!" : "Copy message"}
       >
@@ -124,3 +142,4 @@ export default function ChatActionButtons({
     </div>
   );
 }
+export default memo(ChatActionButtons);

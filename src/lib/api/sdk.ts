@@ -3,9 +3,6 @@ import {
   OfficialProvider,
   useProviderStore,
 } from "../stores/provider";
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 
 export const defaultProviderConfig = {
   [OfficialProvider.OPENAI]: {
@@ -19,7 +16,7 @@ export const defaultProviderConfig = {
   },
 };
 
-export function getASDK(model: ModelWithProvider) {
+export async function getASDK(model: ModelWithProvider) {
   const { getProvider } = useProviderStore.getState();
 
   // Resolve the actual provider format and credentials
@@ -48,6 +45,7 @@ export function getASDK(model: ModelWithProvider) {
 
   switch (resolvedFormat) {
     case OfficialProvider.OPENAI: {
+      const { createOpenAICompatible } = await import("@ai-sdk/openai-compatible");
       const provider = createOpenAICompatible({
         apiKey,
         baseURL: apiBaseURL,
@@ -56,6 +54,7 @@ export function getASDK(model: ModelWithProvider) {
       return provider(model.id);
     }
     case OfficialProvider.GOOGLE: {
+      const { createGoogleGenerativeAI } = await import("@ai-sdk/google");
       const provider = createGoogleGenerativeAI({
         apiKey,
         baseURL: apiBaseURL || undefined,
@@ -63,6 +62,7 @@ export function getASDK(model: ModelWithProvider) {
       return provider(model.id);
     }
     case OfficialProvider.OPENROUTER: {
+      const { createOpenRouter } = await import("@openrouter/ai-sdk-provider");
       const provider = createOpenRouter({
         apiKey,
         baseURL: apiBaseURL || undefined,

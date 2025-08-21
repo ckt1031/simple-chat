@@ -1,11 +1,5 @@
 import { Model, OfficialProvider, ProviderState } from "../stores/provider";
-import type { Model as GoogleGenAIModel } from "@google/genai";
 import { defaultProviderConfig } from "./sdk";
-import { GoogleModelListSchema } from "./schema/google";
-import {
-  OpenAIListModelsSchema,
-  OpenRouterListModelsResponseSchema,
-} from "./schema/openai";
 
 export default async function listModels(
   format: OfficialProvider,
@@ -28,80 +22,85 @@ export default async function listModels(
 }
 
 async function listGoogleGenAIModels(provider: ProviderState) {
-  const getGoogleResponse = async (pageToken?: string) => {
-    const url = new URL(`${provider.apiBaseURL}/models`);
+  const { GoogleGenAI } = await import("@google/genai");
 
-    if (pageToken) {
-      url.searchParams.set("pageToken", pageToken);
+  const client = new GoogleGenAI({
+    apiKey: provider.apiKey,
+    apiVersion: '', // Provided in baseURL
+    httpOptions: {
+      baseUrl: provider.apiBaseURL,
+    },
+  });
+
+  const pager = await client.models.list({ config: { pageSize: 25 } });
+  
+  let page = pager.page;
+
+  const models: Model[] = [];
+
+  while (true) {
+    for (const model of page) {
+      if (!model.name) {
+        throw new Error("Missing model name");
+      }
+
+      // Check if the model is text based
+      if (!model.supportedActions?.includes("generateContent")) {
+        continue;
+      }
+
+      models.push({
+        id: model.name,
+        name: model.displayName || model.name,
+        enabled: provider.models.find((m) => m.id === model.name)?.enabled ?? false,
+        source: "fetch" as const,
+      });
+    }
+    
+    // If there is no next page, break
+    if (!pager.hasNextPage()) {
+      break;
     }
 
-    const response = await fetch(url, {
-      headers: {
-        "x-goog-api-key": provider.apiKey,
-      },
-    });
-
-    const data = await response.json();
-
-    return GoogleModelListSchema.parse(data);
-  };
-
-  let pageToken: string | undefined;
-  let models: (GoogleGenAIModel & Model)[] = [];
-  let hasMore = true;
-
-  while (hasMore) {
-    const response = await getGoogleResponse(pageToken);
-    const textModels = response.models.filter((model) =>
-      model.supportedGenerationMethods.includes("generateContent"),
-    );
-    models.push(
-      ...textModels.map((model) => ({
-        id: model.name,
-        name: model.displayName,
-        enabled:
-          provider.models.find((m) => m.id === model.name)?.enabled ?? false,
-        source: "fetch" as const,
-      })),
-    );
-    pageToken = response.nextPageToken;
-    hasMore = response.nextPageToken !== undefined;
+    // Get the next page
+    page = await pager.nextPage();
   }
 
   return models;
 }
 
 async function listOpenRouterModels(provider: ProviderState) {
-  const url = new URL(`${provider.apiBaseURL}/models`);
+  const { OpenAI } = await import("openai");
 
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${provider.apiKey}`,
-    },
+  const client = new OpenAI({
+    apiKey: provider.apiKey,
+    baseURL: provider.apiBaseURL,
+    dangerouslyAllowBrowser: true,
   });
 
-  const data = await response.json();
+  const response = await client.models.list();
 
-  return OpenRouterListModelsResponseSchema.parse(data).models.map((model) => ({
+  return response.data.map((model) => ({
     id: model.id,
-    name: model.name,
+    // 'name' present in OpenRouter models
+    name: "name" in model ? (model.name as string) : model.id,
     enabled: provider.models.find((m) => m.id === model.id)?.enabled ?? false,
     source: "fetch" as const,
   }));
 }
 
 async function listModelsOpenAI(provider: ProviderState) {
-  const url = new URL(`${provider.apiBaseURL}/models`);
+  const { OpenAI } = await import("openai");
 
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${provider.apiKey}`,
-    },
+  const client = new OpenAI({
+    apiKey: provider.apiKey,
+    baseURL: provider.apiBaseURL,
+    dangerouslyAllowBrowser: true,
   });
 
-  const data = await response.json();
+  const response = await client.models.list();
 
-  return OpenAIListModelsSchema.parse(data).data.map((model) => ({
+  return response.data.map((model) => ({
     id: model.id,
     name: model.id,
     enabled: provider.models.find((m) => m.id === model.id)?.enabled ?? false,

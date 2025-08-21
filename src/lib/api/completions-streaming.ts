@@ -41,7 +41,7 @@ export default async function completionsStreaming(
   );
 
   return streamText({
-    model: getASDK(model),
+    model: await getASDK(model),
     messages: preparedMessages,
     abortSignal,
     experimental_transform: transform,

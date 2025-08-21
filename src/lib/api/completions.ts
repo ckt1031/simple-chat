@@ -30,10 +30,8 @@ export default async function completions(
     }),
   );
 
-  const { text } = await generateText({
-    model: getASDK(model),
+  return await generateText({
+    model: await getASDK(model),
     messages: preparedMessages,
   });
-
-  return text;
 }

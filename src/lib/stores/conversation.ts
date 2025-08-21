@@ -1,5 +1,5 @@
 import { createIdGenerator } from "ai";
-import { createWithEqualityFn as create } from 'zustand/traditional'
+import { createWithEqualityFn as create } from "zustand/traditional";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { ConversationIndxedStorage } from "./utils/storage";
 

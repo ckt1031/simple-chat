@@ -1,7 +1,8 @@
 import openai from "openai";
 import { Model, OfficialProvider, ProviderState } from "../stores/provider";
-import { GoogleGenAI } from "@google/genai";
+import type { Model as GoogleGenAIModel } from "@google/genai";
 import { defaultProviderConfig } from "./sdk";
+import { GoogleModelListSchema } from "./schema/google";
 
 export default async function listModels(
   format: OfficialProvider,
@@ -24,29 +25,47 @@ export default async function listModels(
 }
 
 async function listGoogleGenAIModels(provider: ProviderState) {
-  const client = new GoogleGenAI({
-    apiKey: provider.apiKey,
-    httpOptions: {
-      baseUrl: provider.apiBaseURL,
-    },
-  });
+  const getGoogleResponse = async (pageToken?: string) => {
+    const url = new URL(`${provider.apiBaseURL}/models`);
 
-  const response = await client.models.list();
-
-  // Handle pager
-  return response.page.map((model) => {
-    if (!model.name || !model.displayName) {
-      throw new Error("Missing model name");
+    if (pageToken) {
+      url.searchParams.set("pageToken", pageToken);
     }
 
-    return {
-      id: model.name,
-      name: model.displayName,
-      enabled:
-        provider.models.find((m) => m.id === model.name)?.enabled ?? false,
-      source: "fetch" as const,
-    };
-  });
+    const response = await fetch(url, {
+      headers: {
+        "x-goog-api-key": provider.apiKey,
+      },
+    });
+
+    const data = await response.json();
+
+    return GoogleModelListSchema.parse(data);
+  };
+
+  let pageToken: string | undefined;
+  let models: (GoogleGenAIModel & Model)[] = [];
+  let hasMore = true;
+
+  while (hasMore) {
+    const response = await getGoogleResponse(pageToken);
+    const textModels = response.models.filter((model) =>
+      model.supportedGenerationMethods.includes("generateContent"),
+    );
+    models.push(
+      ...textModels.map((model) => ({
+        id: model.name,
+        name: model.displayName,
+        enabled:
+          provider.models.find((m) => m.id === model.name)?.enabled ?? false,
+        source: "fetch" as const,
+      })),
+    );
+    pageToken = response.nextPageToken;
+    hasMore = response.nextPageToken !== undefined;
+  }
+
+  return models;
 }
 
 async function listOpenRouterModels(provider: ProviderState) {

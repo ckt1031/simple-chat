@@ -12,7 +12,7 @@ export const defaultProviderConfig = {
     apiBaseURL: "https://api.openai.com/v1",
   },
   [OfficialProvider.GOOGLE]: {
-    apiBaseURL: "https://generativelanguage.googleapis.com/v1beta/models/",
+    apiBaseURL: "https://generativelanguage.googleapis.com/v1beta",
   },
   [OfficialProvider.OPENROUTER]: {
     apiBaseURL: "https://openrouter.ai/api/v1",

@@ -26,14 +26,14 @@ async function listGoogleGenAIModels(provider: ProviderState) {
 
   const client = new GoogleGenAI({
     apiKey: provider.apiKey,
-    apiVersion: '', // Provided in baseURL
+    apiVersion: "", // Provided in baseURL
     httpOptions: {
       baseUrl: provider.apiBaseURL,
     },
   });
 
   const pager = await client.models.list({ config: { pageSize: 25 } });
-  
+
   let page = pager.page;
 
   const models: Model[] = [];
@@ -52,11 +52,12 @@ async function listGoogleGenAIModels(provider: ProviderState) {
       models.push({
         id: model.name,
         name: model.displayName || model.name,
-        enabled: provider.models.find((m) => m.id === model.name)?.enabled ?? false,
+        enabled:
+          provider.models.find((m) => m.id === model.name)?.enabled ?? false,
         source: "fetch" as const,
       });
     }
-    
+
     // If there is no next page, break
     if (!pager.hasNextPage()) {
       break;

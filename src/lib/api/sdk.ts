@@ -45,7 +45,9 @@ export async function getASDK(model: ModelWithProvider) {
 
   switch (resolvedFormat) {
     case OfficialProvider.OPENAI: {
-      const { createOpenAICompatible } = await import("@ai-sdk/openai-compatible");
+      const { createOpenAICompatible } = await import(
+        "@ai-sdk/openai-compatible"
+      );
       const provider = createOpenAICompatible({
         apiKey,
         baseURL: apiBaseURL,

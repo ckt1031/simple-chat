@@ -117,7 +117,11 @@ export function Conversations() {
               )}
             </div>
             <div className="relative flex-shrink-0">
-              <ChatOptionMenu size="sm" align="right" />
+              <ChatOptionMenu
+                size="sm"
+                align="right"
+                conversationId={conversation.id}
+              />
             </div>
           </div>
         ))}

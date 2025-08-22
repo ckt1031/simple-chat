@@ -14,6 +14,7 @@ interface ChatOptionMenuProps {
   buttonClassName?: string;
   align?: "left" | "right";
   alwaysShowButton?: boolean;
+  conversationId?: string;
 }
 
 function ChatOptionMenu({
@@ -21,6 +22,7 @@ function ChatOptionMenu({
   buttonClassName,
   align = "right",
   alwaysShowButton = false,
+  conversationId,
 }: ChatOptionMenuProps) {
   const router = useRouter();
   const ref = useRef<HTMLDivElement>(null);
@@ -43,18 +45,20 @@ function ChatOptionMenu({
     })),
   );
 
+  const targetConversationId = conversationId || currentConversationId;
+
   const onEdit = () => {
-    if (currentConversationId) openEditTitle(currentConversationId);
+    if (targetConversationId) openEditTitle(targetConversationId);
   };
 
   const onDelete = () => {
-    if (!currentConversationId) return;
+    if (!targetConversationId) return;
 
     openDeleteConfirmation(
       "Delete Chat",
       "Are you sure you want to delete this chat? This action cannot be undone.",
       () => {
-        deleteConversation(currentConversationId);
+        deleteConversation(targetConversationId);
         router.push("/");
       },
     );
@@ -74,7 +78,6 @@ function ChatOptionMenu({
             "p-1 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded transition-all",
         )}
         aria-label="Conversation menu"
-        disabled={!currentConversationId}
       >
         <MoreVertical
           className="text-neutral-500 dark:text-neutral-400"
@@ -91,7 +94,6 @@ function ChatOptionMenu({
               setOpen(false);
               onEdit();
             }}
-            disabled={!currentConversationId}
           >
             <PencilLine className="w-4 h-4" /> Edit title
           </button>
@@ -101,7 +103,6 @@ function ChatOptionMenu({
               setOpen(false);
               onDelete();
             }}
-            disabled={!currentConversationId}
           >
             <Trash2 className="w-4 h-4" /> Delete chat
           </button>

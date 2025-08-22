@@ -8,7 +8,7 @@ import {
   getAssetObjectURL,
 } from "@/lib/assets";
 import { Trash2, Menu } from "lucide-react";
-import { Sidebar } from "@/components/Sidebar";
+import Sidebar from "@/components/Sidebar";
 import { SettingsModal } from "@/components/Settings/Modal";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 import { useGlobalStore } from "@/lib/stores/global";

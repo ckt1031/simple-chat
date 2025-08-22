@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, memo } from "react";
 import { Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { saveImageAsset } from "@/lib/assets";
@@ -18,7 +18,7 @@ interface ChatInputProps {
   isLoading?: boolean;
 }
 
-export function ChatInput({
+function ChatInput({
   onSend,
   onStop,
   disabled = false,
@@ -199,3 +199,5 @@ export function ChatInput({
     </form>
   );
 }
+
+export default memo(ChatInput);

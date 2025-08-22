@@ -1,22 +1,16 @@
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Conversation, useConversationStore } from "@/lib/stores/conversation";
-import { useGlobalStore } from "@/lib/stores/global";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import ChatOptionMenu from "@/components/ChatOptionMenu";
 import { useShallow } from "zustand/react/shallow";
+import { deepEqual } from "fast-equals";
 
 export function Conversations() {
-  const globalStore = useGlobalStore(
-    useShallow((s) => ({
-      openDeleteConfirmation: s.openDeleteConfirmation,
-      openEditTitle: s.openEditTitle,
-    })),
-  );
-
   const convStore = useConversationStore(
     useShallow((s) => ({
+      isHydrated: s.isHydrated,
       currentConversationId: s.currentConversationId,
       deleteConversation: s.deleteConversation,
       updateConversationTitle: s.updateConversationTitle,
@@ -25,11 +19,17 @@ export function Conversations() {
 
   const conversationCompare = useCallback(
     (a: Conversation[], b: Conversation[]) => {
-      if (a.length !== b.length) return false;
-      for (let i = 0; i < a.length; i++) {
-        if (a[i].id !== b[i].id || a[i].title !== b[i].title) return false;
-      }
-      return true;
+      const a2 = a.map((c) => ({
+        id: c.id,
+        title: c.title,
+        isLoading: c.isLoading,
+      }));
+      const b2 = b.map((c) => ({
+        id: c.id,
+        title: c.title,
+        isLoading: c.isLoading,
+      }));
+      return deepEqual(a2, b2);
     },
     [],
   );
@@ -40,20 +40,6 @@ export function Conversations() {
   );
 
   const router = useRouter();
-
-  const handleDeleteConversation = (id: string) => {
-    globalStore.openDeleteConfirmation(
-      "Delete Conversation",
-      "Are you sure you want to delete this conversation? This action cannot be undone.",
-      () => {
-        convStore.deleteConversation(id);
-        // If we deleted the current conversation, redirect to new chat
-        if (convStore.currentConversationId === id) {
-          router.replace("/");
-        }
-      },
-    );
-  };
 
   const handleSelectConversation = (id: string) => {
     router.replace(`/?id=${id}`);
@@ -86,55 +72,56 @@ export function Conversations() {
 
   return (
     <div className="space-y-1">
-      {conversations.map((conversation) => (
-        <div
-          key={conversation.id}
-          onClick={() => handleSelectConversation(conversation.id)}
-          className={cn(
-            "group flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer",
-            convStore.currentConversationId === conversation.id
-              ? "bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white"
-              : "text-neutral-700 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700",
-          )}
-        >
-          <div className="flex items-center space-x-2 min-w-0 flex-1">
-            {conversation.isLoading && (
-              <Loader2 className="w-3 h-3 animate-spin text-blue-500 flex-shrink-0" />
-            )}
-            {editingId === conversation.id ? (
-              <input
-                className="w-full bg-transparent outline-none border-b border-neutral-400/50 focus:border-blue-500 text-inherit"
-                value={editingValue}
-                autoFocus
-                onClick={(e) => e.stopPropagation()}
-                onChange={(e) => setEditingValue(e.target.value)}
-                onBlur={saveInlineEdit}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") saveInlineEdit();
-                  if (e.key === "Escape") cancelInlineEdit();
-                }}
-              />
-            ) : (
-              <span
-                className="truncate select-none"
-                onDoubleClick={(e) => startInlineEdit(e, conversation.id)}
-                title={conversation.title}
-              >
-                {conversation.title}
-              </span>
-            )}
-          </div>
-          <div className="relative flex-shrink-0">
-            <ChatOptionMenu
-              onEdit={() => globalStore.openEditTitle(conversation.id)}
-              onDelete={() => handleDeleteConversation(conversation.id)}
-              size="sm"
-              align="right"
-            />
-          </div>
+      {!convStore.isHydrated && (
+        <div className="px-3 py-2 text-sm text-neutral-500">
+          Loading conversations...
         </div>
-      ))}
-      {conversations.length === 0 && (
+      )}
+      {convStore.isHydrated &&
+        conversations.map((conversation) => (
+          <div
+            key={conversation.id}
+            onClick={() => handleSelectConversation(conversation.id)}
+            className={cn(
+              "group flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer",
+              convStore.currentConversationId === conversation.id
+                ? "bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white"
+                : "text-neutral-700 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700",
+            )}
+          >
+            <div className="flex items-center space-x-2 min-w-0 flex-1">
+              {conversation.isLoading && (
+                <Loader2 className="w-3 h-3 animate-spin text-neutral-500 flex-shrink-0" />
+              )}
+              {editingId === conversation.id ? (
+                <input
+                  className="w-full bg-transparent outline-none border-b border-neutral-400/50 focus:border-blue-500 text-inherit"
+                  value={editingValue}
+                  autoFocus
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => setEditingValue(e.target.value)}
+                  onBlur={saveInlineEdit}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveInlineEdit();
+                    if (e.key === "Escape") cancelInlineEdit();
+                  }}
+                />
+              ) : (
+                <span
+                  className="truncate select-none"
+                  onDoubleClick={(e) => startInlineEdit(e, conversation.id)}
+                  title={conversation.title}
+                >
+                  {conversation.title}
+                </span>
+              )}
+            </div>
+            <div className="relative flex-shrink-0">
+              <ChatOptionMenu size="sm" align="right" />
+            </div>
+          </div>
+        ))}
+      {convStore.isHydrated && conversations.length === 0 && (
         <div className="px-3 py-2 text-sm text-neutral-500">
           No conversations yet
         </div>

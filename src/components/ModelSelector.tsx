@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { memo, useMemo, useRef, useState } from "react";
 import { ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGlobalStore } from "@/lib/stores/global";
@@ -23,7 +23,7 @@ type ProviderGroup = {
   data: ProviderState;
 };
 
-export function ModelSelector() {
+function ModelSelector() {
   const { selectedModel, updateSettings } = useGlobalStore(
     useShallow((state) => ({
       selectedModel: state.general.selectedModel,
@@ -189,3 +189,5 @@ export function ModelSelector() {
     </div>
   );
 }
+
+export default memo(ModelSelector);

@@ -12,8 +12,9 @@ import { usePathname } from "next/navigation";
 import { useShallow } from "zustand/shallow";
 import { Conversations } from "./Conversations";
 import Link from "next/link";
+import { memo } from "react";
 
-export function Sidebar() {
+function Sidebar() {
   const { isSidebarOpen, toggleSidebar, closeSidebar, openSettings } =
     useGlobalStore(
       useShallow((s) => ({
@@ -104,3 +105,5 @@ export function Sidebar() {
     </>
   );
 }
+
+export default memo(Sidebar);

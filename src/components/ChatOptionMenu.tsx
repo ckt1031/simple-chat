@@ -1,34 +1,56 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
 import { MoreVertical, PencilLine, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClickAway } from "react-use";
+import { useConversationStore } from "@/lib/stores/conversation";
+import { useShallow } from "zustand/shallow";
+import { useGlobalStore } from "@/lib/stores/global";
+import { useRouter } from "next/navigation";
 
 interface ChatOptionMenuProps {
-  onEdit: () => void;
-  onDelete: () => void;
   size?: "sm" | "md";
-  disabled?: boolean;
   buttonClassName?: string;
   align?: "left" | "right";
   alwaysShowButton?: boolean;
 }
 
-export default function ChatOptionMenu({
-  onEdit,
-  onDelete,
+function ChatOptionMenu({
   size = "sm",
-  disabled,
   buttonClassName,
   align = "right",
   alwaysShowButton = false,
 }: ChatOptionMenuProps) {
+  const router = useRouter();
   const ref = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
 
   const iconSize = size === "sm" ? 12 : 16;
   const containerAlign = align === "right" ? "right-0" : "left-0";
+
+  const { openEditTitle, openDeleteConfirmation } = useGlobalStore(
+    useShallow((s) => ({
+      openEditTitle: s.openEditTitle,
+      openDeleteConfirmation: s.openDeleteConfirmation,
+    })),
+  );
+
+  const { currentConversationId, deleteConversation } = useConversationStore(
+    useShallow((s) => ({
+      currentConversationId: s.currentConversationId,
+      deleteConversation: s.deleteConversation,
+    })),
+  );
+
+  const onEdit = () => {
+    if (currentConversationId) openEditTitle(currentConversationId);
+  };
+  const onDelete = () => {
+    if (!currentConversationId) return;
+    deleteConversation(currentConversationId);
+    router.push("/");
+  };
 
   useClickAway(ref, () => setOpen(false));
 
@@ -44,7 +66,7 @@ export default function ChatOptionMenu({
             "p-1 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded transition-all",
         )}
         aria-label="Conversation menu"
-        disabled={disabled}
+        disabled={!currentConversationId}
       >
         <MoreVertical
           className="text-neutral-500 dark:text-neutral-400"
@@ -61,7 +83,7 @@ export default function ChatOptionMenu({
               setOpen(false);
               onEdit();
             }}
-            disabled={disabled}
+            disabled={!currentConversationId}
           >
             <PencilLine className="w-4 h-4" /> Edit title
           </button>
@@ -71,7 +93,7 @@ export default function ChatOptionMenu({
               setOpen(false);
               onDelete();
             }}
-            disabled={disabled}
+            disabled={!currentConversationId}
           >
             <Trash2 className="w-4 h-4" /> Delete chat
           </button>
@@ -80,3 +102,5 @@ export default function ChatOptionMenu({
     </div>
   );
 }
+
+export default memo(ChatOptionMenu);

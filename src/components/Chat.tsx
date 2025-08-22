@@ -3,38 +3,48 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useGlobalStore } from "@/lib/stores/global";
 import MessageItem from "./MessageItem";
-import { ChatInput } from "./ChatInput";
+import ChatInput from "./ChatInput";
 import { Message, useConversationStore } from "@/lib/stores/conversation";
 import { useProviderStore } from "@/lib/stores/provider";
 import completionsStreaming from "@/lib/api/completions-streaming";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useShallow } from "zustand/react/shallow";
+import { cn } from "@/lib/utils";
 
-interface ChatProps {
-  chatId: string | null;
-}
+export function Chat() {
+  const chatId = useSearchParams().get("id");
 
-export function Chat({ chatId }: ChatProps) {
+  // Simplified and grouped store hooks for clarity
   const selectedModel = useGlobalStore((s) => s.general.selectedModel);
   const { hasEnabledProviders } = useProviderStore();
-  const currentConversationId = useConversationStore(
-    (s) => s.currentConversationId,
+
+  const {
+    currentConversationId,
+    isHydrated,
+    addMessage,
+    appendToMessage,
+    endReasoning,
+    appendToReasoning,
+    updateMessage,
+    setCurrentConversation,
+    createNewConversation,
+    setConversationLoading,
+    stopConversation,
+  } = useConversationStore(
+    useShallow((s) => ({
+      currentConversationId: s.currentConversationId,
+      isHydrated: s.isHydrated,
+      addMessage: s.addMessage,
+      appendToMessage: s.appendToMessage,
+      endReasoning: s.endReasoning,
+      appendToReasoning: s.appendToReasoning,
+      updateMessage: s.updateMessage,
+      setCurrentConversation: s.setCurrentConversation,
+      createNewConversation: s.createNewConversation,
+      setConversationLoading: s.setConversationLoading,
+      stopConversation: s.stopConversation,
+    })),
   );
-  const isHydrated = useConversationStore((s) => s.isHydrated);
-  const addMessage = useConversationStore((s) => s.addMessage);
-  const appendToMessage = useConversationStore((s) => s.appendToMessage);
-  const endReasoning = useConversationStore((s) => s.endReasoning);
-  const appendToReasoning = useConversationStore((s) => s.appendToReasoning);
-  const updateMessage = useConversationStore((s) => s.updateMessage);
-  const setCurrentConversation = useConversationStore(
-    (s) => s.setCurrentConversation,
-  );
-  const createNewConversation = useConversationStore(
-    (s) => s.createNewConversation,
-  );
-  const setConversationLoading = useConversationStore(
-    (s) => s.setConversationLoading,
-  );
-  const stopConversation = useConversationStore((s) => s.stopConversation);
 
   // Track only a stable key of message ids for current conversation to avoid re-renders during token streaming
   const messageIdsKey = useConversationStore((s) => {
@@ -313,56 +323,23 @@ export function Chat({ chatId }: ChatProps) {
     [handleSendMessage],
   );
 
-  const onStop = handleStopGeneration;
-
   // Show loading state while hydrating
   if (!isHydrated) {
     return (
-      <div className="flex-1 flex items-center justify-center dark:bg-neutral-900">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-neutral-800 dark:border-white mx-auto"></div>
-          <p className="text-neutral-600 dark:text-white">Loading...</p>
-        </div>
-      </div>
+      <p className="text-center opacity-50 dark:text-white p-5">
+        Initializing conversation...
+      </p>
     );
   }
 
-  // Show new chat interface when no conversation is selected
-  if (!hasConversation) {
-    return (
-      <div className="h-full flex flex-col dark:bg-neutral-900 min-h-0 overflow-hidden">
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-2 sm:p-4 space-y-4 overflow-x-hidden">
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center space-y-4">
-              <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">
-                What&apos;s on your mind?
-              </h2>
-              <p className="text-neutral-600 dark:text-white">
-                Start a conversation to begin chatting with AI.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Input */}
-        <div className="flex-shrink-0 px-2 sm:px-4 py-2 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden">
-          <ChatInput
-            onSend={onSend}
-            onStop={onStop}
-            disabled={false}
-            isLoading={false}
-          />
-        </div>
-      </div>
-    );
-  }
+  // Simplified chat interface rendering
+  const showEmptyState = !hasConversation || messageIds.length === 0;
 
   return (
     <div className="h-full flex flex-col dark:bg-neutral-900 min-h-0 relative overflow-hidden">
       {/* Messages */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-2 sm:p-4 space-y-4 overflow-x-hidden">
-        {messageIds.length === 0 ? (
+        {showEmptyState ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-4">
               <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">
@@ -388,12 +365,17 @@ export function Chat({ chatId }: ChatProps) {
       </div>
 
       {/* Input */}
-      <div className="flex-shrink-0 py-3 px-2 sm:px-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden">
+      <div
+        className={cn(
+          "flex-shrink-0 overflow-hidden border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900",
+          hasConversation ? "py-3 px-2 sm:px-4" : "px-2 sm:px-4 py-2",
+        )}
+      >
         <ChatInput
           onSend={onSend}
-          onStop={onStop}
-          disabled={isCurrentLoading}
-          isLoading={isCurrentLoading}
+          onStop={handleStopGeneration}
+          disabled={hasConversation ? isCurrentLoading : false}
+          isLoading={hasConversation ? isCurrentLoading : false}
         />
       </div>
     </div>

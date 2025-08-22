@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Check, Copy, ChevronDown, ChevronUp } from "lucide-react";
+import { Copy, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CodeBlockProps {

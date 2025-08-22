@@ -29,10 +29,6 @@ function VersionBlock() {
       value: process.env.NEXT_PUBLIC_GIT_COMMIT,
     },
     {
-      label: "Version Code",
-      value: process.env.NEXT_PUBLIC_VERSION_CODE,
-    },
-    {
       label: "App Version",
       value: process.env.NEXT_PUBLIC_APP_VERSION,
     },

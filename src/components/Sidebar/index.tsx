@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { useGlobalStore } from "@/lib/stores/global";
 import { cn } from "@/lib/utils";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useShallow } from "zustand/shallow";
 import { Conversations } from "./Conversations";
 import Link from "next/link";

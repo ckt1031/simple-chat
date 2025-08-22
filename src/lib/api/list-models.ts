@@ -1,4 +1,3 @@
-import openai from "openai";
 import { Model, OfficialProvider, ProviderState } from "../stores/provider";
 import type { Model as GoogleGenAIModel } from "@google/genai";
 import { defaultProviderConfig } from "./sdk";

@@ -31,9 +31,6 @@ export function Chat({ chatId }: ChatProps) {
   const createNewConversation = useConversationStore(
     (s) => s.createNewConversation,
   );
-  const removeLastAssistantMessage = useConversationStore(
-    (s) => s.removeLastAssistantMessage,
-  );
   const setConversationLoading = useConversationStore(
     (s) => s.setConversationLoading,
   );

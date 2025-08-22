@@ -146,13 +146,6 @@ function ChatMessage({
                 </Alert>
               </div>
             )}
-            {/* Thinking/Generating indicator */}
-            {!isUser && isGenerating && (
-              <div className="mb-2 flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Thinking...</span>
-              </div>
-            )}
             {imageUrls.length > 0 && (
               <div
                 className={cn(
@@ -202,6 +195,13 @@ function ChatMessage({
                     reasoningStartTime={message.reasoningStartTime}
                     reasoningEndTime={message.reasoningEndTime}
                   />
+                )}
+                {/* Thinking/Generating indicator */}
+                {!isUser && isGenerating && (
+                  <div className="mb-2 flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Thinking...</span>
+                  </div>
                 )}
                 {!message.error && (
                   <MemoizedMarkdown

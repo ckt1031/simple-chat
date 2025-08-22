@@ -226,14 +226,9 @@ export function Chat({ chatId }: ChatProps) {
           }
         } else {
           // Attach error metadata to the assistant message (or create one)
+          // TODO: Add error kind and code
           const errorText = `Failed to generate a response: ${err instanceof Error ? err.message : "Unknown error"}`;
-          const errorKind: "http" | "provider" | "unknown" =
-            err instanceof Error && /provider|api key|model/i.test(err.message)
-              ? "provider"
-              : err && typeof (err as any).status === "number"
-                ? "http"
-                : "unknown";
-          const errorCode = (err as any)?.status ?? (err as any)?.code;
+
           try {
             // Attempt to update the last assistant message if it was just created
             const convo = useConversationStore
@@ -244,8 +239,7 @@ export function Chat({ chatId }: ChatProps) {
               updateMessage(last.id, {
                 error: {
                   message: errorText,
-                  kind: errorKind,
-                  code: errorCode,
+                  kind: "unknown",
                 },
               });
             } else {
@@ -255,8 +249,7 @@ export function Chat({ chatId }: ChatProps) {
                 content: "",
                 error: {
                   message: errorText,
-                  kind: errorKind,
-                  code: errorCode,
+                  kind: "unknown",
                 },
               });
             }
@@ -267,8 +260,7 @@ export function Chat({ chatId }: ChatProps) {
               content: "",
               error: {
                 message: errorText,
-                kind: errorKind,
-                code: errorCode,
+                kind: "unknown",
               },
             });
           }

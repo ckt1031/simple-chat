@@ -71,9 +71,9 @@ export default async function completionsStreaming(
             threshold: "BLOCK_NONE",
           },
         ],
-        thinkingConfig: {
-          includeThoughts: true,
-        },
+        ...(model.thinking
+          ? { thinkingConfig: { includeThoughts: true } }
+          : {}),
       },
     },
   });

@@ -1,5 +1,8 @@
+import openai from "openai";
 import { Model, OfficialProvider, ProviderState } from "../stores/provider";
+import type { Model as GoogleGenAIModel } from "@google/genai";
 import { defaultProviderConfig } from "./sdk";
+import { GoogleModelListSchema } from "./schema/google";
 
 export default async function listModels(
   format: OfficialProvider,
@@ -22,49 +25,45 @@ export default async function listModels(
 }
 
 async function listGoogleGenAIModels(provider: ProviderState) {
-  const { GoogleGenAI } = await import("@google/genai");
+  const getGoogleResponse = async (pageToken?: string) => {
+    const url = new URL(`${provider.apiBaseURL}/models`);
 
-  const client = new GoogleGenAI({
-    apiKey: provider.apiKey,
-    apiVersion: "", // Provided in baseURL
-    httpOptions: {
-      baseUrl: provider.apiBaseURL,
-    },
-  });
+    if (pageToken) {
+      url.searchParams.set("pageToken", pageToken);
+    }
 
-  const pager = await client.models.list({ config: { pageSize: 25 } });
+    const response = await fetch(url, {
+      headers: {
+        "x-goog-api-key": provider.apiKey,
+      },
+    });
 
-  let page = pager.page;
+    const data = await response.json();
 
-  const models: Model[] = [];
+    return GoogleModelListSchema.parse(data);
+  };
 
-  while (true) {
-    for (const model of page) {
-      if (!model.name) {
-        throw new Error("Missing model name");
-      }
+  let pageToken: string | undefined;
+  const models: (GoogleGenAIModel & Model)[] = [];
+  let hasMore = true;
 
-      // Check if the model is text based
-      if (!model.supportedActions?.includes("generateContent")) {
-        continue;
-      }
-
-      models.push({
+  while (hasMore) {
+    const response = await getGoogleResponse(pageToken);
+    const textModels = response.models.filter((model) =>
+      model.supportedGenerationMethods.includes("generateContent"),
+    );
+    models.push(
+      ...textModels.map((model) => ({
         id: model.name,
-        name: model.displayName || model.name,
+        name: model.displayName,
         enabled:
           provider.models.find((m) => m.id === model.name)?.enabled ?? false,
         source: "fetch" as const,
-      });
-    }
-
-    // If there is no next page, break
-    if (!pager.hasNextPage()) {
-      break;
-    }
-
-    // Get the next page
-    page = await pager.nextPage();
+        thinking: model.thinking === true,
+      })),
+    );
+    pageToken = response.nextPageToken;
+    hasMore = response.nextPageToken !== undefined;
   }
 
   return models;

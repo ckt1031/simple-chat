@@ -12,6 +12,7 @@ export interface Model {
   name?: string;
   enabled: boolean;
   source: "fetch" | "custom";
+  thinking?: boolean;
 }
 
 export interface ModelWithProvider extends Model {
@@ -191,6 +192,7 @@ export const useProviderStore = create<ProviderStore>()(
             name: m.name ?? m.id,
             enabled: oldFetchedById.get(m.id)?.enabled ?? m.enabled ?? false,
             source: "fetch",
+            thinking: m.thinking,
           }));
 
           return {
@@ -247,6 +249,7 @@ export const useProviderStore = create<ProviderStore>()(
                     name: model.name ?? model.id,
                     enabled: false,
                     source: "custom",
+                    thinking: false,
                   },
                 ],
               },

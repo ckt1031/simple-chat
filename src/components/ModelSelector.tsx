@@ -70,13 +70,8 @@ export function ModelSelector() {
   }, [providers, getOfficialProviders, getCustomProviders]);
 
   const handleSelect = (providerId: string, model: Model) => {
-    const displayName =
-      model.name && model.name.trim().length > 0 ? model.name : undefined;
     const next: ModelWithProvider = {
-      id: model.id,
-      name: displayName,
-      enabled: model.enabled,
-      source: model.source,
+      ...model,
       providerId,
     };
     updateSettings({ selectedModel: next });

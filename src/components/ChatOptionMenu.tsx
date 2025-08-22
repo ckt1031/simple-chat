@@ -46,10 +46,18 @@ function ChatOptionMenu({
   const onEdit = () => {
     if (currentConversationId) openEditTitle(currentConversationId);
   };
+
   const onDelete = () => {
     if (!currentConversationId) return;
-    deleteConversation(currentConversationId);
-    router.push("/");
+
+    openDeleteConfirmation(
+      "Delete Chat",
+      "Are you sure you want to delete this chat? This action cannot be undone.",
+      () => {
+        deleteConversation(currentConversationId);
+        router.push("/");
+      },
+    );
   };
 
   useClickAway(ref, () => setOpen(false));

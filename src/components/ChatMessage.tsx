@@ -8,6 +8,7 @@ import ChatActionButtons from "./ChatActionButtons";
 import { useEffect } from "react";
 import { getAssetObjectURL, revokeObjectURL } from "@/lib/assets";
 import dynamic from "next/dynamic";
+import { Loader2 } from "lucide-react";
 
 interface ChatMessageProps {
   message: Message;
@@ -44,6 +45,18 @@ function ChatMessage({
   const [isEditing, setIsEditing] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const updateMessage = useConversationStore((s) => s.updateMessage);
+
+  // Check if conversation is loading and this is the last assistant message with no content yet
+  const isConversationLoading = useConversationStore((s) => {
+    const conv = s.conversations.find((c) => c.id === conversationId);
+    return Boolean(conv?.isLoading);
+  });
+  const isLastMessage = useConversationStore((s) => s.isLastMessage);
+  const isGenerating =
+    !isUser &&
+    isConversationLoading &&
+    isLastMessage(conversationId, message.id) &&
+    !message.content;
 
   useEffect(() => {
     let cancelled = false;
@@ -133,6 +146,13 @@ function ChatMessage({
                 </Alert>
               </div>
             )}
+            {/* Thinking/Generating indicator */}
+            {!isUser && isGenerating && (
+              <div className="mb-2 flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Thinking...</span>
+              </div>
+            )}
             {imageUrls.length > 0 && (
               <div
                 className={cn(
@@ -206,6 +226,7 @@ function ChatMessage({
               isRegenerating={isRegenerating}
               messageId={message.id}
               onEdit={isUser ? () => setIsEditing(true) : undefined}
+              isGenerating={isGenerating}
             />
           </div>
           {/* Abort notice below the message */}

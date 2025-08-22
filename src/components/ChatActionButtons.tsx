@@ -7,6 +7,7 @@ import isMobile from "@/lib/is-mobile";
 
 interface ChatActionButtonsProps {
   isRegenerating?: boolean;
+  isGenerating?: boolean;
 
   messageId: string;
   conversationId: string;
@@ -19,6 +20,7 @@ function ChatActionButtons({
   conversationId,
   handleRegenerate,
   isRegenerating = false,
+  isGenerating = false,
   messageId,
   onEdit,
 }: ChatActionButtonsProps) {
@@ -95,24 +97,50 @@ function ChatActionButtons({
     >
       <button
         onClick={handleDelete}
-        className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
-        title="Delete message"
+        disabled={isGenerating}
+        className={cn(
+          "transition-colors",
+          isGenerating
+            ? "text-neutral-400 dark:text-neutral-600 cursor-not-allowed"
+            : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white",
+        )}
+        title={
+          isGenerating ? "Cannot delete while generating" : "Delete message"
+        }
       >
         <Trash size={16} strokeWidth={1.5} />
       </button>
       {onEdit && (
         <button
           onClick={onEdit}
-          className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
-          title="Edit message"
+          disabled={isGenerating}
+          className={cn(
+            "transition-colors",
+            isGenerating
+              ? "text-neutral-400 dark:text-neutral-600 cursor-not-allowed"
+              : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white",
+          )}
+          title={isGenerating ? "Cannot edit while generating" : "Edit message"}
         >
           <PencilLine size={16} strokeWidth={1.5} />
         </button>
       )}
       <button
         onClick={handleCopyInternal}
-        className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
-        title={copied ? "Copied!" : "Copy message"}
+        disabled={isGenerating}
+        className={cn(
+          "transition-colors",
+          isGenerating
+            ? "text-neutral-400 dark:text-neutral-600 cursor-not-allowed"
+            : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white",
+        )}
+        title={
+          isGenerating
+            ? "Cannot copy while generating"
+            : copied
+              ? "Copied!"
+              : "Copy message"
+        }
       >
         {copied ? (
           <Check size={16} strokeWidth={1.5} />
@@ -123,14 +151,20 @@ function ChatActionButtons({
       {isLastMessage(conversationId, messageId) && (
         <button
           onClick={handleRegenerate}
-          disabled={isRegenerating}
+          disabled={isRegenerating || isGenerating}
           className={cn(
             "transition-colors",
-            isRegenerating
+            isRegenerating || isGenerating
               ? "text-neutral-400 dark:text-neutral-600 cursor-not-allowed"
               : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white",
           )}
-          title={isRegenerating ? "Regenerating..." : "Regenerate response"}
+          title={
+            isGenerating
+              ? "Cannot regenerate while generating"
+              : isRegenerating
+                ? "Regenerating..."
+                : "Regenerate response"
+          }
         >
           <RefreshCcw
             size={16}

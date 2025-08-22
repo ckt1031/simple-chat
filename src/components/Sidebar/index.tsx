@@ -50,7 +50,7 @@ function Sidebar() {
           "lg:relative lg:left-auto lg:top-auto lg:shadow-none lg:translate-x-0",
           isSidebarOpen ? "lg:w-64" : "lg:w-0",
           "lg:transition-[width] duration-300 ease-in-out",
-          "overflow-hidden min-w-0",
+          "overflow-hidden min-w-0 max-w-full",
           !isSidebarOpen ? "pointer-events-none" : "",
         )}
       >

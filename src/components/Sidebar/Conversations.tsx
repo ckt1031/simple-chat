@@ -108,7 +108,7 @@ export function Conversations() {
                 />
               ) : (
                 <span
-                  className="truncate select-none"
+                  className="truncate select-none max-w-[250px] lg:max-w-full"
                   onDoubleClick={(e) => startInlineEdit(e, conversation.id)}
                   title={conversation.title}
                 >

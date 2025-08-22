@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useProviderStore } from "@/lib/stores/provider";
 import listModels from "@/lib/api/list-models";
-import { ArrowLeft, Plus, Search } from "lucide-react";
+import { ArrowLeft, Plus, Search, Trash } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Card from "@/components/ui/Card";
+import Switch from "@/components/Switch";
 
 interface Props {
   providerId: string;
@@ -150,101 +151,88 @@ export default function ModelsManager({ providerId, onBack }: Props) {
           </Card>
         </div>
 
-        <Card variant="bordered">
-          <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
-            {filteredCustomModels.length === 0 && (
-              <div className="px-4 py-3 text-sm text-neutral-500">
-                {searchQuery
-                  ? "No custom models match your search"
-                  : "No custom models"}
-              </div>
-            )}
-            {filteredCustomModels.map((m) => (
-              <div
-                key={m.id}
-                className="px-4 py-3 grid grid-cols-1 md:grid-cols-6 gap-3 items-center"
-              >
-                <div className="md:col-span-2">
-                  <Input
-                    type="text"
-                    value={m.name || ""}
-                    onChange={(e) =>
-                      onUpdateField(m.id, "name", e.target.value)
-                    }
-                  />
+        {[
+          {
+            title: "Custom models",
+            models: filteredCustomModels,
+            emptyMsg: searchQuery
+              ? "No custom models match your search"
+              : "No custom models",
+            showDelete: true,
+            onDelete: onRemoveCustomModel,
+          },
+          {
+            title: "Fetched models",
+            models: filteredFetchedModels,
+            emptyMsg: searchQuery
+              ? "No fetched models match your search"
+              : "No fetched models",
+            showDelete: false,
+            onDelete: undefined,
+          },
+        ].map(
+          (
+            { title, models, emptyMsg, showDelete, onDelete },
+            idx // idx: 0 for custom, 1 for fetched
+          ) => (
+            <div className="space-y-3" key={title}>
+              {idx === 1 && (
+                <h4 className="text-sm font-semibold">{title}</h4>
+              )}
+              {idx === 0 && null}
+              <Card variant="bordered">
+                <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                  {models.length === 0 && (
+                    <div className="px-4 py-3 text-sm text-neutral-500 dark:text-neutral-400">
+                      {emptyMsg}
+                    </div>
+                  )}
+                  {models.map((m) => (
+                    <div
+                      key={m.id}
+                      className="px-4 py-3 grid grid-cols-1 md:grid-cols-6 gap-3 items-center"
+                    >
+                      <div className="md:col-span-2">
+                        <Input
+                          type="text"
+                          value={m.name || ""}
+                          onChange={(e) =>
+                            onUpdateField(m.id, "name", e.target.value)
+                          }
+                          className="font-mono text-sm"
+                        />
+                      </div>
+                      <div className="md:col-span-3">
+                        <Input
+                          type="text"
+                          value={m.id}
+                          onChange={(e) =>
+                            onUpdateField(m.id, "id", e.target.value)
+                          }
+                          className="font-mono text-sm"
+                        />
+                      </div>
+                      <div className="md:col-span-1 flex items-center justify-end gap-2">
+                        <Switch
+                          checked={!!m.enabled}
+                          onChange={(checked) => onToggle(m.id, checked)}
+                        />
+                        {showDelete && (
+                          <button
+                            onClick={() => onDelete?.(m.id)}
+                            className="text-neutral-500 hover:text-neutral-600 hover:opacity-80 pl-2"
+                          >
+                            <Trash className="w-5 h-" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="md:col-span-3">
-                  <Input
-                    type="text"
-                    value={m.id}
-                    onChange={(e) => onUpdateField(m.id, "id", e.target.value)}
-                  />
-                </div>
-                <div className="md:col-span-1 flex items-center justify-end gap-2">
-                  <label className="text-xs">Enabled</label>
-                  <input
-                    type="checkbox"
-                    checked={!!m.enabled}
-                    onChange={(e) => onToggle(m.id, e.target.checked)}
-                  />
-                  <Button
-                    onClick={() => onRemoveCustomModel(m.id)}
-                    variant="danger"
-                    size="sm"
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
-
-      <div className="space-y-3">
-        <h4 className="text-sm font-semibold">Fetched models</h4>
-        <Card variant="bordered">
-          <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
-            {filteredFetchedModels.length === 0 && (
-              <div className="px-4 py-3 text-sm text-neutral-500">
-                {searchQuery
-                  ? "No fetched models match your search"
-                  : "No fetched models"}
-              </div>
-            )}
-            {filteredFetchedModels.map((m) => (
-              <div
-                key={m.id}
-                className="px-4 py-3 grid grid-cols-1 md:grid-cols-6 gap-3 items-center"
-              >
-                <div className="md:col-span-2">
-                  <Input
-                    type="text"
-                    value={m.name || ""}
-                    onChange={(e) =>
-                      onUpdateField(m.id, "name", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="md:col-span-3">
-                  <Input
-                    type="text"
-                    value={m.id}
-                    onChange={(e) => onUpdateField(m.id, "id", e.target.value)}
-                  />
-                </div>
-                <div className="md:col-span-1 flex items-center justify-end">
-                  <label className="text-xs mr-2">Enabled</label>
-                  <input
-                    type="checkbox"
-                    checked={!!m.enabled}
-                    onChange={(e) => onToggle(m.id, e.target.checked)}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
+              </Card>
+            </div>
+          )
+        )}
       </div>
     </div>
   );

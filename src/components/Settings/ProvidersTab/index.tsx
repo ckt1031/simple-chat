@@ -1,12 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import { OfficialProvider } from "@/lib/stores/provider";
 import { useNavigationStore } from "@/lib/stores/navigation";
+import dynamic from "next/dynamic";
 import ProviderList from "./ProviderList";
-import AddCustom from "./AddCustom";
-import ProviderConfig from "./ProviderConfig";
-import ModelsManager from "./ProviderModels";
+
+const AddCustom = dynamic(() => import("./AddCustom"));
+const ProviderConfig = dynamic(() => import("./ProviderConfig"));
+const ModelsManager = dynamic(() => import("./ProviderModels"));
 
 export default function ProviderSettingsTab() {
   const { view, activeProviderId, navigateToList } = useNavigationStore();
@@ -21,20 +23,28 @@ export default function ProviderSettingsTab() {
   );
 
   return (
-    <div className="space-y-6">
-      {view === "list" && <ProviderList officialList={officialList} />}
+    <Suspense fallback={<div>Loading...</div>}>
+      <div className="space-y-6">
+        {view === "list" && <ProviderList officialList={officialList} />}
 
-      {view === "add-custom" && (
-        <AddCustom officialList={officialList} onBack={navigateToList} />
-      )}
+        {view === "add-custom" && (
+          <AddCustom officialList={officialList} onBack={navigateToList} />
+        )}
 
-      {view === "configure" && activeProviderId && (
-        <ProviderConfig providerId={activeProviderId} onBack={navigateToList} />
-      )}
+        {view === "configure" && activeProviderId && (
+          <ProviderConfig
+            providerId={activeProviderId}
+            onBack={navigateToList}
+          />
+        )}
 
-      {view === "manage-models" && activeProviderId && (
-        <ModelsManager providerId={activeProviderId} onBack={navigateToList} />
-      )}
-    </div>
+        {view === "manage-models" && activeProviderId && (
+          <ModelsManager
+            providerId={activeProviderId}
+            onBack={navigateToList}
+          />
+        )}
+      </div>
+    </Suspense>
   );
 }

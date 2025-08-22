@@ -1,17 +1,19 @@
 import { marked } from "marked";
-import { memo, useMemo } from "react";
+import { memo, Suspense, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import rehypeHighlight from "rehype-highlight";
-import { CodeBlock } from "./Markdown/Codeblock";
+import dynamic from "next/dynamic";
 
 function parseMarkdownIntoBlocks(markdown: string): string[] {
   const tokens = marked.lexer(markdown);
   return tokens.map((token) => token.raw);
 }
+
+const CodeBlock = dynamic(() => import("./Markdown/Codeblock"));
 
 const MemoizedMarkdownBlock = memo(
   ({ content }: { content: string }) => {
@@ -33,9 +35,11 @@ const MemoizedMarkdownBlock = memo(
             }>;
             if (codeElement?.type === "code") {
               return (
-                <CodeBlock className={codeElement.props.className}>
-                  {codeElement.props.children}
-                </CodeBlock>
+                <Suspense fallback={<div>Loading code block...</div>}>
+                  <CodeBlock className={codeElement.props.className}>
+                    {codeElement.props.children}
+                  </CodeBlock>
+                </Suspense>
               );
             }
             return <pre {...props}>{children}</pre>;

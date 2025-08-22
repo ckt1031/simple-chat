@@ -4,16 +4,20 @@ import { X } from "lucide-react";
 import { useGlobalStore } from "@/lib/stores/global";
 import { cn } from "@/lib/utils";
 import GeneralTab from "@/components/Settings/GeneralTab";
-import AboutTab from "@/components/Settings/AboutTab";
-import ProviderSettingsTab from "@/components/Settings/ProvidersTab";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import dynamic from "next/dynamic";
 
 export const SettingsTabs = [
   { id: "general", label: "General" },
   { id: "providers", label: "Providers" },
   { id: "about", label: "About" },
 ];
+
+const ProvidersTab = dynamic(
+  () => import("@/components/Settings/ProvidersTab"),
+);
+const AboutTab = dynamic(() => import("@/components/Settings/AboutTab"));
 
 export default function SettingsModal() {
   const closeSettings = useGlobalStore((s) => s.closeSettings);
@@ -98,9 +102,11 @@ export default function SettingsModal() {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4">
-          {settingsTab === "general" && <GeneralTab />}
-          {settingsTab === "providers" && <ProviderSettingsTab />}
-          {settingsTab === "about" && <AboutTab />}
+          <Suspense fallback={<div>Loading...</div>}>
+            {settingsTab === "general" && <GeneralTab />}
+            {settingsTab === "providers" && <ProvidersTab />}
+            {settingsTab === "about" && <AboutTab />}
+          </Suspense>
         </div>
       </div>
     </div>

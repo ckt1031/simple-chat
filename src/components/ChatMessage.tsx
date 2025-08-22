@@ -7,9 +7,7 @@ import { MemoizedMarkdown } from "./MemoizedMarkdown";
 import ChatActionButtons from "./ChatActionButtons";
 import { useEffect } from "react";
 import { getAssetObjectURL, revokeObjectURL } from "@/lib/assets";
-import ChatEdit from "./ChatEdit";
-import Reasoning from "./Reasoning";
-import { Alert } from "./ui";
+import dynamic from "next/dynamic";
 
 interface ChatMessageProps {
   message: Message;
@@ -17,6 +15,23 @@ interface ChatMessageProps {
   isRegenerating?: boolean;
   conversationId: string;
 }
+
+const Alert = dynamic(() => import("./ui/Alert"), {
+  // Add custom suspense fallback
+  loading: () => (
+    <div className="text-sm opacity-50 italic text-red-500">Loading...</div>
+  ),
+});
+const ChatEdit = dynamic(() => import("./ChatEdit"), {
+  // Add custom suspense fallback
+  loading: () => <div className="text-sm opacity-50 italic">Loading...</div>,
+});
+const Reasoning = dynamic(() => import("./Reasoning"), {
+  // Add custom suspense fallback
+  loading: () => (
+    <div className="text-sm opacity-50 italic">Initializing reasoning...</div>
+  ),
+});
 
 function ChatMessage({
   message,

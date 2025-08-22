@@ -9,7 +9,7 @@ interface CodeBlockProps {
 
 const MAX_LINES_BEFORE_COLLAPSE = 20;
 
-export function CodeBlock({ children, className }: CodeBlockProps) {
+export default function CodeBlock({ children, className }: CodeBlockProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const { shouldShowExpand, hiddenLines } = useMemo(() => {

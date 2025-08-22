@@ -54,7 +54,7 @@ export function Sidebar() {
               className="text-neutral-500 dark:text-white rounded-full lg:hidden"
               aria-label="Close sidebar"
             >
-              <PanelLeftClose />
+              <PanelLeftClose className="w-5 h-5" />
             </button>
           </div>
           <div className="px-1.5 flex items-center justify-between">

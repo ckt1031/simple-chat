@@ -18,6 +18,10 @@ export default async function listModels(
       return await listOpenRouterModels(provider);
     case OfficialProvider.GOOGLE:
       return await listGoogleGenAIModels(provider);
+    case OfficialProvider.MISTRAL:
+      return await listOpenRouterModels(provider);
+    case OfficialProvider.DEEPSEEK:
+      return await listModelsOpenAI(provider);
     default:
       throw new Error(`Unsupported provider: ${format}`);
   }

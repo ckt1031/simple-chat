@@ -11,7 +11,7 @@ import { Message } from "../stores/conversation";
 import { getASDK } from "./sdk";
 import { getAssetDataURL } from "../assets";
 
-export default async function completionsStreaming(
+export async function completionsStreaming(
   model: ModelWithProvider,
   messages: Message[],
   abortSignal?: AbortSignal,

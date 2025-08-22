@@ -173,12 +173,10 @@ export default function ModelsManager({ providerId, onBack }: Props) {
         ].map(
           (
             { title, models, emptyMsg, showDelete, onDelete },
-            idx // idx: 0 for custom, 1 for fetched
+            idx, // idx: 0 for custom, 1 for fetched
           ) => (
             <div className="space-y-3" key={title}>
-              {idx === 1 && (
-                <h4 className="text-sm font-semibold">{title}</h4>
-              )}
+              {idx === 1 && <h4 className="text-sm font-semibold">{title}</h4>}
               {idx === 0 && null}
               <Card variant="bordered">
                 <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
@@ -231,7 +229,7 @@ export default function ModelsManager({ providerId, onBack }: Props) {
                 </div>
               </Card>
             </div>
-          )
+          ),
         )}
       </div>
     </div>

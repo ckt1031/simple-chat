@@ -4,7 +4,7 @@ import { getASDK } from "./sdk";
 import { Message } from "../stores/conversation";
 import { getAssetDataURL } from "../assets";
 
-export default async function completions(
+export async function completions(
   model: ModelWithProvider,
   messages: Message[],
 ) {

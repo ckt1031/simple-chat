@@ -5,6 +5,9 @@ export enum OfficialProvider {
   OPENAI = "OpenAI",
   GOOGLE = "Google",
   OPENROUTER = "OpenRouter",
+  GROQ = "Groq",
+  MISTRAL = "Mistral",
+  DEEPSEEK = "DeepSeek",
 }
 
 export interface Model {
@@ -99,17 +102,7 @@ const createCustomProvider = (
 export const useProviderStore = create<ProviderStore>()(
   persist(
     (set, get) => ({
-      providers: {
-        [OfficialProvider.OPENAI]: createOfficialProvider(
-          OfficialProvider.OPENAI,
-        ),
-        [OfficialProvider.GOOGLE]: createOfficialProvider(
-          OfficialProvider.GOOGLE,
-        ),
-        [OfficialProvider.OPENROUTER]: createOfficialProvider(
-          OfficialProvider.OPENROUTER,
-        ),
-      },
+      providers: {},
 
       getOfficialProviders: () => {
         const state = get();
@@ -321,6 +314,23 @@ export const useProviderStore = create<ProviderStore>()(
     {
       name: "provider",
       storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        // Merge default providers with persisted providers
+        if (state) {
+          const defaultProviders = Object.values(OfficialProvider).reduce(
+            (acc, provider) => {
+              acc[provider] = createOfficialProvider(provider);
+              return acc;
+            },
+            {} as Record<OfficialProvider, OfficialProviderState>,
+          );
+
+          state.providers = {
+            ...defaultProviders,
+            ...state.providers,
+          };
+        }
+      },
     },
   ),
 );

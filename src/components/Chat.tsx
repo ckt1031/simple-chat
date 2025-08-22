@@ -6,7 +6,6 @@ import MessageItem from "./MessageItem";
 import ChatInput from "./ChatInput";
 import { Message, useConversationStore } from "@/lib/stores/conversation";
 import { useProviderStore } from "@/lib/stores/provider";
-import completionsStreaming from "@/lib/api/completions-streaming";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useShallow } from "zustand/react/shallow";
 import { cn } from "@/lib/utils";
@@ -201,6 +200,10 @@ export function Chat() {
           role: "assistant",
           content: "",
         });
+
+        const { completionsStreaming } = await import(
+          "@/lib/api/completions-streaming"
+        );
 
         const stream = await completionsStreaming(
           selected,

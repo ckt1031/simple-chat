@@ -10,17 +10,13 @@ const AddCustom = dynamic(() => import("./AddCustom"));
 const ProviderConfig = dynamic(() => import("./ProviderConfig"));
 const ModelsManager = dynamic(() => import("./ProviderModels"));
 
+const officialList = Object.values(OfficialProvider).map((provider) => ({
+  id: provider,
+  label: provider,
+}));
+
 export default function ProviderSettingsTab() {
   const { view, activeProviderId, navigateToList } = useNavigationStore();
-
-  const officialList = useMemo(
-    () => [
-      { id: OfficialProvider.OPENAI, label: "OpenAI" },
-      { id: OfficialProvider.GOOGLE, label: "Google" },
-      { id: OfficialProvider.OPENROUTER, label: "OpenRouter" },
-    ],
-    [],
-  );
 
   return (
     <Suspense fallback={<div>Loading...</div>}>

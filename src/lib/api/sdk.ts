@@ -14,6 +14,15 @@ export const defaultProviderConfig = {
   [OfficialProvider.OPENROUTER]: {
     apiBaseURL: "https://openrouter.ai/api/v1",
   },
+  [OfficialProvider.GROQ]: {
+    apiBaseURL: "https://api.groq.com/openai/v1",
+  },
+  [OfficialProvider.MISTRAL]: {
+    apiBaseURL: "https://api.mistral.ai/v1",
+  },
+  [OfficialProvider.DEEPSEEK]: {
+    apiBaseURL: "https://api.deepseek.com/v1",
+  },
 };
 
 export async function getASDK(model: ModelWithProvider) {
@@ -66,6 +75,30 @@ export async function getASDK(model: ModelWithProvider) {
     case OfficialProvider.OPENROUTER: {
       const { createOpenRouter } = await import("@openrouter/ai-sdk-provider");
       const provider = createOpenRouter({
+        apiKey,
+        baseURL: apiBaseURL || undefined,
+      });
+      return provider(model.id);
+    }
+    case OfficialProvider.GROQ: {
+      const { createGroq } = await import("@ai-sdk/groq");
+      const provider = createGroq({
+        apiKey,
+        baseURL: apiBaseURL || undefined,
+      });
+      return provider(model.id);
+    }
+    case OfficialProvider.MISTRAL: {
+      const { createMistral } = await import("@ai-sdk/mistral");
+      const provider = createMistral({
+        apiKey,
+        baseURL: apiBaseURL || undefined,
+      });
+      return provider(model.id);
+    }
+    case OfficialProvider.DEEPSEEK: {
+      const { createDeepSeek } = await import("@ai-sdk/deepseek");
+      const provider = createDeepSeek({
         apiKey,
         baseURL: apiBaseURL || undefined,
       });

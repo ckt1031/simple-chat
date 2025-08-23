@@ -36,7 +36,7 @@ function Sidebar() {
       {/* Animated overlay */}
       <div
         className={cn(
-          "fixed inset-0 z-30 bg-black/30 lg:hidden transition-opacity duration-300 ease-in-out",
+          "fixed inset-0 z-30 bg-neutral-900/30 lg:hidden transition-opacity duration-300 ease-in-out",
           isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
         onClick={closeSidebar}
@@ -45,7 +45,7 @@ function Sidebar() {
       {/* Animated sidebar */}
       <div
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen bg-neutral-100 dark:bg-neutral-800 border-r md:border-0 border-neutral-200 dark:border-neutral-800 shadow-lg transition-transform duration-300 ease-in-out",
+          "fixed left-0 top-0 z-40 h-screen bg-neutral-100 dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 shadow-lg transition-transform duration-300 ease-in-out",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full",
           "lg:relative lg:left-auto lg:top-auto lg:shadow-none lg:translate-x-0",
           isSidebarOpen ? "lg:w-64" : "lg:w-0",
@@ -56,7 +56,7 @@ function Sidebar() {
       >
         <div className={cn("flex h-full flex-col", contentVisibilityClass)}>
           {/* Header with enhanced animations */}
-          <div className="flex items-center justify-between px-4 py-4 border-b border-neutral-200 dark:border-neutral-700 mb-2">
+          <div className="flex items-center justify-between px-4 py-4 border-b border-neutral-200 dark:border-neutral-800 mb-2">
             <h1 className="text-lg font-bold text-neutral-700 dark:text-white transition-colors duration-200">
               Simple Chat
             </h1>

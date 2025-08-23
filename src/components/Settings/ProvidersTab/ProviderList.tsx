@@ -3,6 +3,7 @@ import { useNavigationStore } from "@/lib/stores/navigation";
 import { cn } from "@/lib/utils";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import { defaultProviderConfig } from "@/lib/api/sdk";
 
 interface Props {
   officialList: {
@@ -28,13 +29,18 @@ export default function ProviderList({ officialList }: Props) {
             const provider = officialProviders.find((p) => p.provider === id);
             if (!provider) return null;
 
+            const Icon = defaultProviderConfig[id].icon;
+
             return (
               <button
                 key={id}
                 onClick={() => navigateToConfigure(id)}
                 className="w-full flex items-center justify-between px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
               >
-                <span className="text-sm font-medium">{label}</span>
+                <div className="flex items-center gap-2">
+                  <Icon className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
+                  <span className="text-sm font-medium">{label}</span>
+                </div>
                 <div className="flex items-center gap-3">
                   <span
                     className={cn(

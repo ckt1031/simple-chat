@@ -1,4 +1,12 @@
 import {
+  OpenAI,
+  Google,
+  OpenRouter,
+  Groq,
+  Mistral,
+  DeepSeek,
+} from "@lobehub/icons";
+import {
   ModelWithProvider,
   OfficialProvider,
   useProviderStore,
@@ -7,21 +15,27 @@ import {
 export const defaultProviderConfig = {
   [OfficialProvider.OPENAI]: {
     apiBaseURL: "https://api.openai.com/v1",
+    icon: OpenAI,
   },
   [OfficialProvider.GOOGLE]: {
     apiBaseURL: "https://generativelanguage.googleapis.com/v1beta",
+    icon: Google,
   },
   [OfficialProvider.OPENROUTER]: {
     apiBaseURL: "https://openrouter.ai/api/v1",
+    icon: OpenRouter,
   },
   [OfficialProvider.GROQ]: {
     apiBaseURL: "https://api.groq.com/openai/v1",
+    icon: Groq,
   },
   [OfficialProvider.MISTRAL]: {
     apiBaseURL: "https://api.mistral.ai/v1",
+    icon: Mistral,
   },
   [OfficialProvider.DEEPSEEK]: {
     apiBaseURL: "https://api.deepseek.com/v1",
+    icon: DeepSeek,
   },
 };
 

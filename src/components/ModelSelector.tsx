@@ -14,6 +14,7 @@ import {
 import { useHotkeys } from "react-hotkeys-hook";
 import { useClickAway } from "react-use";
 import { useShallow } from "zustand/react/shallow";
+import { defaultProviderConfig } from "@/lib/api/sdk";
 
 type ProviderGroup = {
   id: string;
@@ -143,10 +144,19 @@ function ModelSelector() {
 
               if (models.length === 0) return null;
 
+              const Icon =
+                defaultProviderConfig[group.officialKey as OfficialProvider]
+                  ?.icon;
+
               return (
                 <div key={group.id}>
                   <div className="sticky top-0 z-10 bg-white/90 dark:bg-neutral-900/90 backdrop-blur px-3 py-2 text-xs font-semibold text-neutral-600 dark:text-neutral-300 border-b border-neutral-100 dark:border-neutral-800">
-                    {group.label}
+                    <div className="flex items-center gap-2">
+                      {Icon && (
+                        <Icon className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
+                      )}
+                      <span className="text-sm font-medium">{group.label}</span>
+                    </div>
                   </div>
                   <ul role="listbox" className="py-1">
                     {models.map((m: Model) => {

@@ -125,7 +125,7 @@ function ModelSelector() {
             />
           </div>
 
-          <div className="max-h-60 sm:max-h-80 overflow-y-auto custom-scrollbar">
+          <div className="max-h-60 sm:max-h-80 overflow-y-auto">
             {groups.length === 0 && (
               <div className="p-3 text-sm text-neutral-500">
                 No enabled providers
@@ -150,7 +150,7 @@ function ModelSelector() {
 
               return (
                 <div key={group.id}>
-                  <div className="sticky top-0 z-10 bg-white/90 dark:bg-neutral-900/90 backdrop-blur px-3 py-2 text-xs font-semibold text-neutral-600 dark:text-neutral-300 border-b border-neutral-100 dark:border-neutral-800">
+                  <div className="sticky top-0 z-10 bg-white/90 dark:bg-neutral-900/90 backdrop-blur px-3 py-2 text-xs font-semibold text-neutral-600 dark:text-neutral-300 border-b border-neutral-200 dark:border-neutral-700">
                     <div className="flex items-center gap-2">
                       {Icon && (
                         <Icon className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />

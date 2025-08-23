@@ -5,6 +5,7 @@ import {
   Groq,
   Mistral,
   DeepSeek,
+  Anthropic,
 } from "@lobehub/icons";
 import {
   ModelWithProvider,
@@ -16,6 +17,10 @@ export const defaultProviderConfig = {
   [OfficialProvider.OPENAI]: {
     apiBaseURL: "https://api.openai.com/v1",
     icon: OpenAI,
+  },
+  [OfficialProvider.ANTHROPIC]: {
+    apiBaseURL: "https://api.anthropic.com/v1",
+    icon: Anthropic,
   },
   [OfficialProvider.GOOGLE]: {
     apiBaseURL: "https://generativelanguage.googleapis.com/v1beta",
@@ -107,6 +112,17 @@ export async function getASDK(model: ModelWithProvider) {
       const provider = createMistral({
         apiKey,
         baseURL: apiBaseURL || undefined,
+      });
+      return provider(model.id);
+    }
+    case OfficialProvider.ANTHROPIC: {
+      const { createAnthropic } = await import("@ai-sdk/anthropic");
+      const provider = createAnthropic({
+        apiKey,
+        baseURL: apiBaseURL || undefined,
+        headers: {
+          "anthropic-dangerous-direct-browser-access": "true",
+        },
       });
       return provider(model.id);
     }

@@ -8,6 +8,7 @@ export enum OfficialProvider {
   GROQ = "Groq",
   MISTRAL = "Mistral",
   DEEPSEEK = "DeepSeek",
+  ANTHROPIC = "Anthropic",
 }
 
 export interface Model {

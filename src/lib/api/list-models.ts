@@ -2,6 +2,7 @@ import { Model, OfficialProvider, ProviderState } from "../stores/provider";
 import type { Model as GoogleGenAIModel } from "@google/genai";
 import { defaultProviderConfig } from "./sdk";
 import { GoogleModelListSchema } from "./schema/google";
+import { AnthropicModelListSchema } from "./schema/anthropic";
 
 export default async function listModels(
   format: OfficialProvider,
@@ -22,6 +23,8 @@ export default async function listModels(
       return await listOpenRouterModels(provider);
     case OfficialProvider.DEEPSEEK:
       return await listModelsOpenAI(provider);
+    case OfficialProvider.ANTHROPIC:
+      return await listAnthropicModels(provider);
     default:
       throw new Error(`Unsupported provider: ${format}`);
   }
@@ -87,6 +90,27 @@ async function listOpenRouterModels(provider: ProviderState) {
     id: model.id,
     // 'name' present in OpenRouter models
     name: "name" in model ? (model.name as string) : model.id,
+    enabled: provider.models.find((m) => m.id === model.id)?.enabled ?? false,
+    source: "fetch" as const,
+  }));
+}
+
+async function listAnthropicModels(provider: ProviderState) {
+  const url = new URL(`${provider.apiBaseURL}/models`);
+
+  const response = await fetch(url, {
+    headers: {
+      "x-api-key": provider.apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+    },
+  });
+
+  const data = await response.json();
+
+  return AnthropicModelListSchema.parse(data).data.map((model) => ({
+    id: model.id,
+    name: model.display_name,
     enabled: provider.models.find((m) => m.id === model.id)?.enabled ?? false,
     source: "fetch" as const,
   }));

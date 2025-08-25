@@ -1,5 +1,5 @@
 import { OfficialProvider, useProviderStore } from "@/lib/stores/provider";
-import { useNavigationStore } from "@/lib/stores/navigation";
+import { useSettingsProviderNavigationStore } from "@/lib/stores/navigation";
 import { ArrowLeft } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -11,7 +11,7 @@ interface Props {
 
 export default function AddCustom({ officialList, onBack }: Props) {
   const { addCustomProvider } = useProviderStore();
-  const { navigateToConfigure } = useNavigationStore();
+  const { navigateToConfigure } = useSettingsProviderNavigationStore();
 
   const handleChoose = (format: OfficialProvider) => {
     const id = addCustomProvider(format);

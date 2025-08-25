@@ -1,22 +1,13 @@
 "use client";
 
 import { X, AlertTriangle } from "lucide-react";
-import { useGlobalStore } from "@/lib/stores/global";
+import { useUIStore } from "@/lib/stores/ui";
 import Button from "@/components/ui/Button";
 import { useHotkeys } from "react-hotkeys-hook";
 
 export default function DeleteConfirmationModal() {
-  const deleteConfirmation = useGlobalStore(
-    (s) => s.ui?.deleteConfirmation,
-  ) || {
-    isOpen: false,
-    title: "",
-    message: "",
-    onConfirm: null as (() => void) | null,
-  };
-  const closeDeleteConfirmation = useGlobalStore(
-    (s) => s.closeDeleteConfirmation,
-  );
+  const deleteConfirmation = useUIStore((s) => s.deleteConfirmation);
+  const closeDeleteConfirmation = useUIStore((s) => s.closeDeleteConfirmation);
 
   const handleConfirm = () => {
     if (deleteConfirmation.onConfirm) {

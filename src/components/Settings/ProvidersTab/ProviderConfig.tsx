@@ -1,7 +1,7 @@
 import Switch from "@/components/Switch";
 import { ArrowLeft } from "lucide-react";
 import { useProviderStore } from "@/lib/stores/provider";
-import { useNavigationStore } from "@/lib/stores/navigation";
+import { useSettingsProviderNavigationStore } from "@/lib/stores/navigation";
 import { useProviderForm } from "@/lib/hooks/useProviderForm";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -14,7 +14,7 @@ interface Props {
 
 export default function ProviderConfig({ providerId, onBack }: Props) {
   const { getProvider, updateProvider } = useProviderStore();
-  const { navigateToManageModels } = useNavigationStore();
+  const { navigateToManageModels } = useSettingsProviderNavigationStore();
 
   // Always call hooks unconditionally
   const {

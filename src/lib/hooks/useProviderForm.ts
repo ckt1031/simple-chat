@@ -6,7 +6,7 @@ import {
   BaseProviderState,
   CustomProviderState,
 } from "@/lib/stores/provider";
-import { useGlobalStore } from "@/lib/stores/global";
+import { useUIStore } from "@/lib/stores/ui";
 import { defaultProviderConfig } from "@/lib/api/sdk";
 
 const FormSchema = z.object({
@@ -27,10 +27,9 @@ export function useProviderForm({
   onSuccess,
 }: UseProviderFormProps) {
   const { getProvider, updateProvider, removeProvider } = useProviderStore();
-  const openDeleteConfirmation = useGlobalStore(
-    (s) => s.openDeleteConfirmation,
-  );
   const provider = getProvider(providerId);
+
+  const openDeleteConfirmation = useUIStore((s) => s.openDeleteConfirmation);
 
   const isCustom = provider?.type === "custom";
   const defaultBaseURL =

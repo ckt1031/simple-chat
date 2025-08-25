@@ -11,8 +11,8 @@ import { Trash2, Menu } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import { SettingsModal } from "@/components/Settings/Modal";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
-import { useGlobalStore } from "@/lib/stores/global";
 import { useConversationStore } from "@/lib/stores/conversation";
+import { useUIStore } from "@/lib/stores/ui";
 
 type LibraryItem = {
   id: string;
@@ -24,10 +24,9 @@ type LibraryItem = {
 };
 
 function LibraryPageContent() {
-  const toggleSidebar = useGlobalStore((s) => s.toggleSidebar);
-  const openDeleteConfirmation = useGlobalStore(
-    (s) => s.openDeleteConfirmation,
-  );
+  const toggleSidebar = useUIStore((s) => s.toggleSidebar);
+  const openDeleteConfirmation = useUIStore((s) => s.openDeleteConfirmation);
+
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { removeAssetReferences } = useConversationStore();

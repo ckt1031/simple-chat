@@ -6,13 +6,13 @@ import { Chat } from "@/components/Chat";
 import { SettingsModal } from "@/components/Settings/Modal";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 import EditTitleModal from "@/components/EditTitleModal";
-import { useGlobalStore } from "@/lib/stores/global";
 import ModelSelector from "@/components/ModelSelector";
 import { Suspense } from "react";
 import ChatOptionMenu from "@/components/ChatOptionMenu";
+import { useUIStore } from "@/lib/stores/ui";
 
 function HomePageContent() {
-  const toggleSidebar = useGlobalStore((s) => s.toggleSidebar);
+  const toggleSidebar = useUIStore((s) => s.toggleSidebar);
 
   return (
     <div className="h-screen flex bg-white dark:bg-neutral-900 overflow-hidden">

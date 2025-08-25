@@ -1,5 +1,5 @@
 import { OfficialProvider, useProviderStore } from "@/lib/stores/provider";
-import { useNavigationStore } from "@/lib/stores/navigation";
+import { useSettingsProviderNavigationStore } from "@/lib/stores/navigation";
 import { cn } from "@/lib/utils";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -14,7 +14,8 @@ interface Props {
 
 export default function ProviderList({ officialList }: Props) {
   const { getOfficialProviders, getCustomProviders } = useProviderStore();
-  const { navigateToConfigure, navigateToAddCustom } = useNavigationStore();
+  const { navigateToConfigure, navigateToAddCustom } =
+    useSettingsProviderNavigationStore();
 
   const officialProviders = getOfficialProviders();
   const customProviders = getCustomProviders();

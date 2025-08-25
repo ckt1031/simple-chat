@@ -2,7 +2,7 @@
 
 import { Suspense, useMemo } from "react";
 import { OfficialProvider } from "@/lib/stores/provider";
-import { useNavigationStore } from "@/lib/stores/navigation";
+import { useSettingsProviderNavigationStore } from "@/lib/stores/navigation";
 import dynamic from "next/dynamic";
 import ProviderList from "./ProviderList";
 
@@ -16,7 +16,8 @@ const officialList = Object.values(OfficialProvider).map((provider) => ({
 }));
 
 export default function ProviderSettingsTab() {
-  const { view, activeProviderId, navigateToList } = useNavigationStore();
+  const { view, activeProviderId, navigateToList } =
+    useSettingsProviderNavigationStore();
 
   return (
     <Suspense fallback={<div>Loading...</div>}>

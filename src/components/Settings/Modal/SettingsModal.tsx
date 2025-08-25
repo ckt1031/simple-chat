@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useGlobalStore } from "@/lib/stores/global";
+import { useUIStore } from "@/lib/stores/ui";
 import { cn } from "@/lib/utils";
 import GeneralTab from "@/components/Settings/GeneralTab";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -20,7 +20,7 @@ const ProvidersTab = dynamic(
 const AboutTab = dynamic(() => import("@/components/Settings/AboutTab"));
 
 export default function SettingsModal() {
-  const closeSettings = useGlobalStore((s) => s.closeSettings);
+  const closeSettings = useUIStore((s) => s.closeSettings);
   const [settingsTab, setSettingsTab] = useState("general");
 
   const handleTabChange = (tabId: string) => {

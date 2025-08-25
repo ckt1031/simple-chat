@@ -2,7 +2,7 @@
 
 import { X } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
-import { useGlobalStore } from "@/lib/stores/global";
+import { useUIStore } from "@/lib/stores/ui";
 import { useConversationStore } from "@/lib/stores/conversation";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -10,11 +10,8 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { useForm } from "react-hook-form";
 
 export default function EditTitleModal() {
-  const { isOpen, conversationId } = useGlobalStore((s) => s.ui?.editTitle) || {
-    isOpen: false,
-    conversationId: null as string | null,
-  };
-  const closeEditTitle = useGlobalStore((s) => s.closeEditTitle);
+  const { isOpen, conversationId } = useUIStore((s) => s.editTitle);
+  const closeEditTitle = useUIStore((s) => s.closeEditTitle);
   const updateConversationTitle = useConversationStore(
     (s) => s.updateConversationTitle,
   );

@@ -3,7 +3,7 @@
 import { memo, useMemo, useRef, useState } from "react";
 import { ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useGlobalStore } from "@/lib/stores/global";
+import { usePreferencesStore } from "@/lib/stores/perferences";
 import {
   OfficialProvider,
   useProviderStore,
@@ -13,7 +13,6 @@ import {
 } from "@/lib/stores/provider";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useClickAway } from "react-use";
-import { useShallow } from "zustand/react/shallow";
 import { defaultProviderConfig } from "@/lib/api/sdk";
 
 type ProviderGroup = {
@@ -25,20 +24,11 @@ type ProviderGroup = {
 };
 
 function ModelSelector() {
-  const { selectedModel, updateSettings } = useGlobalStore(
-    useShallow((state) => ({
-      selectedModel: state.general.selectedModel,
-      updateSettings: state.updateSettings,
-    })),
-  );
+  const selectedModel = usePreferencesStore((s) => s.selectedModel);
+  const updateSettings = usePreferencesStore((s) => s.updateSettings);
+
   const { providers, getOfficialProviders, getCustomProviders } =
-    useProviderStore(
-      useShallow((state) => ({
-        providers: state.providers,
-        getOfficialProviders: state.getOfficialProviders,
-        getCustomProviders: state.getCustomProviders,
-      })),
-    );
+    useProviderStore();
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");

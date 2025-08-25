@@ -1,7 +1,7 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { Check, Copy, PencilLine, RefreshCcw, Trash } from "lucide-react";
 import { useConversationStore } from "@/lib/stores/conversation";
-import { useGlobalStore } from "@/lib/stores/global";
+import { useUIStore } from "@/lib/stores/ui";
 import { cn } from "@/lib/utils";
 import isMobile from "@/lib/is-mobile";
 
@@ -27,9 +27,7 @@ function ChatActionButtons({
   const containerRef = useRef<HTMLDivElement>(null);
   const isLastMessage = useConversationStore((s) => s.isLastMessage);
   const deleteMessage = useConversationStore((s) => s.deleteMessage);
-  const openDeleteConfirmation = useGlobalStore(
-    (s) => s.openDeleteConfirmation,
-  );
+  const openDeleteConfirmation = useUIStore((s) => s.openDeleteConfirmation);
 
   // Show the buttons when the mouse is within 60px of the container (top/bottom/left/right)
   // This is a simple "proximity" effect using mousemove on the document.

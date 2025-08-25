@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useClickAway } from "react-use";
 import { useConversationStore } from "@/lib/stores/conversation";
 import { useShallow } from "zustand/shallow";
-import { useGlobalStore } from "@/lib/stores/global";
+import { useUIStore } from "@/lib/stores/ui";
 import { useRouter } from "next/navigation";
 
 interface ChatOptionMenuProps {
@@ -31,7 +31,7 @@ function ChatOptionMenu({
   const iconSize = size === "sm" ? 12 : 16;
   const containerAlign = align === "right" ? "right-0" : "left-0";
 
-  const { openEditTitle, openDeleteConfirmation } = useGlobalStore(
+  const { openEditTitle, openDeleteConfirmation } = useUIStore(
     useShallow((s) => ({
       openEditTitle: s.openEditTitle,
       openDeleteConfirmation: s.openDeleteConfirmation,

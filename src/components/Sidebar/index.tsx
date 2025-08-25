@@ -6,32 +6,25 @@ import {
   Image as ImageIcon,
   PanelLeftClose,
 } from "lucide-react";
-import { useGlobalStore } from "@/lib/stores/global";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
-import { useShallow } from "zustand/shallow";
 import { Conversations } from "./Conversations";
 import Link from "next/link";
 import { memo } from "react";
 import { useSwipeGesture } from "@/lib/hooks/useSwipeGesture";
 import isMobile from "@/lib/is-mobile";
+import { useUIStore } from "@/lib/stores/ui";
 
 function Sidebar() {
-  const { isSidebarOpen, toggleSidebar, closeSidebar, openSettings } =
-    useGlobalStore(
-      useShallow((s) => ({
-        isSidebarOpen: s.ui.isSidebarOpen,
-        toggleSidebar: s.toggleSidebar,
-        closeSidebar: s.closeSidebar,
-        openSettings: s.openSettings,
-      })),
-    );
+  const isSidebarOpen = useUIStore((s) => s.isSidebarOpen);
+  const toggleSidebar = useUIStore((s) => s.toggleSidebar);
+  const openSettings = useUIStore((s) => s.openSettings);
 
   const pathname = usePathname();
 
   // Swipe gesture for mobile - only enabled on mobile devices and when sidebar is open
   const swipeBind = useSwipeGesture({
-    onSwipeLeft: closeSidebar,
+    onSwipeLeft: toggleSidebar,
     enabled: isMobile() && isSidebarOpen,
   });
 
@@ -47,7 +40,7 @@ function Sidebar() {
           "fixed inset-0 z-30 bg-neutral-900/30 lg:hidden transition-opacity duration-300 ease-in-out",
           isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
-        onClick={closeSidebar}
+        onClick={toggleSidebar}
       />
 
       {/* Animated sidebar */}

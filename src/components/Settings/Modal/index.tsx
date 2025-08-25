@@ -1,9 +1,9 @@
 import SettingsModalComponent from "./SettingsModal";
 
-import { useGlobalStore } from "@/lib/stores/global";
+import { useUIStore } from "@/lib/stores/ui";
 
 export function SettingsModal() {
-  const isSettingsOpen = useGlobalStore((s) => s.ui.isSettingsOpen);
+  const isSettingsOpen = useUIStore((s) => s.isSettingsOpen);
 
   return isSettingsOpen ? <SettingsModalComponent /> : null;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { useGlobalStore } from "@/lib/stores/global";
+import { usePreferencesStore } from "@/lib/stores/perferences";
 import MessageItem from "./MessageItem";
 import ChatInput from "./ChatInput";
 import { Message, useConversationStore } from "@/lib/stores/conversation";
@@ -14,7 +14,7 @@ export function Chat() {
   const chatId = useSearchParams().get("id");
 
   // Simplified and grouped store hooks for clarity
-  const selectedModel = useGlobalStore((s) => s.general.selectedModel);
+  const selectedModel = usePreferencesStore((s) => s.selectedModel);
   const { hasEnabledProviders } = useProviderStore();
 
   const {

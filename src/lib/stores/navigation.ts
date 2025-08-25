@@ -6,7 +6,7 @@ export type ProviderView =
   | "configure"
   | "manage-models";
 
-export interface NavigationState {
+export interface SettingsProviderNavigationState {
   view: ProviderView;
   activeProviderId: string | null;
 
@@ -18,33 +18,34 @@ export interface NavigationState {
   goBack: () => void;
 }
 
-export const useNavigationStore = create<NavigationState>((set, get) => ({
-  view: "list",
-  activeProviderId: null,
+export const useSettingsProviderNavigationStore =
+  create<SettingsProviderNavigationState>((set, get) => ({
+    view: "list",
+    activeProviderId: null,
 
-  navigateToList: () => set({ view: "list", activeProviderId: null }),
+    navigateToList: () => set({ view: "list", activeProviderId: null }),
 
-  navigateToAddCustom: () =>
-    set({ view: "add-custom", activeProviderId: null }),
+    navigateToAddCustom: () =>
+      set({ view: "add-custom", activeProviderId: null }),
 
-  navigateToConfigure: (providerId: string) =>
-    set({
-      view: "configure",
-      activeProviderId: providerId,
-    }),
+    navigateToConfigure: (providerId: string) =>
+      set({
+        view: "configure",
+        activeProviderId: providerId,
+      }),
 
-  navigateToManageModels: (providerId: string) =>
-    set({
-      view: "manage-models",
-      activeProviderId: providerId,
-    }),
+    navigateToManageModels: (providerId: string) =>
+      set({
+        view: "manage-models",
+        activeProviderId: providerId,
+      }),
 
-  goBack: () => {
-    const { view } = get();
-    if (view === "configure" || view === "manage-models") {
-      set({ view: "list", activeProviderId: null });
-    } else if (view === "add-custom") {
-      set({ view: "list", activeProviderId: null });
-    }
-  },
-}));
+    goBack: () => {
+      const { view } = get();
+      if (view === "configure" || view === "manage-models") {
+        set({ view: "list", activeProviderId: null });
+      } else if (view === "add-custom") {
+        set({ view: "list", activeProviderId: null });
+      }
+    },
+  }));

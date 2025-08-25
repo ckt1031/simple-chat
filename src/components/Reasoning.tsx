@@ -1,5 +1,5 @@
 import { ChevronRightIcon } from "lucide-react";
-import { memo, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { MemoizedMarkdown } from "./MemoizedMarkdown";
 
 interface ReasoningProps {
@@ -8,7 +8,7 @@ interface ReasoningProps {
   reasoningEndTime?: number;
 }
 
-function Reasoning({
+export default function Reasoning({
   reasoning,
   reasoningStartTime,
   reasoningEndTime,
@@ -70,5 +70,3 @@ function Reasoning({
     </div>
   );
 }
-
-export default memo(Reasoning);

@@ -17,7 +17,6 @@ interface ChatActionButtonsProps {
 }
 
 function ChatActionButtons({
-  conversationId,
   handleRegenerate,
   isRegenerating = false,
   isGenerating = false,
@@ -70,10 +69,7 @@ function ChatActionButtons({
       const state = useConversationStore.getState();
       const message = state.currentMessages.find((m) => m.id === messageId);
       if (!message) return;
-      const textToCopy = message.reasoning
-        ? `Reasoning:\n${message.reasoning}\n\nResponse:\n${message.content}`
-        : message.content;
-      await navigator.clipboard.writeText(textToCopy);
+      await navigator.clipboard.writeText(message.content);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {

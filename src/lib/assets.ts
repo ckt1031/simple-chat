@@ -11,7 +11,6 @@ export interface AssetRecord {
   name?: string;
   size?: number;
   createdAt: number;
-  hash?: string;
   blob: Blob;
 }
 

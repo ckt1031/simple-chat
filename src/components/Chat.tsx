@@ -217,6 +217,7 @@ export function Chat() {
         content,
         assets,
       } as const;
+
       if (!isRegenerating) {
         addMessage(userMessage);
       }
@@ -248,7 +249,6 @@ export function Chat() {
       const { currentConversationId: curId, currentMessages } =
         useConversationStore.getState();
       const useCur = curId === conversationId ? currentMessages : [];
-      const messagesForAI = [...useCur, { ...userMessage }];
 
       // Create abort controller for this request
       const abortController = new AbortController();
@@ -275,7 +275,7 @@ export function Chat() {
 
         const stream = await completionsStreaming(
           selectedModelToUse,
-          messagesForAI as Message[],
+          useCur as Message[],
           abortController.signal,
         );
 

@@ -1,8 +1,17 @@
 import { createIdGenerator } from "ai";
 import { createWithEqualityFn as create } from "zustand/traditional";
-import { persist, createJSONStorage } from "zustand/middleware";
-import { ConversationIndxedStorage } from "./utils/storage";
+import {
+  ConversationFolder,
+  ConversationHeader,
+  deleteConversation as dbDeleteConversation,
+  readConversationBody,
+  readConversationIndex,
+  readFolderIndex,
+  upsertConversationHeader,
+  writeConversationBody,
+} from "./utils/conversation-db";
 
+// In-memory shape for the currently opened conversation
 export interface Conversation {
   id: string;
   title: string;
@@ -35,26 +44,37 @@ export interface Message {
 }
 
 export interface ConversationState {
-  conversations: Conversation[];
+  // Sidebar: only lightweight headers
+  headers: ConversationHeader[];
+  folders: ConversationFolder[];
+  // Current conversation in memory
   currentConversationId: string | null;
+  currentMessages: Message[];
+  // Loading flags per conversation id (for sidebar spinners)
+  loadingById: Record<string, boolean>;
   isHydrated: boolean;
 }
 
 export interface ConversationStore extends ConversationState {
-  createNewConversation: () => string;
-  updateConversation: (conversation: Conversation) => void;
-  updateConversationTitle: (id: string, title: string) => void;
-  deleteConversation: (id: string) => void;
+  // Initialization / hydration
+  hydrateFromDB: () => Promise<void>;
+  // Sidebar operations
+  createNewConversation: (folderId?: string | null) => string;
+  updateConversationTitle: (id: string, title: string) => Promise<void>;
+  deleteConversation: (id: string) => Promise<void>;
+  // Opening / switching
+  openConversation: (id: string) => Promise<void>;
   setCurrentConversation: (id: string | null) => void;
-  setHydrated: (hydrated: boolean) => void;
+  // Message operations (in-memory only during streaming)
   addMessage: (message: Omit<Message, "id">) => string;
   updateMessage: (id: string, updates: Partial<Omit<Message, "id">>) => void;
   appendToMessage: (id: string, text: string) => void;
   appendToReasoning: (id: string, text: string) => void;
   endReasoning: (id: string) => void;
-  isLastMessage: (conversationId: string, messageId: string) => boolean;
-  deleteMessage: (conversationId: string, messageId: string) => void;
+  isLastMessage: (messageId: string) => boolean;
+  deleteMessage: (messageId: string) => void;
   removeLastAssistantMessage: (messageId: string) => void;
+  // Streaming helpers
   setConversationLoading: (
     conversationId: string,
     loading: boolean,
@@ -62,244 +82,247 @@ export interface ConversationStore extends ConversationState {
   ) => void;
   stopConversation: (conversationId: string) => void;
   resetAllLoadingStates: () => void;
+  persistCurrentConversation: () => Promise<void>;
   removeAssetReferences: (assetId: string) => void;
 }
 
-export const useConversationStore = create<ConversationStore>()(
-  persist(
-    (set, get) => ({
-      conversations: [],
-      currentConversationId: null,
-      isHydrated: false,
-      createNewConversation: () => {
-        const newID = createIdGenerator({ size: 16 })();
-        set((state) => ({
-          conversations: [
-            { id: newID, title: "New chat", messages: [], isLoading: false },
-            ...state.conversations,
-          ],
-          currentConversationId: newID,
-        }));
-        return newID;
-      },
-      setCurrentConversation: (id: string | null) => {
-        set(() => ({ currentConversationId: id }));
-      },
-      setHydrated: (hydrated: boolean) => {
-        set(() => ({ isHydrated: hydrated }));
-      },
-      updateConversation: (conversation: Conversation) => {
-        set((state) => ({
-          conversations: state.conversations.map((c) =>
-            c.id === conversation.id ? conversation : c,
-          ),
-        }));
-      },
-      updateConversationTitle: (id: string, title: string) => {
-        set((state) => ({
-          conversations: state.conversations.map((c) =>
-            c.id === id ? { ...c, title } : c,
-          ),
-        }));
-      },
-      deleteConversation: (id: string) => {
-        set((state) => ({
-          conversations: state.conversations.filter((c) => c.id !== id),
-        }));
-      },
-      addMessage: (message: Omit<Message, "id">) => {
-        const id = createIdGenerator({ prefix: "msg", size: 16 })();
-        set((state) => {
-          const updatedConversations = state.conversations.map((c) => {
-            if (c.id === state.currentConversationId) {
-              const updatedMessages = [...c.messages, { ...message, id }];
-              // Update title if this is the first user message
-              let updatedTitle = c.title;
-              if (message.role === "user" && c.messages.length === 0) {
-                const base =
-                  message.content && message.content.trim().length > 0
-                    ? message.content
-                    : message.assets && message.assets.length > 0
-                      ? "(Image message)"
-                      : "New chat";
-                updatedTitle =
-                  base.slice(0, 50) + (base.length > 50 ? "..." : "");
-              }
-              return { ...c, messages: updatedMessages, title: updatedTitle };
+export const useConversationStore = create<ConversationStore>()((set, get) => ({
+  headers: [],
+  folders: [],
+  currentConversationId: null,
+  currentMessages: [],
+  loadingById: {},
+  isHydrated: false,
+
+  hydrateFromDB: async () => {
+    const [index, folderIndex] = await Promise.all([
+      readConversationIndex(),
+      readFolderIndex(),
+    ]);
+    set(() => ({
+      headers: index.ids.map((id) => index.headersById[id]).filter(Boolean),
+      folders: folderIndex.ids
+        .map((id) => folderIndex.byId[id])
+        .filter(Boolean),
+      isHydrated: true,
+    }));
+    // Reset loading flags on fresh load
+    get().resetAllLoadingStates();
+  },
+
+  createNewConversation: (folderId?: string | null) => {
+    const newID = createIdGenerator({ size: 16 })();
+    const header: ConversationHeader = {
+      id: newID,
+      title: "New chat",
+      createdAt: Date.now(),
+      folderId: folderId ?? null,
+    };
+    set((state) => ({
+      headers: [header, ...state.headers],
+      currentConversationId: newID,
+      currentMessages: [],
+    }));
+    // Persist header only; body will be saved after generation completes
+    void upsertConversationHeader(header);
+    return newID;
+  },
+
+  updateConversationTitle: async (id: string, title: string) => {
+    const state = get();
+    const header = state.headers.find((h) => h.id === id);
+    if (!header) return;
+    const nextHeader = { ...header, title };
+    set((s) => ({
+      headers: s.headers.map((h) => (h.id === id ? nextHeader : h)),
+    }));
+    await upsertConversationHeader(nextHeader);
+  },
+
+  deleteConversation: async (id: string) => {
+    const state = get();
+    if (state.currentConversationId === id) {
+      set(() => ({ currentConversationId: null, currentMessages: [] }));
+    }
+    set((s) => ({ headers: s.headers.filter((h) => h.id !== id) }));
+    const loadingById = { ...state.loadingById };
+    delete loadingById[id];
+    set(() => ({ loadingById }));
+    await dbDeleteConversation(id);
+  },
+
+  openConversation: async (id: string) => {
+    const state = get();
+    const header = state.headers.find((h) => h.id === id);
+    if (!header) return;
+    // If we're already viewing this conversation and have in-memory messages, keep them.
+    if (
+      state.currentConversationId === id &&
+      state.currentMessages.length > 0
+    ) {
+      set(() => ({ currentConversationId: id }));
+      return;
+    }
+    const body = await readConversationBody<Message>(id);
+    set(() => ({
+      currentConversationId: id,
+      currentMessages: body?.messages ?? [],
+    }));
+  },
+
+  setCurrentConversation: (id: string | null) => {
+    // Only set the id; callers that switch to an existing conv should call openConversation
+    set(() => ({ currentConversationId: id }));
+  },
+
+  addMessage: (message: Omit<Message, "id">) => {
+    const id = createIdGenerator({ prefix: "msg", size: 16 })();
+    set((state) => {
+      const isUser = message.role === "user";
+      const isFirstInConv = state.currentMessages.length === 0;
+      let headers = state.headers;
+      if (isUser && isFirstInConv && state.currentConversationId) {
+        const base =
+          message.content && message.content.trim().length > 0
+            ? message.content
+            : message.assets && message.assets.length > 0
+              ? "(Image message)"
+              : "New chat";
+        const updatedTitle =
+          base.slice(0, 50) + (base.length > 50 ? "..." : "");
+        headers = headers.map((h) =>
+          h.id === state.currentConversationId
+            ? { ...h, title: updatedTitle }
+            : h,
+        );
+      }
+      return {
+        headers,
+        currentMessages: [...state.currentMessages, { ...message, id }],
+      };
+    });
+    return id;
+  },
+
+  updateMessage: (id: string, updates: Partial<Omit<Message, "id">>) => {
+    set((state) => ({
+      currentMessages: state.currentMessages.map((m) =>
+        m.id === id ? { ...m, ...updates } : m,
+      ),
+    }));
+  },
+
+  appendToMessage: (id: string, text: string) => {
+    set((state) => ({
+      currentMessages: state.currentMessages.map((m) =>
+        m.id === id ? { ...m, content: (m.content || "") + text } : m,
+      ),
+    }));
+  },
+
+  appendToReasoning: (id: string, text: string) => {
+    set((state) => ({
+      currentMessages: state.currentMessages.map((m) =>
+        m.id === id
+          ? {
+              ...m,
+              reasoning: (m.reasoning || "") + text,
+              reasoningStartTime:
+                m.reasoningStartTime !== undefined
+                  ? m.reasoningStartTime
+                  : Date.now(),
             }
-            return c;
-          });
-          return { conversations: updatedConversations };
-        });
-        return id;
-      },
-      updateMessage: (id: string, updates: Partial<Omit<Message, "id">>) => {
-        set((state) => ({
-          conversations: state.conversations.map((c) => {
-            if (c.id !== state.currentConversationId) return c;
-            return {
-              ...c,
-              messages: c.messages.map((m) =>
-                m.id === id ? { ...m, ...updates } : m,
-              ),
-            };
-          }),
-        }));
-      },
-      appendToMessage: (id: string, text: string) => {
-        set((state) => ({
-          conversations: state.conversations.map((c) => {
-            if (c.id !== state.currentConversationId) return c;
-            return {
-              ...c,
-              messages: c.messages.map((m) =>
-                m.id === id ? { ...m, content: (m.content || "") + text } : m,
-              ),
-            };
-          }),
-        }));
-      },
-      appendToReasoning: (id: string, text: string) => {
-        set((state) => ({
-          conversations: state.conversations.map((c) => {
-            if (c.id !== state.currentConversationId) return c;
-            return {
-              ...c,
-              messages: c.messages.map((m) =>
-                m.id === id
-                  ? {
-                      ...m,
-                      reasoning: (m.reasoning || "") + text,
-                      reasoningStartTime:
-                        m.reasoningStartTime !== undefined
-                          ? m.reasoningStartTime
-                          : Date.now(),
-                    }
-                  : m,
-              ),
-            };
-          }),
-        }));
-      },
-      endReasoning: (id: string) => {
-        set((state) => ({
-          conversations: state.conversations.map((c) => ({
-            ...c,
-            messages: c.messages.map((m) => {
-              if (m.id === id && !m.reasoningEndTime) {
-                return { ...m, reasoningEndTime: Date.now() };
-              }
-              return m;
-            }),
-          })),
-        }));
-      },
-      isLastMessage: (conversationId: string, messageId: string) => {
-        const state = get();
-        const conversation = state.conversations.find(
-          (c) => c.id === conversationId,
-        );
-        if (!conversation) return false;
-        return (
-          conversation.messages[conversation.messages.length - 1].id ===
-          messageId
-        );
-      },
-      deleteMessage: (conversationId: string, messageId: string) => {
-        set((state) => ({
-          conversations: state.conversations.map((c) => ({
-            ...c,
-            messages: c.messages.filter((m) => m.id !== messageId),
-          })),
-        }));
-      },
-      removeLastAssistantMessage: (messageId: string) => {
-        // Remove the last message if it's an assistant message, do not remove user or any earlier assistant messages
-        // Check if the last message is an assistant message
-        const state = get();
-        const conversation = state.conversations.find(
-          (c) => c.id === state.currentConversationId,
-        );
-        if (!conversation) return;
+          : m,
+      ),
+    }));
+  },
 
-        const lastMessage =
-          conversation.messages[conversation.messages.length - 1];
+  endReasoning: (id: string) => {
+    set((state) => ({
+      currentMessages: state.currentMessages.map((m) => {
+        if (m.id === id && !m.reasoningEndTime) {
+          return { ...m, reasoningEndTime: Date.now() };
+        }
+        return m;
+      }),
+    }));
+  },
 
-        if (lastMessage?.role === "assistant" && lastMessage.id === messageId) {
-          set((state) => ({
-            conversations: state.conversations.map((c) => ({
-              ...c,
-              messages: c.messages.filter((m) => m.id !== lastMessage.id),
-            })),
-          }));
-        }
-      },
-      setConversationLoading: (
-        conversationId: string,
-        loading: boolean,
-        abortController?: AbortController,
-      ) => {
-        set((state) => ({
-          conversations: state.conversations.map((c) =>
-            c.id === conversationId
-              ? {
-                  ...c,
-                  isLoading: loading,
-                  abortController: loading ? abortController : undefined,
-                }
-              : c,
-          ),
-        }));
-      },
-      stopConversation: (conversationId: string) => {
-        const state = get();
-        const conversation = state.conversations.find(
-          (c) => c.id === conversationId,
-        );
-        if (conversation?.abortController) {
-          conversation.abortController.abort();
-        }
-        set((state) => ({
-          conversations: state.conversations.map((c) =>
-            c.id === conversationId
-              ? { ...c, isLoading: false, abortController: undefined }
-              : c,
-          ),
-        }));
-      },
-      resetAllLoadingStates: () => {
-        set((state) => ({
-          conversations: state.conversations.map((c) => ({
-            ...c,
-            isLoading: false,
-            abortController: undefined,
-          })),
-        }));
-      },
-      removeAssetReferences: (assetId: string) => {
-        set((state) => ({
-          conversations: state.conversations.map((c) => ({
-            ...c,
-            messages: c.messages.map((m) => {
-              if (!m.assets || m.assets.length === 0) return m;
-              const filtered = m.assets.filter((a) => a.id !== assetId);
-              if (filtered.length === m.assets.length) return m;
-              return { ...m, assets: filtered };
-            }),
-          })),
-        }));
-      },
-    }),
-    {
-      name: "conversation",
-      storage: createJSONStorage(() => ConversationIndxedStorage),
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.setHydrated(true);
-          // Reset all loading states on rehydration to handle page reloads
-          state.resetAllLoadingStates();
-        }
-      },
-    },
-  ),
-);
+  isLastMessage: (messageId: string) => {
+    const state = get();
+    const last = state.currentMessages[state.currentMessages.length - 1];
+    return last?.id === messageId;
+  },
+
+  deleteMessage: (messageId: string) => {
+    set((state) => ({
+      currentMessages: state.currentMessages.filter((m) => m.id !== messageId),
+    }));
+  },
+
+  removeLastAssistantMessage: (messageId: string) => {
+    const state = get();
+    const lastMessage = state.currentMessages[state.currentMessages.length - 1];
+    if (lastMessage?.role === "assistant" && lastMessage.id === messageId) {
+      set((s) => ({
+        currentMessages: s.currentMessages.slice(0, -1),
+      }));
+    }
+  },
+
+  setConversationLoading: (
+    conversationId: string,
+    loading: boolean,
+    abortController?: AbortController,
+  ) => {
+    set((state) => {
+      const loadingById = { ...state.loadingById, [conversationId]: loading };
+      // Also update abort controller flag for current if matches
+      const shouldUpdateCurrent =
+        state.currentConversationId === conversationId;
+      return {
+        loadingById,
+        // Attach abort controller to a synthetic Conversation for current view needs
+        // We avoid storing this in headers to keep headers lightweight
+        ...(shouldUpdateCurrent
+          ? {
+              // no-op for now, Chat tracks abortController locally via closures
+            }
+          : {}),
+      };
+    });
+  },
+
+  stopConversation: (conversationId: string) => {
+    // We rely on Chat's AbortController instance; just flip loading flag
+    set((state) => ({
+      loadingById: { ...state.loadingById, [conversationId]: false },
+    }));
+  },
+
+  resetAllLoadingStates: () => {
+    set(() => ({ loadingById: {} }));
+  },
+
+  persistCurrentConversation: async () => {
+    const state = get();
+    const id = state.currentConversationId;
+    if (!id) return;
+    const header = state.headers.find((h) => h.id === id);
+    if (header) {
+      await upsertConversationHeader(header);
+    }
+    await writeConversationBody(id, { messages: state.currentMessages });
+  },
+
+  removeAssetReferences: (assetId: string) => {
+    set((state) => ({
+      currentMessages: state.currentMessages.map((m) => {
+        if (!m.assets || m.assets.length === 0) return m;
+        const filtered = m.assets.filter((a) => a.id !== assetId);
+        if (filtered.length === m.assets.length) return m;
+        return { ...m, assets: filtered };
+      }),
+    }));
+  },
+}));

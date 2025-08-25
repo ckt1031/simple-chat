@@ -6,7 +6,7 @@ import {
   listImageAssets,
   revokeObjectURL,
   getAssetObjectURL,
-} from "@/lib/assets";
+} from "@/lib/stores/utils/asset-db";
 import { Trash2, Menu } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import { SettingsModal } from "@/components/Settings/Modal";

@@ -59,7 +59,7 @@ function ChatActionButtons({
     openDeleteConfirmation(
       "Delete Message",
       "Are you sure you want to delete this message? This action cannot be undone.",
-      () => deleteMessage(conversationId, messageId),
+      () => deleteMessage(messageId),
     );
   };
 
@@ -68,10 +68,7 @@ function ChatActionButtons({
   const handleCopyInternal = async () => {
     try {
       const state = useConversationStore.getState();
-      const conversation = state.conversations.find(
-        (c) => c.id === conversationId,
-      );
-      const message = conversation?.messages.find((m) => m.id === messageId);
+      const message = state.currentMessages.find((m) => m.id === messageId);
       if (!message) return;
       const textToCopy = message.reasoning
         ? `Reasoning:\n${message.reasoning}\n\nResponse:\n${message.content}`
@@ -146,7 +143,7 @@ function ChatActionButtons({
           <Copy size={16} strokeWidth={1.5} />
         )}
       </button>
-      {isLastMessage(conversationId, messageId) && (
+      {isLastMessage(messageId) && (
         <button
           onClick={handleRegenerate}
           disabled={isRegenerating || isGenerating}

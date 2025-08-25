@@ -9,7 +9,7 @@ import {
 import { ModelWithProvider } from "../stores/provider";
 import { Message } from "../stores/conversation";
 import { getASDK } from "./sdk";
-import { getAssetDataURL } from "../assets";
+import { getAssetDataURL } from "../stores/utils/asset-db";
 
 export async function completionsStreaming(
   model: ModelWithProvider,

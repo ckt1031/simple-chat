@@ -15,12 +15,12 @@ export default function EditTitleModal() {
   const updateConversationTitle = useConversationStore(
     (s) => s.updateConversationTitle,
   );
-  const conversations = useConversationStore((s) => s.conversations);
+  const headers = useConversationStore((s) => s.headers);
 
   const currentTitle = useMemo(() => {
     if (!conversationId) return "";
-    return conversations.find((c) => c.id === conversationId)?.title ?? "";
-  }, [conversations, conversationId]);
+    return headers.find((c) => c.id === conversationId)?.title ?? "";
+  }, [headers, conversationId]);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const { register, handleSubmit, reset, formState } = useForm({

@@ -1,6 +1,6 @@
 import { createStore, get, set, del, keys } from "idb-keyval";
 
-const assetsStore = createStore("simple-chat-assets", "assets");
+const assetsStore = createStore("assets-db", "assets");
 
 export type AssetType = "image";
 

@@ -20,6 +20,7 @@ export function Chat() {
   const {
     currentConversationId,
     isHydrated,
+    hydrateFromDB,
     addMessage,
     appendToMessage,
     endReasoning,
@@ -29,10 +30,13 @@ export function Chat() {
     createNewConversation,
     setConversationLoading,
     stopConversation,
+    openConversation,
+    persistCurrentConversation,
   } = useConversationStore(
     useShallow((s) => ({
       currentConversationId: s.currentConversationId,
       isHydrated: s.isHydrated,
+      hydrateFromDB: s.hydrateFromDB,
       addMessage: s.addMessage,
       appendToMessage: s.appendToMessage,
       endReasoning: s.endReasoning,
@@ -42,25 +46,32 @@ export function Chat() {
       createNewConversation: s.createNewConversation,
       setConversationLoading: s.setConversationLoading,
       stopConversation: s.stopConversation,
+      openConversation: s.openConversation,
+      persistCurrentConversation: s.persistCurrentConversation,
     })),
   );
 
   // Track only a stable key of message ids for current conversation to avoid re-renders during token streaming
-  const messageIdsKey = useConversationStore((s) => {
-    const conv = s.conversations.find((c) => c.id === s.currentConversationId);
-    return conv ? conv.messages.map((m) => m.id).join(",") : "";
-  });
+  const messageIdsKey = useConversationStore((s) =>
+    s.currentMessages.map((m) => m.id).join(","),
+  );
   const messageIds: string[] = useMemo(() => {
     return messageIdsKey ? messageIdsKey.split(",") : [];
   }, [messageIdsKey]);
 
-  const isCurrentLoading = useConversationStore((s) => {
-    const conv = s.conversations.find((c) => c.id === s.currentConversationId);
-    return Boolean(conv?.isLoading);
-  });
+  const isCurrentLoading = useConversationStore((s) =>
+    s.currentConversationId
+      ? Boolean(s.loadingById[s.currentConversationId])
+      : false,
+  );
   const router = useRouter();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Initial hydration
+  useEffect(() => {
+    if (!isHydrated) void hydrateFromDB();
+  }, [isHydrated, hydrateFromDB]);
 
   // Handle URL-based navigation
   useEffect(() => {
@@ -68,15 +79,20 @@ export function Chat() {
     if (!isHydrated) return;
 
     if (chatId) {
-      // Check if the chat ID exists
-      const conversationExists = useConversationStore
-        .getState()
-        .conversations.find((conv) => conv.id === chatId);
-      if (conversationExists) {
+      // Check if the chat ID exists in headers
+      const { headers, currentConversationId, currentMessages } =
+        useConversationStore.getState();
+      const exists = headers.find((h) => h.id === chatId);
+      if (exists) {
         setCurrentConversation(chatId);
+        // Only load from DB if we aren't already on this convo with messages
+        const shouldLoad =
+          currentConversationId !== chatId || currentMessages.length === 0;
+        if (shouldLoad) void openConversation(chatId);
       } else {
-        // Invalid ID, redirect to new chat
-        router.push("/");
+        // ID may be for a just-created, not-yet-persisted conversation.
+        // Keep it as current without redirecting.
+        setCurrentConversation(chatId);
       }
     } else {
       // No chat ID, clear current conversation (new chat state)
@@ -183,10 +199,10 @@ export function Chat() {
       }
 
       // Build the message list to send (include the just-added user message)
-      const convo = useConversationStore
-        .getState()
-        .conversations.find((c) => c.id === conversationId);
-      const messagesForAI = [...(convo?.messages ?? []), { ...userMessage }];
+      const { currentConversationId: curId, currentMessages } =
+        useConversationStore.getState();
+      const useCur = curId === conversationId ? currentMessages : [];
+      const messagesForAI = [...useCur, { ...userMessage }];
 
       // Create abort controller for this request
       const abortController = new AbortController();
@@ -227,10 +243,12 @@ export function Chat() {
         // Check if it was aborted
         if (err instanceof Error && err.name === "AbortError") {
           // User stopped the generation; mark last assistant message as aborted
-          const convo = useConversationStore
-            .getState()
-            .conversations.find((c) => c.id === conversationId);
-          const last = convo?.messages[convo.messages.length - 1];
+          const { currentConversationId, currentMessages } =
+            useConversationStore.getState();
+          const isSame = currentConversationId === conversationId;
+          const last = isSame
+            ? currentMessages[currentMessages.length - 1]
+            : undefined;
           if (last && last.role === "assistant") {
             updateMessage(last.id, { aborted: true });
           }
@@ -241,10 +259,12 @@ export function Chat() {
 
           try {
             // Attempt to update the last assistant message if it was just created
-            const convo = useConversationStore
-              .getState()
-              .conversations.find((c) => c.id === conversationId);
-            const last = convo?.messages[convo.messages.length - 1];
+            const { currentConversationId, currentMessages } =
+              useConversationStore.getState();
+            const isSame = currentConversationId === conversationId;
+            const last = isSame
+              ? currentMessages[currentMessages.length - 1]
+              : undefined;
             if (last && last.role === "assistant") {
               updateMessage(last.id, {
                 error: {
@@ -277,6 +297,8 @@ export function Chat() {
         }
       } finally {
         setConversationLoading(conversationId, false);
+        // Persist the whole conversation body once generation ends (success, error, or abort)
+        await persistCurrentConversation();
       }
     },
     [
@@ -290,6 +312,8 @@ export function Chat() {
       router,
       setConversationLoading,
       updateMessage,
+      openConversation,
+      persistCurrentConversation,
     ],
   );
 
@@ -300,14 +324,13 @@ export function Chat() {
 
   const handleRegenerateMessage = useCallback(async (messageId: string) => {
     // Access latest state directly to avoid re-creating this callback on stream updates
-    const { conversations, currentConversationId, removeLastAssistantMessage } =
+    const { currentMessages, removeLastAssistantMessage } =
       useConversationStore.getState();
 
-    const conv = conversations.find((c) => c.id === currentConversationId);
-    const lastMessage = conv?.messages[conv.messages.length - 1];
+    const lastMessage = currentMessages[currentMessages.length - 1];
     if (!lastMessage || lastMessage.id !== messageId) return;
 
-    const userMessage = [...(conv?.messages ?? [])]
+    const userMessage = [...currentMessages]
       .reverse()
       .find((m) => m.role === "user");
     if (!userMessage) return;

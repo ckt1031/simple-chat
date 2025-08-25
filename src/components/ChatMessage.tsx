@@ -6,7 +6,10 @@ import { cn, formatDate } from "@/lib/utils";
 import { MemoizedMarkdown } from "./MemoizedMarkdown";
 import ChatActionButtons from "./ChatActionButtons";
 import { useEffect } from "react";
-import { getAssetObjectURL, revokeObjectURL } from "@/lib/assets";
+import {
+  getAssetObjectURL,
+  revokeObjectURL,
+} from "@/lib/stores/utils/asset-db";
 import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
 
@@ -47,15 +50,14 @@ function ChatMessage({
   const updateMessage = useConversationStore((s) => s.updateMessage);
 
   // Check if conversation is loading and this is the last assistant message with no content yet
-  const isConversationLoading = useConversationStore((s) => {
-    const conv = s.conversations.find((c) => c.id === conversationId);
-    return Boolean(conv?.isLoading);
-  });
+  const isConversationLoading = useConversationStore((s) =>
+    Boolean(s.loadingById[conversationId]),
+  );
   const isLastMessage = useConversationStore((s) => s.isLastMessage);
   const isGenerating =
     !isUser &&
     isConversationLoading &&
-    isLastMessage(conversationId, message.id) &&
+    isLastMessage(message.id) &&
     !message.content;
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Conversation, useConversationStore } from "@/lib/stores/conversation";
+import { useConversationStore } from "@/lib/stores/conversation";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import ChatOptionMenu from "@/components/ChatOptionMenu";
@@ -14,28 +14,25 @@ export function Conversations() {
       currentConversationId: s.currentConversationId,
       deleteConversation: s.deleteConversation,
       updateConversationTitle: s.updateConversationTitle,
+      headers: s.headers,
+      loadingById: s.loadingById,
     })),
   );
 
   const conversationCompare = useCallback(
-    (a: Conversation[], b: Conversation[]) => {
-      const a2 = a.map((c) => ({
-        id: c.id,
-        title: c.title,
-        isLoading: c.isLoading,
-      }));
-      const b2 = b.map((c) => ({
-        id: c.id,
-        title: c.title,
-        isLoading: c.isLoading,
-      }));
+    (
+      a: ReturnType<typeof useConversationStore.getState>["headers"],
+      b: ReturnType<typeof useConversationStore.getState>["headers"],
+    ) => {
+      const a2 = a.map((c) => ({ id: c.id, title: c.title }));
+      const b2 = b.map((c) => ({ id: c.id, title: c.title }));
       return deepEqual(a2, b2);
     },
     [],
   );
 
   const conversations = useConversationStore(
-    (s) => s.conversations,
+    (s) => s.headers,
     conversationCompare,
   );
 
@@ -90,7 +87,7 @@ export function Conversations() {
             )}
           >
             <div className="flex items-center space-x-2 min-w-0 flex-1">
-              {conversation.isLoading && (
+              {convStore.loadingById[conversation.id] && (
                 <Loader2 className="w-3 h-3 animate-spin text-neutral-500 flex-shrink-0" />
               )}
               {editingId === conversation.id ? (

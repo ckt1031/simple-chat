@@ -2,7 +2,7 @@ import { FilePart, generateText, ImagePart, ModelMessage, TextPart } from "ai";
 import { ModelWithProvider } from "../stores/provider";
 import { getASDK } from "./sdk";
 import { Message } from "../stores/conversation";
-import { getAssetDataURL } from "../assets";
+import { getAssetDataURL } from "../stores/utils/asset-db";
 
 export async function completions(
   model: ModelWithProvider,

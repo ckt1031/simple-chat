@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import StoreHydrator from "./StoreHydrator";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -42,7 +43,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased custom-scrollbar bg-neutral-50 dark:bg-neutral-900`}
       >
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <StoreHydrator />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

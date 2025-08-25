@@ -19,9 +19,9 @@ function MessageItem({
 }: MessageItemProps) {
   // Select only the single message object by id to minimize re-renders
   const message = useConversationStore((s) =>
-    s.conversations
-      .find((c) => c.id === conversationId)
-      ?.messages.find((m) => m.id === messageId),
+    s.currentConversationId === conversationId
+      ? s.currentMessages.find((m) => m.id === messageId)
+      : undefined,
   );
 
   // If message no longer exists (deleted), render nothing

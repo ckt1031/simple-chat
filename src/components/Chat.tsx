@@ -84,11 +84,15 @@ export function Chat() {
         useConversationStore.getState();
       const exists = headers.find((h) => h.id === chatId);
       if (exists) {
-        setCurrentConversation(chatId);
         // Only load from DB if we aren't already on this convo with messages
         const shouldLoad =
           currentConversationId !== chatId || currentMessages.length === 0;
-        if (shouldLoad) void openConversation(chatId);
+        if (shouldLoad) {
+          void openConversation(chatId);
+        } else {
+          // Ensure store reflects the same id (no-op if already set)
+          setCurrentConversation(chatId);
+        }
       } else {
         // ID may be for a just-created, not-yet-persisted conversation.
         // Keep it as current without redirecting.

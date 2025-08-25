@@ -11,8 +11,6 @@ import { usePathname } from "next/navigation";
 import { Conversations } from "./Conversations";
 import Link from "next/link";
 import { memo } from "react";
-import { useSwipeGesture } from "@/lib/hooks/useSwipeGesture";
-import isMobile from "@/lib/is-mobile";
 import { useUIStore } from "@/lib/stores/ui";
 
 function Sidebar() {
@@ -21,12 +19,6 @@ function Sidebar() {
   const openSettings = useUIStore((s) => s.openSettings);
 
   const pathname = usePathname();
-
-  // Swipe gesture for mobile - only enabled on mobile devices and when sidebar is open
-  const swipeBind = useSwipeGesture({
-    onSwipeLeft: toggleSidebar,
-    enabled: isMobile() && isSidebarOpen,
-  });
 
   const contentVisibilityClass = isSidebarOpen
     ? "opacity-100 transition-opacity duration-500 lg:delay-300 ease-out" // Fade in after sidebar starts opening
@@ -54,7 +46,6 @@ function Sidebar() {
           "overflow-hidden min-w-0 max-w-full",
           !isSidebarOpen ? "pointer-events-none" : "",
         )}
-        {...swipeBind()}
       >
         <div className={cn("flex h-full flex-col", contentVisibilityClass)}>
           {/* Header with enhanced animations */}

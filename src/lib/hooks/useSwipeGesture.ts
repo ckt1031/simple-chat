@@ -35,9 +35,9 @@ export const useSwipeGesture = ({
     {
       axis: "x", // Only horizontal movement
       bounds: { left: -300, right: 300, top: 0, bottom: 0 }, // Allow some horizontal movement
-      rubberband: true, // Elastic effect when dragging beyond bounds
-      filterTaps: true, // Ignore taps
-      preventScroll: true, // Prevent page scrolling during drag
+      // rubberband: true, // Elastic effect when dragging beyond bounds
+      // filterTaps: true, // Ignore taps
+      // preventScroll: true, // Prevent page scrolling during drag
     },
   );
 

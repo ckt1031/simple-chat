@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod/mini";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import {
   useProviderStore,
   BaseProviderState,
@@ -30,6 +31,8 @@ export function useProviderForm({
   const provider = getProvider(providerId);
 
   const openDeleteConfirmation = useUIStore((s) => s.openDeleteConfirmation);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const isCustom = provider?.type === "custom";
   const defaultBaseURL =
@@ -48,21 +51,38 @@ export function useProviderForm({
     },
   });
 
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = async (values: FormValues) => {
     if (!provider) return;
 
-    const updates: Partial<BaseProviderState> = {
-      apiBaseURL: values.apiBaseURL ?? "",
-      apiKey: values.apiKey ?? "",
-    };
+    setIsSaving(true);
+    setSaveSuccess(false);
 
-    if (isCustom) {
-      (updates as Partial<CustomProviderState>).displayName =
-        values.displayName ?? (provider as CustomProviderState).displayName;
+    try {
+      const updates: Partial<BaseProviderState> = {
+        apiBaseURL: values.apiBaseURL ?? "",
+        apiKey: values.apiKey ?? "",
+      };
+
+      if (isCustom) {
+        (updates as Partial<CustomProviderState>).displayName =
+          values.displayName ?? (provider as CustomProviderState).displayName;
+      }
+
+      updateProvider(providerId, updates);
+
+      // Reset form to clear dirty state
+      form.reset(values);
+      setSaveSuccess(true);
+
+      // Clear success message after 2 seconds
+      setTimeout(() => setSaveSuccess(false), 2000);
+
+      onSuccess?.();
+    } catch (error) {
+      console.error("Failed to save provider:", error);
+    } finally {
+      setIsSaving(false);
     }
-
-    updateProvider(providerId, updates);
-    onSuccess?.();
   };
 
   const handleDelete = () => {
@@ -85,8 +105,10 @@ export function useProviderForm({
     isCustom,
     defaultBaseURL,
     provider,
-    isSubmitting: form.formState.isSubmitting,
+    isSubmitting: isSaving,
     isDirty: form.formState.isDirty,
+    isSaving,
+    saveSuccess,
     errors: form.formState.errors,
   };
 }

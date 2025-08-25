@@ -46,9 +46,7 @@ export async function completionsStreaming(
     abortSignal,
     experimental_transform: transform,
     onError: (err) => {
-      // Surface more explicit errors (e.g., HTTP) to the caller via thrown error
-      // The caller will attach error metadata to the assistant message
-      // We simply rethrow to keep existing control flow
+      // Just re-throw the original error - normalizeChatError will handle it
       throw err;
     },
     providerOptions: {

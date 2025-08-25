@@ -9,6 +9,11 @@ import { useProviderStore } from "@/lib/stores/provider";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useShallow } from "zustand/react/shallow";
 import { cn } from "@/lib/utils";
+import {
+  handleStreamingError,
+  createNoProvidersError,
+  createNoModelError,
+} from "@/lib/utils/chat-error-handling";
 
 export function Chat() {
   const chatId = useSearchParams().get("id");
@@ -173,32 +178,14 @@ export function Chat() {
 
       // Get enabled providers
       if (!hasEnabledProviders()) {
-        addMessage({
-          timestamp: Date.now(),
-          role: "assistant",
-          content: "",
-          error: {
-            message:
-              "No AI providers configured. Please add a provider in settings.",
-            kind: "provider",
-          },
-        });
+        addMessage(createNoProvidersError());
         return;
       }
 
       // Ensure a model is selected
       const selected = selectedModel;
       if (!selected) {
-        addMessage({
-          timestamp: Date.now(),
-          role: "assistant",
-          content: "",
-          error: {
-            message:
-              "No model selected. Please choose a model from the selector above.",
-            kind: "provider",
-          },
-        });
+        addMessage(createNoModelError());
         return;
       }
 
@@ -211,15 +198,15 @@ export function Chat() {
       // Create abort controller for this request
       const abortController = new AbortController();
 
+      // Create a placeholder assistant message to stream into
+      const assistantId = addMessage({
+        timestamp: Date.now(),
+        role: "assistant",
+        content: "",
+      });
+
       try {
         setConversationLoading(conversationId, true, abortController);
-
-        // Create a placeholder assistant message to stream into
-        const assistantId = addMessage({
-          timestamp: Date.now(),
-          role: "assistant",
-          content: "",
-        });
 
         const { completionsStreaming } = await import(
           "@/lib/api/completions-streaming"
@@ -257,47 +244,9 @@ export function Chat() {
             updateMessage(last.id, { aborted: true });
           }
         } else {
-          // Attach error metadata to the assistant message (or create one)
-          // TODO: Add error kind and code
-          const errorText = `Failed to generate a response: ${err instanceof Error ? err.message : "Unknown error"}`;
-
-          try {
-            // Attempt to update the last assistant message if it was just created
-            const { currentConversationId, currentMessages } =
-              useConversationStore.getState();
-            const isSame = currentConversationId === conversationId;
-            const last = isSame
-              ? currentMessages[currentMessages.length - 1]
-              : undefined;
-            if (last && last.role === "assistant") {
-              updateMessage(last.id, {
-                error: {
-                  message: errorText,
-                  kind: "unknown",
-                },
-              });
-            } else {
-              addMessage({
-                timestamp: Date.now(),
-                role: "assistant",
-                content: "",
-                error: {
-                  message: errorText,
-                  kind: "unknown",
-                },
-              });
-            }
-          } catch {
-            addMessage({
-              timestamp: Date.now(),
-              role: "assistant",
-              content: "",
-              error: {
-                message: errorText,
-                kind: "unknown",
-              },
-            });
-          }
+          // Use the new error handling utility to handle streaming errors
+          // Note: assistantId is available in this scope since it's in the same try block
+          handleStreamingError(err, conversationId, assistantId);
         }
       } finally {
         setConversationLoading(conversationId, false);

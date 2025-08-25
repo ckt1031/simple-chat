@@ -13,6 +13,7 @@ import {
 import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
 import ChatEdit from "./ChatEdit";
+import { getErrorDisplayInfo, ChatError } from "@/lib/utils/error-handling";
 
 interface ChatMessageProps {
   message: Message;
@@ -56,6 +57,16 @@ function ChatMessage({
     isConversationLoading &&
     isLastMessage(message.id) &&
     !message.content;
+
+  // Helper function to convert message error to ChatError type
+  const getChatError = (error: Message["error"]): ChatError | null => {
+    if (!error) return null;
+
+    return {
+      message: error.message,
+      code: error.code,
+    };
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -130,19 +141,28 @@ function ChatMessage({
               isEditing && isUser && "w-full",
             )}
           >
-            {/* Error box inside assistant bubble */}
+            {/* Enhanced error display with HTTP details */}
             {!isUser && message.error && (
               <div className="mb-2">
-                <Alert variant="error" title="Error" compact>
-                  <div>
-                    {message.error.message}
-                    {message.error.code != null && (
-                      <span className="ml-1 opacity-80">
-                        (code: {String(message.error.code)})
-                      </span>
-                    )}
-                  </div>
-                </Alert>
+                {(() => {
+                  const chatError = getChatError(message.error);
+                  if (!chatError) return null;
+
+                  const errorInfo = getErrorDisplayInfo(chatError);
+
+                  return (
+                    <Alert variant="error" title={errorInfo.title} compact>
+                      <div className="space-y-1">
+                        <div>{errorInfo.message}</div>
+                        {errorInfo.code != null && (
+                          <div className="text-xs opacity-80 font-mono">
+                            Code: {String(errorInfo.code)}
+                          </div>
+                        )}
+                      </div>
+                    </Alert>
+                  );
+                })()}
               </div>
             )}
             {imageUrls.length > 0 && (

@@ -32,7 +32,6 @@ export interface Message {
   error?: {
     message: string;
     code?: string | number;
-    kind?: "http" | "provider" | "unknown";
   };
   aborted?: boolean;
   assets?: Array<{

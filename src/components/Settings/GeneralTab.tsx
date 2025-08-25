@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
+import DefaultModelSelector from "./DefaultModelSelector";
 
 export default function GeneralTab() {
   const { theme, setTheme } = useTheme();
@@ -40,6 +41,17 @@ export default function GeneralTab() {
               </button>
             ))}
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-neutral-700 dark:text-white mb-3">
+            Default Model
+          </label>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-3">
+            Choose the default model for new conversations. This can be
+            overridden per conversation.
+          </p>
+          <DefaultModelSelector />
         </div>
       </div>
     </div>

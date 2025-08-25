@@ -24,6 +24,7 @@ export type ConversationHeader = {
 
 export type ConversationBody<Message> = {
   messages: Message[];
+  selectedModel?: string; // Model selected for this conversation
 };
 
 type ConversationIndex = {

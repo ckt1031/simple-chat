@@ -4,27 +4,32 @@ import { memo, useMemo, useRef, useState } from "react";
 import { ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePreferencesStore } from "@/lib/stores/perferences";
+import { useConversationStore } from "@/lib/stores/conversation";
 import {
   OfficialProvider,
   useProviderStore,
   Model,
   ModelWithProvider,
-  ProviderState,
 } from "@/lib/stores/provider";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useClickAway } from "react-use";
-import { defaultProviderConfig } from "@/lib/api/sdk";
-
-type ProviderGroup = {
-  id: string;
-  label: string;
-  kind: "official" | "custom";
-  officialKey?: OfficialProvider;
-  data: ProviderState;
-};
+import ModelList, { ProviderGroup } from "./ModelList";
 
 function ModelSelector() {
-  const selectedModel = usePreferencesStore((s) => s.selectedModel);
+  const currentSelectedModel = useConversationStore(
+    (s) => s.currentSelectedModel,
+  );
+  const currentConversationId = useConversationStore(
+    (s) => s.currentConversationId,
+  );
+  const tempModelSelection = useConversationStore((s) => s.tempModelSelection);
+  const updateConversationModel = useConversationStore(
+    (s) => s.updateConversationModel,
+  );
+  const setTempModelSelection = useConversationStore(
+    (s) => s.setTempModelSelection,
+  );
+  const defaultModel = usePreferencesStore((s) => s.defaultModel);
   const updateSettings = usePreferencesStore((s) => s.updateSettings);
 
   const { providers, getOfficialProviders, getCustomProviders } =
@@ -61,22 +66,114 @@ function ModelSelector() {
   }, [providers, getOfficialProviders, getCustomProviders]);
 
   const handleSelect = (providerId: string, model: Model) => {
-    const next: ModelWithProvider = {
-      ...model,
-      providerId,
-    };
-    updateSettings({ selectedModel: next });
+    if (currentConversationId) {
+      // Update conversation-specific model
+      const modelId = `${providerId}:${model.id}`;
+      updateConversationModel(modelId);
+    } else {
+      // Set temp model selection for new conversation on home page
+      const modelId = `${providerId}:${model.id}`;
+      setTempModelSelection(modelId);
+    }
+    setOpen(false);
+  };
+
+  const handleClearSelection = () => {
+    // Only clear temp selection on home page
+    setTempModelSelection(null);
     setOpen(false);
   };
 
   const buttonLabel = useMemo(() => {
-    if (selectedModel) {
-      return selectedModel.name && selectedModel.name.trim().length > 0
-        ? selectedModel.name
-        : selectedModel.id;
+    // Home page: use temp selection or default model
+    if (!currentConversationId) {
+      if (tempModelSelection) {
+        // Parse temp selection
+        const [providerId, modelId] = tempModelSelection.split(":");
+        if (providerId && modelId) {
+          const provider = providers[providerId];
+          if (provider) {
+            const model = provider.models.find((m: Model) => m.id === modelId);
+            if (model) {
+              return model.name && model.name.trim().length > 0
+                ? model.name
+                : model.id;
+            }
+          }
+          return modelId;
+        }
+      }
+      // Fall back to default model
+      if (defaultModel) {
+        return defaultModel.name && defaultModel.name.trim().length > 0
+          ? defaultModel.name
+          : defaultModel.id;
+      }
     }
+
+    // Active conversation: use conversation model or fall back to default
+    if (currentSelectedModel) {
+      // Parse the model ID to get provider and model info
+      const [providerId, modelId] = currentSelectedModel.split(":");
+      if (providerId && modelId) {
+        const provider = providers[providerId];
+        if (provider) {
+          const model = provider.models.find((m: Model) => m.id === modelId);
+          if (model) {
+            return model.name && model.name.trim().length > 0
+              ? model.name
+              : model.id;
+          }
+        }
+        // Fallback to just the model ID if we can't find the full details
+        return modelId;
+      }
+    }
+
+    // No conversation model set, fall back to default
+    if (defaultModel) {
+      return defaultModel.name && defaultModel.name.trim().length > 0
+        ? defaultModel.name
+        : defaultModel.id;
+    }
+
     return "Select model";
-  }, [selectedModel]);
+  }, [
+    currentSelectedModel,
+    currentConversationId,
+    tempModelSelection,
+    defaultModel,
+    providers,
+  ]);
+
+  const isModelSelected = (providerId: string, modelId: string) => {
+    const modelIdString = `${providerId}:${modelId}`;
+
+    // Home page: check temp selection first, then default model
+    if (!currentConversationId) {
+      if (tempModelSelection) {
+        return tempModelSelection === modelIdString;
+      }
+      if (defaultModel) {
+        return (
+          defaultModel.providerId === providerId && defaultModel.id === modelId
+        );
+      }
+      return false;
+    }
+
+    // Active conversation: check conversation model first, then default model
+    if (currentSelectedModel) {
+      return currentSelectedModel === modelIdString;
+    }
+    if (defaultModel) {
+      return (
+        defaultModel.providerId === providerId && defaultModel.id === modelId
+      );
+    }
+
+    return false;
+  };
 
   useHotkeys("ctrl+m", () => setOpen(true));
   useHotkeys("esc", () => setOpen(false));
@@ -115,75 +212,20 @@ function ModelSelector() {
             />
           </div>
 
-          <div className="max-h-60 sm:max-h-80 overflow-y-auto">
-            {groups.length === 0 && (
-              <div className="p-3 text-sm text-neutral-500">
-                No enabled providers
-              </div>
+          <ModelList
+            groups={groups}
+            onSelect={handleSelect}
+            isModelSelected={isModelSelected}
+            selectedLabel="Selected"
+            showClearButton={Boolean(
+              !currentConversationId && tempModelSelection,
             )}
-
-            {groups.map((group) => {
-              const models = (group.data.models || [])
-                .filter((m: Model) => m.enabled)
-                .filter((m: Model) => {
-                  if (!query.trim()) return true;
-                  const display =
-                    m.name && m.name.trim().length > 0 ? m.name : m.id;
-                  return display.toLowerCase().includes(query.toLowerCase());
-                });
-
-              if (models.length === 0) return null;
-
-              const Icon =
-                defaultProviderConfig[group.officialKey as OfficialProvider]
-                  ?.icon;
-
-              return (
-                <div key={group.id}>
-                  <div className="sticky top-0 z-10 bg-white/90 dark:bg-neutral-900/90 backdrop-blur px-3 py-2 text-xs font-semibold text-neutral-600 dark:text-neutral-300 border-b border-neutral-200 dark:border-neutral-700">
-                    <div className="flex items-center gap-2">
-                      {Icon && (
-                        <Icon className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
-                      )}
-                      <span className="text-sm font-medium">{group.label}</span>
-                    </div>
-                  </div>
-                  <ul role="listbox" className="py-1">
-                    {models.map((m: Model) => {
-                      const display =
-                        m.name && m.name.trim().length > 0 ? m.name : m.id;
-                      return (
-                        <li key={`${group.id}:${m.id}`}>
-                          <button
-                            className={cn(
-                              "w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800/70 flex items-center justify-between",
-                              selectedModel &&
-                                selectedModel.id === m.id &&
-                                selectedModel.providerId === group.id
-                                ? "bg-neutral-50 dark:bg-neutral-800"
-                                : "",
-                            )}
-                            onClick={() => handleSelect(group.id, m)}
-                          >
-                            <span className="truncate max-w-[240px]">
-                              {display}
-                            </span>
-                            {selectedModel &&
-                              selectedModel.id === m.id &&
-                              selectedModel.providerId === group.id && (
-                                <span className="text-xs text-neutral-500">
-                                  Selected
-                                </span>
-                              )}
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              );
-            })}
-          </div>
+            onClear={handleClearSelection}
+            clearButtonText="Clear selection"
+            query={query}
+            showSearch={true}
+            maxHeight="max-h-60 sm:max-h-80"
+          />
         </div>
       )}
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import { Suspense } from "react";
 import { OfficialProvider } from "@/lib/stores/provider";
 import { useSettingsProviderNavigationStore } from "@/lib/stores/navigation";
 import dynamic from "next/dynamic";

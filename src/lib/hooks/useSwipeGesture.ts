@@ -1,5 +1,4 @@
 import { useDrag } from "@use-gesture/react";
-import { useCallback } from "react";
 
 interface SwipeGestureOptions {
   onSwipeLeft?: () => void;

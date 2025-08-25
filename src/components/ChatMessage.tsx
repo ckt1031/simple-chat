@@ -2,6 +2,8 @@
 
 import { memo, useState } from "react";
 import { Message, useConversationStore } from "@/lib/stores/conversation";
+import { usePreferencesStore } from "@/lib/stores/perferences";
+import { useProviderStore } from "@/lib/stores/provider";
 import { cn, formatDate } from "@/lib/utils";
 import { MemoizedMarkdown } from "./MemoizedMarkdown";
 import ChatActionButtons from "./ChatActionButtons";
@@ -57,6 +59,46 @@ function ChatMessage({
     isConversationLoading &&
     isLastMessage(message.id) &&
     !message.content;
+
+  // Get model information for display
+  const defaultModel = usePreferencesStore((s) => s.defaultModel);
+  const currentSelectedModel = useConversationStore(
+    (s) => s.currentSelectedModel,
+  );
+  const providers = useProviderStore((s) => s.providers);
+
+  // Helper function to get model display name
+  const getModelDisplayName = (modelId: string | undefined) => {
+    if (!modelId) return null;
+
+    // Parse the model ID (format: "providerId:modelId")
+    const [providerId, modelIdentifier] = modelId.split(":");
+    if (providerId && modelIdentifier) {
+      const provider = providers[providerId];
+      if (provider) {
+        const model = provider.models.find((m) => m.id === modelIdentifier);
+        if (model) {
+          return model.name && model.name.trim().length > 0
+            ? model.name
+            : model.id;
+        }
+      }
+      // Fallback to just the model identifier
+      return modelIdentifier;
+    }
+    return null;
+  };
+
+  // Determine which model to show (only if different from default)
+  const messageModel = message.model;
+  const defaultModelId = defaultModel
+    ? `${defaultModel.providerId}:${defaultModel.id}`
+    : null;
+  const shouldShowModel =
+    messageModel && messageModel !== defaultModelId && !isUser;
+  const modelDisplayName = shouldShowModel
+    ? getModelDisplayName(messageModel)
+    : null;
 
   // Helper function to convert message error to ChatError type
   const getChatError = (error: Message["error"]): ChatError | null => {
@@ -235,6 +277,11 @@ function ChatMessage({
           {/* Timestamp */}
           <div className="text-xs text-neutral-500 dark:text-neutral-400 px-2">
             {formatDate(message.timestamp)}
+            {modelDisplayName && (
+              <span className="ml-1 text-neutral-400 dark:text-neutral-500">
+                [{modelDisplayName}]
+              </span>
+            )}
           </div>
 
           {/* Action Buttons - Show below messages for both user and assistant */}

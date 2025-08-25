@@ -16,6 +16,7 @@ export interface Conversation {
   id: string;
   title: string;
   messages: Message[];
+  selectedModel?: string; // Model selected for this conversation
   isLoading?: boolean;
   abortController?: AbortController;
 }
@@ -28,6 +29,7 @@ export interface Message {
   reasoningEndTime?: number;
   timestamp: number;
   role: "user" | "assistant";
+  model?: string; // Model used to generate this message (for assistant messages)
   // Unified error and abort metadata for rendering notices in UI
   error?: {
     message: string;
@@ -49,6 +51,8 @@ export interface ConversationState {
   // Current conversation in memory
   currentConversationId: string | null;
   currentMessages: Message[];
+  currentSelectedModel: string | null; // Currently selected model for the active conversation
+  tempModelSelection: string | null; // Temporary model selection for new conversations (home page)
   // Loading flags per conversation id (for sidebar spinners)
   loadingById: Record<string, boolean>;
   isHydrated: boolean;
@@ -58,12 +62,18 @@ export interface ConversationStore extends ConversationState {
   // Initialization / hydration
   hydrateFromDB: () => Promise<void>;
   // Sidebar operations
-  createNewConversation: (folderId?: string | null) => string;
+  createNewConversation: (
+    folderId?: string | null,
+    initialModel?: string | null,
+  ) => string;
   updateConversationTitle: (id: string, title: string) => Promise<void>;
   deleteConversation: (id: string) => Promise<void>;
   // Opening / switching
   openConversation: (id: string) => Promise<void>;
   setCurrentConversation: (id: string | null) => void;
+  // Model operations
+  updateConversationModel: (modelId: string) => void;
+  setTempModelSelection: (modelId: string | null) => void;
   // Message operations (in-memory only during streaming)
   addMessage: (message: Omit<Message, "id">) => string;
   updateMessage: (id: string, updates: Partial<Omit<Message, "id">>) => void;
@@ -90,6 +100,8 @@ export const useConversationStore = create<ConversationStore>()((set, get) => ({
   folders: [],
   currentConversationId: null,
   currentMessages: [],
+  currentSelectedModel: null,
+  tempModelSelection: null,
   loadingById: {},
   isHydrated: false,
 
@@ -109,8 +121,15 @@ export const useConversationStore = create<ConversationStore>()((set, get) => ({
     get().resetAllLoadingStates();
   },
 
-  createNewConversation: (folderId?: string | null) => {
+  createNewConversation: (
+    folderId?: string | null,
+    initialModel?: string | null,
+  ) => {
     const newID = createIdGenerator({ size: 16 })();
+    const state = get();
+    // Use initialModel if provided, otherwise use temp selection, otherwise use default from preferences
+    const modelToUse = initialModel ?? state.tempModelSelection;
+
     const header: ConversationHeader = {
       id: newID,
       title: "New chat",
@@ -121,9 +140,17 @@ export const useConversationStore = create<ConversationStore>()((set, get) => ({
       headers: [header, ...state.headers],
       currentConversationId: newID,
       currentMessages: [],
+      currentSelectedModel: modelToUse ?? null,
+      tempModelSelection: null, // Clear temp selection after creating conversation
     }));
-    // Persist header only; body will be saved after generation completes
+    // Persist header and initial body with selected model
     void upsertConversationHeader(header);
+    if (modelToUse) {
+      void writeConversationBody(newID, {
+        messages: [],
+        selectedModel: modelToUse,
+      });
+    }
     return newID;
   },
 
@@ -141,7 +168,12 @@ export const useConversationStore = create<ConversationStore>()((set, get) => ({
   deleteConversation: async (id: string) => {
     const state = get();
     if (state.currentConversationId === id) {
-      set(() => ({ currentConversationId: null, currentMessages: [] }));
+      set(() => ({
+        currentConversationId: null,
+        currentMessages: [],
+        currentSelectedModel: null,
+        tempModelSelection: null,
+      }));
     }
     set((s) => ({ headers: s.headers.filter((h) => h.id !== id) }));
     const loadingById = { ...state.loadingById };
@@ -166,12 +198,39 @@ export const useConversationStore = create<ConversationStore>()((set, get) => ({
     set(() => ({
       currentConversationId: id,
       currentMessages: body?.messages ?? [],
+      currentSelectedModel: body?.selectedModel ?? null,
+      tempModelSelection: null, // Clear temp selection when opening existing conversation
     }));
   },
 
   setCurrentConversation: (id: string | null) => {
     // Only set the id; callers that switch to an existing conv should call openConversation
-    set(() => ({ currentConversationId: id }));
+    set(() => ({
+      currentConversationId: id,
+      tempModelSelection: null, // Clear temp selection when changing conversation
+    }));
+  },
+
+  updateConversationModel: (modelId: string) => {
+    const state = get();
+    if (!state.currentConversationId) return;
+
+    // Update in-memory state
+    set(() => ({
+      currentSelectedModel: modelId,
+    }));
+
+    // Persist immediately
+    void writeConversationBody(state.currentConversationId, {
+      messages: state.currentMessages,
+      selectedModel: modelId,
+    });
+  },
+
+  setTempModelSelection: (modelId: string | null) => {
+    set(() => ({
+      tempModelSelection: modelId,
+    }));
   },
 
   addMessage: (message: Omit<Message, "id">) => {
@@ -311,7 +370,10 @@ export const useConversationStore = create<ConversationStore>()((set, get) => ({
     if (header) {
       await upsertConversationHeader(header);
     }
-    await writeConversationBody(id, { messages: state.currentMessages });
+    await writeConversationBody(id, {
+      messages: state.currentMessages,
+      selectedModel: state.currentSelectedModel ?? undefined,
+    });
   },
 
   removeAssetReferences: (assetId: string) => {

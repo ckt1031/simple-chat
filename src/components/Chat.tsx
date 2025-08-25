@@ -5,7 +5,7 @@ import { usePreferencesStore } from "@/lib/stores/perferences";
 import MessageItem from "./MessageItem";
 import ChatInput from "./ChatInput";
 import { Message, useConversationStore } from "@/lib/stores/conversation";
-import { useProviderStore } from "@/lib/stores/provider";
+import { useProviderStore, ModelWithProvider } from "@/lib/stores/provider";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useShallow } from "zustand/react/shallow";
 import { cn } from "@/lib/utils";
@@ -55,6 +55,43 @@ export function Chat() {
       persistCurrentConversation: s.persistCurrentConversation,
     })),
   );
+
+  const defaultModel = usePreferencesStore((s) => s.defaultModel);
+  const { getAllProviders } = useProviderStore();
+  const providers = getAllProviders();
+
+  // Helper function to get the model for a request
+  const getModelForRequest = (
+    currentSelectedModel: string | null,
+    tempModelSelection: string | null,
+    defaultModel: ModelWithProvider | null,
+    selectedModel: ModelWithProvider | null,
+    providers: ReturnType<typeof getAllProviders>,
+  ): ModelWithProvider | null => {
+    if (currentSelectedModel) {
+      const [providerId, modelId] = currentSelectedModel.split(":");
+      const provider = providers.find(
+        (p) => (p.type === "custom" ? p.id : p.provider) === providerId,
+      );
+      if (provider) {
+        const model = provider.models.find((m) => m.id === modelId);
+        if (model) return { ...model, providerId };
+      }
+    }
+
+    if (tempModelSelection) {
+      const [providerId, modelId] = tempModelSelection.split(":");
+      const provider = providers.find(
+        (p) => (p.type === "custom" ? p.id : p.provider) === providerId,
+      );
+      if (provider) {
+        const model = provider.models.find((m) => m.id === modelId);
+        if (model) return { ...model, providerId };
+      }
+    }
+
+    return defaultModel || selectedModel;
+  };
 
   // Track only a stable key of message ids for current conversation to avoid re-renders during token streaming
   const messageIdsKey = useConversationStore((s) =>
@@ -160,7 +197,15 @@ export function Chat() {
 
       // If no current conversation, create one first
       if (!conversationId) {
-        conversationId = createNewConversation();
+        // Use temp model selection if available, otherwise use default model
+        const tempModelSelection =
+          useConversationStore.getState().tempModelSelection;
+        const initialModelId =
+          tempModelSelection ??
+          (defaultModel
+            ? `${defaultModel.providerId}:${defaultModel.id}`
+            : null);
+        conversationId = createNewConversation(null, initialModelId);
         // Update URL with the new conversation ID
         window.history.pushState(null, "", `/?id=${conversationId}`);
       }
@@ -182,9 +227,19 @@ export function Chat() {
         return;
       }
 
-      // Ensure a model is selected
-      const selected = selectedModel;
-      if (!selected) {
+      // Get the model to use for this request
+      const currentSelectedModel =
+        useConversationStore.getState().currentSelectedModel;
+      const tempModelSelection =
+        useConversationStore.getState().tempModelSelection;
+      const selectedModelToUse = getModelForRequest(
+        currentSelectedModel,
+        tempModelSelection,
+        defaultModel,
+        selectedModel,
+        providers,
+      );
+      if (!selectedModelToUse) {
         addMessage(createNoModelError());
         return;
       }
@@ -199,10 +254,16 @@ export function Chat() {
       const abortController = new AbortController();
 
       // Create a placeholder assistant message to stream into
+      // Use the selected model for this conversation
+      const modelForMessage = selectedModelToUse
+        ? `${selectedModelToUse.providerId}:${selectedModelToUse.id}`
+        : undefined;
+
       const assistantId = addMessage({
         timestamp: Date.now(),
         role: "assistant",
         content: "",
+        model: modelForMessage,
       });
 
       try {
@@ -213,7 +274,7 @@ export function Chat() {
         );
 
         const stream = await completionsStreaming(
-          selected,
+          selectedModelToUse,
           messagesForAI as Message[],
           abortController.signal,
         );

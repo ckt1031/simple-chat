@@ -44,7 +44,7 @@ export default function ProviderConfig({ providerId, onBack }: Props) {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" onClick={onBack}>
-          <ArrowLeft />
+          <ArrowLeft className="w-4 h-4" />
         </Button>
         <h3 className="text-lg font-semibold">{title}</h3>
       </div>

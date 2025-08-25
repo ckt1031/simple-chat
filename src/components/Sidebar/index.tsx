@@ -53,7 +53,7 @@ function Sidebar() {
       {/* Animated sidebar */}
       <div
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen bg-neutral-100 dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 shadow-lg transition-transform duration-300 ease-in-out",
+          "fixed left-0 top-0 z-40 h-screen bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 shadow-lg transition-transform duration-300 ease-in-out",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full",
           "lg:relative lg:left-auto lg:top-auto lg:shadow-none lg:translate-x-0",
           isSidebarOpen ? "w-64" : "lg:w-0",
@@ -82,7 +82,7 @@ function Sidebar() {
           <div className="px-1.5 flex items-center justify-between">
             <Link
               href="/"
-              className="w-full flex items-center space-x-2 px-3 py-2 text-sm font-medium text-neutral-700 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-sm"
+              className="w-full flex items-center space-x-2 px-3 py-2 text-sm font-medium text-neutral-700 dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-all duration-200 hover:scale-[1.02]"
             >
               <SquarePen className="w-4 h-4 transition-transform duration-200 group-hover:rotate-12" />
               <span>New chat</span>
@@ -94,10 +94,10 @@ function Sidebar() {
             <Link
               href="/library"
               className={cn(
-                "w-full flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-sm",
+                "w-full flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-[1.02]",
                 pathname === "/library"
-                  ? "bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white"
-                  : "text-neutral-700 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700",
+                  ? "bg-neutral-100 text-neutral-800 dark:bg-neutral-700 dark:text-white"
+                  : "text-neutral-700 dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-700",
               )}
             >
               <ImageIcon className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />

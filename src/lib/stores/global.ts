@@ -98,7 +98,6 @@ export const useGlobalStore = create<GlobalStore>()(
       setHydrated: (hydrated: boolean) => {
         set((state) => ({ ui: { ...state.ui, isHydrated: hydrated } }));
       },
-
       // Delete Confirmation Actions
       openDeleteConfirmation: (title, message, onConfirm) => {
         set((state) => ({

@@ -13,6 +13,8 @@ import { useShallow } from "zustand/shallow";
 import { Conversations } from "./Conversations";
 import Link from "next/link";
 import { memo } from "react";
+import { useSwipeGesture } from "@/lib/hooks/useSwipeGesture";
+import isMobile from "@/lib/is-mobile";
 
 function Sidebar() {
   const { isSidebarOpen, toggleSidebar, closeSidebar, openSettings } =
@@ -26,6 +28,12 @@ function Sidebar() {
     );
 
   const pathname = usePathname();
+
+  // Swipe gesture for mobile - only enabled on mobile devices and when sidebar is open
+  const swipeBind = useSwipeGesture({
+    onSwipeLeft: closeSidebar,
+    enabled: isMobile() && isSidebarOpen,
+  });
 
   const contentVisibilityClass = isSidebarOpen
     ? "opacity-100 transition-opacity duration-500 lg:delay-300 ease-out" // Fade in after sidebar starts opening
@@ -48,11 +56,12 @@ function Sidebar() {
           "fixed left-0 top-0 z-40 h-screen bg-neutral-100 dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 shadow-lg transition-transform duration-300 ease-in-out",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full",
           "lg:relative lg:left-auto lg:top-auto lg:shadow-none lg:translate-x-0",
-          isSidebarOpen ? "lg:w-64" : "lg:w-0",
+          isSidebarOpen ? "w-64" : "lg:w-0",
           "lg:transition-[width] duration-300 ease-in-out",
           "overflow-hidden min-w-0 max-w-full",
           !isSidebarOpen ? "pointer-events-none" : "",
         )}
+        {...swipeBind()}
       >
         <div className={cn("flex h-full flex-col", contentVisibilityClass)}>
           {/* Header with enhanced animations */}

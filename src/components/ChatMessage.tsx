@@ -12,6 +12,7 @@ import {
 } from "@/lib/stores/utils/asset-db";
 import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
+import ChatEdit from "./ChatEdit";
 
 interface ChatMessageProps {
   message: Message;
@@ -25,10 +26,6 @@ const Alert = dynamic(() => import("./ui/Alert"), {
   loading: () => (
     <div className="text-sm opacity-50 italic text-red-500">Loading...</div>
   ),
-});
-const ChatEdit = dynamic(() => import("./ChatEdit"), {
-  // Add custom suspense fallback
-  loading: () => <div className="text-sm opacity-50 italic">Loading...</div>,
 });
 const Reasoning = dynamic(() => import("./Reasoning"), {
   // Add custom suspense fallback

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { ChevronDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePreferencesStore } from "@/lib/stores/perferences";
@@ -11,8 +11,10 @@ import {
 } from "@/lib/stores/provider";
 import ModelList from "@/components/ModelList";
 import { defaultProviderConfig } from "@/lib/api/sdk";
+import { useClickAway } from "react-use";
 
 function DefaultModelSelector() {
+  const ref = useRef<HTMLDivElement>(null);
   const defaultModel = usePreferencesStore((s) => s.defaultModel);
   const updateSettings = usePreferencesStore((s) => s.updateSettings);
 
@@ -54,8 +56,10 @@ function DefaultModelSelector() {
     return resolvedKey ? defaultProviderConfig[resolvedKey]?.icon : undefined;
   }, [defaultModel, providers]);
 
+  useClickAway(ref, () => setOpen(false));
+
   return (
-    <div className="relative">
+    <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
         className={cn(

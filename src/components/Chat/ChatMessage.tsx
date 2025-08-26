@@ -5,7 +5,7 @@ import { Message, useConversationStore } from "@/lib/stores/conversation";
 import { usePreferencesStore } from "@/lib/stores/perferences";
 import { useProviderStore } from "@/lib/stores/provider";
 import { cn, formatDate } from "@/lib/utils";
-import { MemoizedMarkdown } from "./MemoizedMarkdown";
+import { MemoizedMarkdown } from "../MemoizedMarkdown";
 import ChatActionButtons from "./ChatActionButtons";
 import { useEffect } from "react";
 import {
@@ -24,7 +24,7 @@ interface ChatMessageProps {
   conversationId: string;
 }
 
-const Alert = dynamic(() => import("./ui/Alert"), {
+const Alert = dynamic(() => import("../ui/Alert"), {
   // Add custom suspense fallback
   loading: () => (
     <div className="text-sm opacity-50 italic text-red-500">Loading...</div>

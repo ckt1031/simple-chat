@@ -1,6 +1,6 @@
 import { ChevronRightIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { MemoizedMarkdown } from "./MemoizedMarkdown";
+import { MemoizedMarkdown } from "../MemoizedMarkdown";
 
 interface ReasoningProps {
   reasoning: string;

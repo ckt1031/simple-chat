@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { useConversationStore } from "@/lib/stores/conversation";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
-import ChatOptionMenu from "@/components/ChatOptionMenu";
+import ChatOptionMenu from "@/components/Chat/ChatOptionMenu";
 import { useShallow } from "zustand/react/shallow";
 import { deepEqual } from "fast-equals";
 

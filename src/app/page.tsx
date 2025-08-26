@@ -8,7 +8,7 @@ import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 import EditTitleModal from "@/components/EditTitleModal";
 import ModelSelector from "@/components/ModelSelector";
 import { Suspense } from "react";
-import ChatOptionMenu from "@/components/ChatOptionMenu";
+import ChatOptionMenu from "@/components/Chat/ChatOptionMenu";
 import { useUIStore } from "@/lib/stores/ui";
 
 function HomePageContent() {

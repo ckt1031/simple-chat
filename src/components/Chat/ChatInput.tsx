@@ -4,8 +4,8 @@ import { useState, useRef, useCallback, memo } from "react";
 import { Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { saveImageAsset } from "@/lib/stores/utils/asset-db";
-import InputAttachmentsPreview from "./InputAttachmentsPreview";
-import SendStopButton from "./SendStopButton";
+import InputAttachmentsPreview from "../InputAttachmentsPreview";
+import SendStopButton from "../SendStopButton";
 
 interface ChatInputProps {
   onSend: (

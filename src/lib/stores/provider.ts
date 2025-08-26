@@ -52,8 +52,18 @@ export interface ProviderStore {
   getOfficialProviders: () => OfficialProviderState[];
   getCustomProviders: () => CustomProviderState[];
   getAllProviders: () => ProviderState[];
+  getEnabledProviders: () => ProviderState[];
   hasEnabledProviders: () => boolean;
   getProvider: (id: string) => ProviderState | null;
+
+  // Helpers
+  formatModelKey: (providerId: string, modelId: string) => string;
+  parseModelKey: (
+    key: string,
+  ) => { providerId: string; modelId: string } | null;
+  resolveModelByKey: (key: string) => ModelWithProvider | null;
+  getModelLabel: (providerId: string, modelId: string) => string;
+  getProviderLabel: (providerId: string) => string;
 
   // Actions
   updateProvider: (id: string, updates: Partial<BaseProviderState>) => void;
@@ -123,6 +133,10 @@ export const useProviderStore = create<ProviderStore>()(
         return Object.values(get().providers);
       },
 
+      getEnabledProviders: () => {
+        return Object.values(get().providers).filter((p) => p.enabled);
+      },
+
       hasEnabledProviders: () => {
         return get()
           .getAllProviders()
@@ -131,6 +145,45 @@ export const useProviderStore = create<ProviderStore>()(
 
       getProvider: (id: string) => {
         return get().providers[id] || null;
+      },
+
+      // Helpers
+      formatModelKey: (providerId: string, modelId: string) =>
+        `${providerId}:${modelId}`,
+      parseModelKey: (key: string) => {
+        if (!key) return null;
+        const idx = key.indexOf(":");
+        if (idx === -1) return null;
+        const providerId = key.slice(0, idx);
+        const modelId = key.slice(idx + 1);
+        if (!providerId || !modelId) return null;
+        return { providerId, modelId };
+      },
+      resolveModelByKey: (key: string) => {
+        const parsed = get().parseModelKey(key);
+        if (!parsed) return null;
+        const provider = get().providers[parsed.providerId];
+        if (!provider) return null;
+        const model = provider.models.find((m) => m.id === parsed.modelId);
+        if (!model) return null;
+        return { ...model, providerId: parsed.providerId };
+      },
+      getModelLabel: (providerId: string, modelId: string) => {
+        const provider = get().providers[providerId];
+        if (!provider) return modelId;
+        const model = provider.models.find((m) => m.id === modelId);
+        if (!model) return modelId;
+        return model.name && model.name.trim().length > 0
+          ? model.name
+          : model.id;
+      },
+      getProviderLabel: (providerId: string) => {
+        const provider = get().providers[providerId];
+        if (!provider) return providerId;
+        if (provider.type === "official") return provider.provider;
+        return provider.displayName && provider.displayName.trim().length > 0
+          ? provider.displayName
+          : provider.id;
       },
 
       updateProvider: (id: string, updates: Partial<BaseProviderState>) => {

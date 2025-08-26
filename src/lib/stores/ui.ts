@@ -10,6 +10,10 @@ export interface UIState {
   isSidebarOpen: boolean;
   isHydrated: boolean;
   isSettingsOpen: boolean;
+  /**
+   * Model to be selected in home and chat pages.
+   */
+  selectedModel: ModelWithProvider | null;
   deleteConfirmation: {
     isOpen: boolean;
     title: string;
@@ -26,6 +30,9 @@ interface UIStore extends UIState {
   // UI Actions
   openSettings: () => void;
   closeSettings: () => void;
+
+  // Home and chat page model selection
+  setSelectedModel: (model: ModelWithProvider | null) => void;
 
   toggleSidebar: () => void;
 
@@ -48,6 +55,7 @@ export const useUIStore = create<UIStore>()(
       isSidebarOpen: true,
       isSettingsOpen: false,
       isHydrated: false,
+      selectedModel: null,
       deleteConfirmation: {
         isOpen: false,
         title: "",
@@ -67,6 +75,9 @@ export const useUIStore = create<UIStore>()(
       },
       setHydrated: (hydrated: boolean) => {
         set({ isHydrated: hydrated });
+      },
+      setSelectedModel: (model: ModelWithProvider | null) => {
+        set({ selectedModel: model });
       },
 
       toggleSidebar: () => {

@@ -1,39 +1,40 @@
 "use client";
 
-import { memo, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePreferencesStore } from "@/lib/stores/perferences";
 import { useConversationStore } from "@/lib/stores/conversation";
 import {
-  OfficialProvider,
   useProviderStore,
   Model,
   ModelWithProvider,
 } from "@/lib/stores/provider";
+import { useUIStore } from "@/lib/stores/ui";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useClickAway } from "react-use";
 import ModelList, { ProviderGroup } from "./ModelList";
 
-function ModelSelector() {
-  const currentSelectedModel = useConversationStore(
-    (s) => s.currentSelectedModel,
-  );
-  const currentConversationId = useConversationStore(
-    (s) => s.currentConversationId,
-  );
-  const tempModelSelection = useConversationStore((s) => s.tempModelSelection);
-  const updateConversationModel = useConversationStore(
-    (s) => s.updateConversationModel,
-  );
-  const setTempModelSelection = useConversationStore(
-    (s) => s.setTempModelSelection,
-  );
-  const defaultModel = usePreferencesStore((s) => s.defaultModel);
-  const updateSettings = usePreferencesStore((s) => s.updateSettings);
+export default function ModelSelector() {
+  const {
+    currentSelectedModel,
+    currentConversationId,
+    updateConversationModel,
+  } = useConversationStore();
 
-  const { providers, getOfficialProviders, getCustomProviders } =
-    useProviderStore();
+  const { defaultModel } = usePreferencesStore();
+
+  const uiSelectedModel = useUIStore((s) => s.selectedModel);
+  const setUiSelectedModel = useUIStore((s) => s.setSelectedModel);
+
+  const {
+    providers,
+    getOfficialProviders,
+    getCustomProviders,
+    formatModelKey,
+    getModelLabel,
+    parseModelKey,
+  } = useProviderStore();
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -67,92 +68,70 @@ function ModelSelector() {
 
   const handleSelect = (providerId: string, model: Model) => {
     if (currentConversationId) {
-      // Update conversation-specific model
-      const modelId = `${providerId}:${model.id}`;
-      updateConversationModel(modelId);
+      updateConversationModel(formatModelKey(providerId, model.id));
     } else {
-      // Set temp model selection for new conversation on home page
-      const modelId = `${providerId}:${model.id}`;
-      setTempModelSelection(modelId);
+      const selected: ModelWithProvider = {
+        ...model,
+        providerId,
+      };
+      setUiSelectedModel(selected);
     }
     setOpen(false);
   };
 
   const handleClearSelection = () => {
-    // Only clear temp selection on home page
-    setTempModelSelection(null);
+    setUiSelectedModel(null);
     setOpen(false);
   };
 
   const buttonLabel = useMemo(() => {
-    // Home page: use temp selection or default model
+    // Home page: prefer UI-selected model, then default model
     if (!currentConversationId) {
-      if (tempModelSelection) {
-        // Parse temp selection
-        const [providerId, modelId] = tempModelSelection.split(":");
-        if (providerId && modelId) {
-          const provider = providers[providerId];
-          if (provider) {
-            const model = provider.models.find((m: Model) => m.id === modelId);
-            if (model) {
-              return model.name && model.name.trim().length > 0
-                ? model.name
-                : model.id;
-            }
-          }
-          return modelId;
-        }
+      if (uiSelectedModel) {
+        return uiSelectedModel.name && uiSelectedModel.name.trim().length > 0
+          ? uiSelectedModel.name
+          : uiSelectedModel.id;
       }
-      // Fall back to default model
       if (defaultModel) {
         return defaultModel.name && defaultModel.name.trim().length > 0
           ? defaultModel.name
           : defaultModel.id;
       }
+      return "Select model";
     }
 
     // Active conversation: use conversation model or fall back to default
     if (currentSelectedModel) {
-      // Parse the model ID to get provider and model info
-      const [providerId, modelId] = currentSelectedModel.split(":");
-      if (providerId && modelId) {
-        const provider = providers[providerId];
-        if (provider) {
-          const model = provider.models.find((m: Model) => m.id === modelId);
-          if (model) {
-            return model.name && model.name.trim().length > 0
-              ? model.name
-              : model.id;
-          }
-        }
-        // Fallback to just the model ID if we can't find the full details
-        return modelId;
-      }
+      const parsed = parseModelKey(currentSelectedModel);
+      if (parsed) return getModelLabel(parsed.providerId, parsed.modelId);
     }
-
-    // No conversation model set, fall back to default
+    if (uiSelectedModel) {
+      return uiSelectedModel.name && uiSelectedModel.name.trim().length > 0
+        ? uiSelectedModel.name
+        : uiSelectedModel.id;
+    }
     if (defaultModel) {
       return defaultModel.name && defaultModel.name.trim().length > 0
         ? defaultModel.name
         : defaultModel.id;
     }
-
     return "Select model";
   }, [
     currentSelectedModel,
     currentConversationId,
-    tempModelSelection,
+    uiSelectedModel,
     defaultModel,
     providers,
   ]);
 
   const isModelSelected = (providerId: string, modelId: string) => {
-    const modelIdString = `${providerId}:${modelId}`;
-
-    // Home page: check temp selection first, then default model
+    const key = formatModelKey(providerId, modelId);
     if (!currentConversationId) {
-      if (tempModelSelection) {
-        return tempModelSelection === modelIdString;
+      if (uiSelectedModel) {
+        return (
+          uiSelectedModel.providerId === providerId &&
+          uiSelectedModel.id === modelId
+        );
       }
       if (defaultModel) {
         return (
@@ -161,17 +140,12 @@ function ModelSelector() {
       }
       return false;
     }
-
-    // Active conversation: check conversation model first, then default model
-    if (currentSelectedModel) {
-      return currentSelectedModel === modelIdString;
-    }
+    if (currentSelectedModel) return currentSelectedModel === key;
     if (defaultModel) {
       return (
         defaultModel.providerId === providerId && defaultModel.id === modelId
       );
     }
-
     return false;
   };
 
@@ -217,9 +191,7 @@ function ModelSelector() {
             onSelect={handleSelect}
             isModelSelected={isModelSelected}
             selectedLabel="Selected"
-            showClearButton={Boolean(
-              !currentConversationId && tempModelSelection,
-            )}
+            showClearButton={Boolean(!currentConversationId && uiSelectedModel)}
             onClear={handleClearSelection}
             clearButtonText="Clear selection"
             query={query}
@@ -231,5 +203,3 @@ function ModelSelector() {
     </div>
   );
 }
-
-export default memo(ModelSelector);

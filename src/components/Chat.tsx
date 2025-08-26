@@ -1,11 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { usePreferencesStore } from "@/lib/stores/perferences";
-import MessageItem from "./MessageItem";
 import ChatInput from "./ChatInput";
+import ChatEmptyState from "./ChatEmptyState";
+import ChatTranscript from "./ChatTranscript";
 import { Message, useConversationStore } from "@/lib/stores/conversation";
-import { useProviderStore, ModelWithProvider } from "@/lib/stores/provider";
+import { useProviderStore } from "@/lib/stores/provider";
+import { useUIStore } from "@/lib/stores/ui";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useShallow } from "zustand/react/shallow";
 import { cn } from "@/lib/utils";
@@ -16,11 +18,11 @@ import {
 } from "@/lib/utils/chat-error-handling";
 
 export function Chat() {
+  const router = useRouter();
   const chatId = useSearchParams().get("id");
 
-  // Simplified and grouped store hooks for clarity
-  const selectedModel = usePreferencesStore((s) => s.selectedModel);
-  const { hasEnabledProviders } = useProviderStore();
+  const defaultModel = usePreferencesStore((s) => s.defaultModel);
+  const uiSelectedModel = useUIStore((s) => s.selectedModel);
 
   const {
     currentConversationId,
@@ -37,6 +39,8 @@ export function Chat() {
     stopConversation,
     openConversation,
     persistCurrentConversation,
+    currentSelectedModel,
+    removeLastAssistantMessage,
   } = useConversationStore(
     useShallow((s) => ({
       currentConversationId: s.currentConversationId,
@@ -53,62 +57,27 @@ export function Chat() {
       stopConversation: s.stopConversation,
       openConversation: s.openConversation,
       persistCurrentConversation: s.persistCurrentConversation,
+      currentSelectedModel: s.currentSelectedModel,
+      removeLastAssistantMessage: s.removeLastAssistantMessage,
     })),
   );
 
-  const defaultModel = usePreferencesStore((s) => s.defaultModel);
-  const { getAllProviders } = useProviderStore();
-  const providers = getAllProviders();
+  const { hasEnabledProviders, resolveModelByKey, formatModelKey } =
+    useProviderStore();
 
-  // Helper function to get the model for a request
-  const getModelForRequest = (
-    currentSelectedModel: string | null,
-    tempModelSelection: string | null,
-    defaultModel: ModelWithProvider | null,
-    selectedModel: ModelWithProvider | null,
-    providers: ReturnType<typeof getAllProviders>,
-  ): ModelWithProvider | null => {
-    if (currentSelectedModel) {
-      const [providerId, modelId] = currentSelectedModel.split(":");
-      const provider = providers.find(
-        (p) => (p.type === "custom" ? p.id : p.provider) === providerId,
-      );
-      if (provider) {
-        const model = provider.models.find((m) => m.id === modelId);
-        if (model) return { ...model, providerId };
-      }
-    }
-
-    if (tempModelSelection) {
-      const [providerId, modelId] = tempModelSelection.split(":");
-      const provider = providers.find(
-        (p) => (p.type === "custom" ? p.id : p.provider) === providerId,
-      );
-      if (provider) {
-        const model = provider.models.find((m) => m.id === modelId);
-        if (model) return { ...model, providerId };
-      }
-    }
-
-    return defaultModel || selectedModel;
-  };
-
-  // Track only a stable key of message ids for current conversation to avoid re-renders during token streaming
   const messageIdsKey = useConversationStore((s) =>
     s.currentMessages.map((m) => m.id).join(","),
   );
-  const messageIds: string[] = useMemo(() => {
-    return messageIdsKey ? messageIdsKey.split(",") : [];
-  }, [messageIdsKey]);
+  const messageIds: string[] = useMemo(
+    () => messageIdsKey.split(","),
+    [messageIdsKey],
+  );
 
   const isCurrentLoading = useConversationStore((s) =>
     s.currentConversationId
       ? Boolean(s.loadingById[s.currentConversationId])
       : false,
   );
-  const router = useRouter();
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Initial hydration
   useEffect(() => {
@@ -144,48 +113,25 @@ export function Chat() {
       // No chat ID, clear current conversation (new chat state)
       setCurrentConversation(null);
     }
-  }, [chatId, setCurrentConversation, router, isHydrated]);
+  }, [chatId, setCurrentConversation, router, isHydrated, openConversation]);
 
   const hasConversation = currentConversationId != null;
 
-  const scrollToBottom = useCallback(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "end",
-        inline: "nearest",
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    // Only auto-scroll if we're near the bottom or if it's a new message
-    const messagesContainer = messagesEndRef.current?.parentElement;
-    if (messagesContainer) {
-      const isNearBottom =
-        messagesContainer.scrollTop + messagesContainer.clientHeight >=
-        messagesContainer.scrollHeight - 100;
-      if (isNearBottom || messageIds.length === 1) {
-        scrollToBottom();
-      }
-    }
-  }, [messageIds.length, scrollToBottom]);
-
-  // Stable ref for send handler to avoid changing onRegenerate identity
-  const handleSendMessageRef = useRef<
-    | ((
-        content: string,
-        isRegenerating?: boolean,
-        assets?: Message["assets"],
-      ) => Promise<void>)
-    | null
-  >(null);
-
-  const handleStopGeneration = useCallback(() => {
+  const handleStopGeneration = () => {
     if (currentConversationId) {
       stopConversation(currentConversationId);
     }
-  }, [currentConversationId, stopConversation]);
+  };
+
+  const getSelectedModelForRequest = () => {
+    if (currentSelectedModel) {
+      const resolved = resolveModelByKey(currentSelectedModel);
+      if (resolved) return resolved;
+    }
+    if (uiSelectedModel) return uiSelectedModel;
+    if (defaultModel) return defaultModel;
+    return null;
+  };
 
   const handleSendMessage = useCallback(
     async (
@@ -195,70 +141,41 @@ export function Chat() {
     ) => {
       let conversationId = currentConversationId;
 
-      // If no current conversation, create one first
       if (!conversationId) {
-        // Use temp model selection if available, otherwise use default model
-        const tempModelSelection =
-          useConversationStore.getState().tempModelSelection;
-        const initialModelId =
-          tempModelSelection ??
-          (defaultModel
-            ? `${defaultModel.providerId}:${defaultModel.id}`
-            : null);
-        conversationId = createNewConversation(null, initialModelId);
-        // Update URL with the new conversation ID
+        const initialModelKey = uiSelectedModel
+          ? formatModelKey(uiSelectedModel.providerId, uiSelectedModel.id)
+          : defaultModel
+            ? formatModelKey(defaultModel.providerId, defaultModel.id)
+            : null;
+        conversationId = createNewConversation(null, initialModelKey);
         window.history.pushState(null, "", `/?id=${conversationId}`);
       }
 
-      // Add user message
-      const userMessage = {
+      const userMessage: Omit<Message, "id"> = {
         timestamp: Date.now(),
         role: "user",
         content,
         assets,
-      } as const;
+      };
+      if (!isRegenerating) addMessage(userMessage);
 
-      if (!isRegenerating) {
-        addMessage(userMessage);
-      }
-
-      // Get enabled providers
       if (!hasEnabledProviders()) {
         addMessage(createNoProvidersError());
         return;
       }
 
-      // Get the model to use for this request
-      const currentSelectedModel =
-        useConversationStore.getState().currentSelectedModel;
-      const tempModelSelection =
-        useConversationStore.getState().tempModelSelection;
-      const selectedModelToUse = getModelForRequest(
-        currentSelectedModel,
-        tempModelSelection,
-        defaultModel,
-        selectedModel,
-        providers,
-      );
-      if (!selectedModelToUse) {
+      const selected = getSelectedModelForRequest();
+      if (!selected) {
         addMessage(createNoModelError());
         return;
       }
 
-      // Build the message list to send (include the just-added user message)
       const { currentConversationId: curId, currentMessages } =
         useConversationStore.getState();
       const useCur = curId === conversationId ? currentMessages : [];
 
-      // Create abort controller for this request
       const abortController = new AbortController();
-
-      // Create a placeholder assistant message to stream into
-      // Use the selected model for this conversation
-      const modelForMessage = selectedModelToUse
-        ? `${selectedModelToUse.providerId}:${selectedModelToUse.id}`
-        : undefined;
-
+      const modelForMessage = formatModelKey(selected.providerId, selected.id);
       const assistantId = addMessage({
         timestamp: Date.now(),
         role: "assistant",
@@ -274,7 +191,7 @@ export function Chat() {
         );
 
         const stream = await completionsStreaming(
-          selectedModelToUse,
+          selected,
           useCur as Message[],
           abortController.signal,
         );
@@ -292,9 +209,7 @@ export function Chat() {
           }
         }
       } catch (err: unknown) {
-        // Check if it was aborted
         if (err instanceof Error && err.name === "AbortError") {
-          // User stopped the generation; mark last assistant message as aborted
           const { currentConversationId, currentMessages } =
             useConversationStore.getState();
           const isSame = currentConversationId === conversationId;
@@ -305,13 +220,10 @@ export function Chat() {
             updateMessage(last.id, { aborted: true });
           }
         } else {
-          // Use the new error handling utility to handle streaming errors
-          // Note: assistantId is available in this scope since it's in the same try block
           handleStreamingError(err, conversationId, assistantId);
         }
       } finally {
         setConversationLoading(conversationId, false);
-        // Persist the whole conversation body once generation ends (success, error, or abort)
         await persistCurrentConversation();
       }
     },
@@ -321,47 +233,37 @@ export function Chat() {
       appendToReasoning,
       createNewConversation,
       currentConversationId,
-      selectedModel,
+      defaultModel,
+      endReasoning,
+      formatModelKey,
       hasEnabledProviders,
-      router,
-      setConversationLoading,
-      updateMessage,
-      openConversation,
       persistCurrentConversation,
+      setConversationLoading,
+      uiSelectedModel,
+      updateMessage,
     ],
   );
 
-  // Keep the latest handleSendMessage without changing the regenerate callback identity
-  useEffect(() => {
-    handleSendMessageRef.current = handleSendMessage;
-  }, [handleSendMessage]);
+  const handleRegenerateMessage = useCallback(
+    async (messageId: string) => {
+      const { currentMessages } = useConversationStore.getState();
+      const lastMessage = currentMessages[currentMessages.length - 1];
+      if (!lastMessage || lastMessage.id !== messageId) return;
 
-  const handleRegenerateMessage = useCallback(async (messageId: string) => {
-    // Access latest state directly to avoid re-creating this callback on stream updates
-    const { currentMessages, removeLastAssistantMessage } =
-      useConversationStore.getState();
+      const userMessage = [...currentMessages]
+        .reverse()
+        .find((m) => m.role === "user");
+      if (!userMessage) return;
 
-    const lastMessage = currentMessages[currentMessages.length - 1];
-    if (!lastMessage || lastMessage.id !== messageId) return;
-
-    const userMessage = [...currentMessages]
-      .reverse()
-      .find((m) => m.role === "user");
-    if (!userMessage) return;
-
-    removeLastAssistantMessage(messageId);
-    await handleSendMessageRef.current?.(
-      userMessage.content,
-      true,
-      userMessage.assets,
-    );
-  }, []);
-
-  const onSend = useCallback(
-    (content: string, assets?: Message["assets"]) =>
-      handleSendMessage(content, false, assets),
-    [handleSendMessage],
+      removeLastAssistantMessage(messageId);
+      await handleSendMessage(userMessage.content, true, userMessage.assets);
+    },
+    [handleSendMessage, removeLastAssistantMessage],
   );
+
+  const onSend = (content: string, assets?: Message["assets"]) => {
+    void handleSendMessage(content, false, assets);
+  };
 
   // Show loading state while hydrating
   if (!isHydrated) {
@@ -380,28 +282,14 @@ export function Chat() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-2 sm:p-4 space-y-4 overflow-x-hidden">
         {showEmptyState ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center space-y-4">
-              <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">
-                What&apos;s on your mind?
-              </h2>
-              <p className="text-neutral-600 dark:text-white">
-                Start a conversation to begin chatting with AI.
-              </p>
-            </div>
-          </div>
+          <ChatEmptyState />
         ) : (
-          messageIds.map((messageId) => (
-            <MessageItem
-              key={messageId}
-              conversationId={currentConversationId as string}
-              messageId={messageId}
-              onRegenerate={handleRegenerateMessage}
-              isRegenerating={false}
-            />
-          ))
+          <ChatTranscript
+            conversationId={currentConversationId as string}
+            messageIds={messageIds}
+            onRegenerate={handleRegenerateMessage}
+          />
         )}
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}

@@ -12,10 +12,11 @@ import {
   getAssetObjectURL,
   revokeObjectURL,
 } from "@/lib/stores/utils/asset-db";
-import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
 import ChatEdit from "./ChatEdit";
 import { getErrorDisplayInfo, ChatError } from "@/lib/utils/error-handling";
+import { Alert } from "../ui";
+import Reasoning from "./Reasoning";
 
 interface ChatMessageProps {
   message: Message;
@@ -23,19 +24,6 @@ interface ChatMessageProps {
   isRegenerating?: boolean;
   conversationId: string;
 }
-
-const Alert = dynamic(() => import("../ui/Alert"), {
-  // Add custom suspense fallback
-  loading: () => (
-    <div className="text-sm opacity-50 italic text-red-500">Loading...</div>
-  ),
-});
-const Reasoning = dynamic(() => import("./Reasoning"), {
-  // Add custom suspense fallback
-  loading: () => (
-    <div className="text-sm opacity-50 italic">Initializing reasoning...</div>
-  ),
-});
 
 function ChatMessage({
   message,

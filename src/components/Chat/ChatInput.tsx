@@ -3,7 +3,11 @@
 import { useState, useRef, useCallback, memo } from "react";
 import { Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { saveImageAsset } from "@/lib/stores/utils/asset-db";
+import {
+  createImageAttachment,
+  createPdfAttachment,
+  createGenericFileAttachment,
+} from "@/lib/attachments";
 import InputAttachmentsPreview from "../InputAttachmentsPreview";
 import SendStopButton from "../SendStopButton";
 import { useDropArea } from "react-use";
@@ -11,7 +15,12 @@ import { useDropArea } from "react-use";
 interface ChatInputProps {
   onSend: (
     message: string,
-    assets?: { id: string; type: "image"; mimeType?: string; name?: string }[],
+    assets?: {
+      id: string;
+      type: "image" | "pdf" | "file";
+      mimeType?: string;
+      name?: string;
+    }[],
   ) => void;
   onStop?: () => void;
   disabled?: boolean;
@@ -30,7 +39,7 @@ function ChatInput({
   const [attachments, setAttachments] = useState<
     {
       id: string;
-      type: "image";
+      type: "image" | "pdf" | "file";
       mimeType?: string;
       name?: string;
       previewUrl: string;
@@ -92,23 +101,32 @@ function ChatInput({
 
   const processFiles = useCallback(async (files: File[]) => {
     const images = files.filter((f) => f.type.startsWith("image/"));
-    if (images.length === 0) return;
+    const pdfs = files.filter(
+      (f) =>
+        f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf"),
+    );
+    if (images.length === 0 && pdfs.length === 0) return;
 
-    const createImageAttachment = async (file: File) => {
-      const record = await saveImageAsset(file);
-      const previewUrl = URL.createObjectURL(file);
-      return {
-        id: record.id,
-        type: "image" as const,
-        mimeType: record.mimeType,
-        name: record.name,
-        previewUrl,
-      };
-    };
+    const createImage = (file: File) => createImageAttachment(file);
+    const createPdf = (file: File) => createPdfAttachment(file);
+    const createGeneric = (file: File) => createGenericFileAttachment(file);
 
-    const saved = await Promise.all(images.map(createImageAttachment));
+    const otherFiles = files.filter(
+      (f) =>
+        !f.type.startsWith("image/") &&
+        !(
+          f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf")
+        ),
+    );
+
+    const [savedImages, savedPdfs, savedOthers] = await Promise.all([
+      Promise.all(images.map(createImage)),
+      Promise.all(pdfs.map(createPdf)),
+      Promise.all(otherFiles.map(createGeneric)),
+    ]);
+    const combined = [...savedImages, ...savedPdfs, ...savedOthers];
     setAttachments((prev) => {
-      const next = [...prev, ...saved];
+      const next = [...prev, ...combined];
       const currentText = (textareaRef.current?.value || "").trim();
       setHasText(currentText.length > 0 || next.length > 0);
       return next;
@@ -186,7 +204,7 @@ function ChatInput({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,application/pdf,.pdf,text/plain,.txt,.md,.markdown,.srt,.csv,application/json"
           multiple
           className="hidden"
           onChange={handleFilesSelected}

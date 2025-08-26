@@ -38,7 +38,7 @@ export interface Message {
   aborted?: boolean;
   assets?: Array<{
     id: string;
-    type: "image";
+    type: "image" | "pdf" | "file";
     mimeType?: string;
     name?: string;
   }>;

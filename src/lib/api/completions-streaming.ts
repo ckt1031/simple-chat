@@ -9,7 +9,8 @@ import {
 import { ModelWithProvider } from "../stores/provider";
 import { Message } from "../stores/conversation";
 import { getASDK } from "./sdk";
-import { getAssetDataURL } from "../stores/utils/asset-db";
+// (No direct asset imports here; handled by attachment utilities)
+import { attachmentToParts } from "@/lib/attachments";
 
 export async function completionsStreaming(
   model: ModelWithProvider,
@@ -26,14 +27,11 @@ export async function completionsStreaming(
         if (text.length > 0) {
           parts.push({ type: "text", text });
         }
-        for (const a of m.assets) {
-          if (a.type === "image") {
-            const dataUrl = await getAssetDataURL(a.id);
-            if (dataUrl) {
-              parts.push({ type: "image", image: dataUrl });
-            }
-          }
-        }
+        parts.push(
+          ...((await attachmentToParts(
+            m.assets.map((a) => ({ id: a.id, type: a.type, name: a.name })),
+          )) as Array<TextPart | ImagePart | FilePart>),
+        );
         return { role: m.role, content: parts } as ModelMessage;
       }
       return { role: m.role, content: m.content } satisfies ModelMessage;

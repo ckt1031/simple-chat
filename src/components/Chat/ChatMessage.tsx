@@ -33,6 +33,9 @@ function ChatMessage({
 }: ChatMessageProps) {
   const isUser = message.role === "user";
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [fileLinks, setFileLinks] = useState<
+    { id: string; name?: string; url: string }[]
+  >([]);
   const [isEditing, setIsEditing] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const updateMessage = useConversationStore((s) => s.updateMessage);
@@ -99,18 +102,23 @@ function ChatMessage({
         return;
       }
       const urls: string[] = [];
+      const files: { id: string; name?: string; url: string }[] = [];
       for (const a of message.assets) {
-        if (a.type === "image") {
-          const url = await getAssetObjectURL(a.id);
-          if (url) urls.push(url);
-        }
+        const url = await getAssetObjectURL(a.id);
+        if (!url) continue;
+        if (a.type === "image") urls.push(url);
+        else files.push({ id: a.id, name: a.name, url });
       }
-      if (!cancelled) setImageUrls(urls);
+      if (!cancelled) {
+        setImageUrls(urls);
+        setFileLinks(files);
+      }
     };
     load();
     return () => {
       cancelled = true;
       imageUrls.forEach((u) => revokeObjectURL(u));
+      fileLinks.forEach((f) => revokeObjectURL(f.url));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [message.id]);
@@ -222,6 +230,22 @@ function ChatMessage({
                   }}
                 >
                   {displayUserContent}
+                  {fileLinks.length > 0 && (
+                    <div className="mt-2 flex flex-col gap-1">
+                      {fileLinks.map((f) => (
+                        <a
+                          key={f.id}
+                          href={f.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex max-w-full items-center gap-2 rounded-md border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-2 py-1 text-xs text-neutral-800 dark:text-neutral-200 hover:underline"
+                          title={f.name || "File"}
+                        >
+                          <span className="truncate">{f.name || "File"}</span>
+                        </a>
+                      ))}
+                    </div>
+                  )}
                   {!expanded && isLongUserMessage && (
                     <span className="ml-1 text-neutral-500 dark:text-neutral-400 underline">
                       Show more

@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 interface InputAttachmentsPreviewProps {
   attachments: {
     id: string;
-    type: "image";
+    type: "image" | "pdf" | "file";
     mimeType?: string;
     name?: string;
     previewUrl: string;
@@ -22,13 +22,25 @@ export default function InputAttachmentsPreview({
       {attachments.map((att) => (
         <div
           key={att.id}
-          className="relative h-16 w-20 sm:max-w-[20%] rounded-md overflow-hidden border border-neutral-200 dark:border-neutral-700 flex-shrink-0"
+          className="relative h-16 w-24 sm:max-w-[24%] rounded-md overflow-hidden border border-neutral-200 dark:border-neutral-700 flex-shrink-0 bg-neutral-50 dark:bg-neutral-800"
         >
-          <img
-            src={att.previewUrl}
-            alt={att.name || "image"}
-            className="object-cover w-full h-full"
-          />
+          {att.type === "image" ? (
+            <img
+              src={att.previewUrl}
+              alt={att.name || "image"}
+              className="object-cover w-full h-full"
+            />
+          ) : (
+            <a
+              href={att.previewUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full h-full flex items-center justify-center text-[10px] text-neutral-700 dark:text-neutral-300 px-2 text-center hover:underline"
+              title={att.name || (att.type === "pdf" ? "PDF" : "File")}
+            >
+              {att.name || (att.type === "pdf" ? "PDF" : "File")}
+            </a>
+          )}
           <button
             type="button"
             onClick={() => onRemove(att.id)}

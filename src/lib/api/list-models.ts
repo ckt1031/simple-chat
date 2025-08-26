@@ -44,6 +44,11 @@ async function listGoogleGenAIModels(provider: ProviderState) {
       },
     });
 
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`${response.status} ${response.statusText} ${text}`);
+    }
+
     const data = await response.json();
 
     return GoogleModelListSchema.parse(data);
@@ -105,6 +110,11 @@ async function listAnthropicModels(provider: ProviderState) {
       "anthropic-dangerous-direct-browser-access": "true",
     },
   });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`${response.status} ${response.statusText} ${text}`);
+  }
 
   const data = await response.json();
 

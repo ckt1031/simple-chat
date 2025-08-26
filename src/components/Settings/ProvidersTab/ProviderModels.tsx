@@ -8,6 +8,8 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Card from "@/components/ui/Card";
 import Switch from "@/components/Switch";
+import Alert from "@/components/ui/Alert";
+import { normalizeChatError } from "@/lib/utils/error-handling";
 
 interface Props {
   providerId: string;
@@ -31,6 +33,7 @@ export default function ModelsManager({ providerId, onBack }: Props) {
   });
   const [isFetching, setIsFetching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   if (!provider) return null;
 
@@ -39,9 +42,13 @@ export default function ModelsManager({ providerId, onBack }: Props) {
 
   const onFetch = async () => {
     setIsFetching(true);
+    setError(null);
     try {
       const models = await listModels(format, provider);
       applyFetchedModels(providerId, models);
+    } catch (err) {
+      const { message } = normalizeChatError(err);
+      setError(message);
     } finally {
       setIsFetching(false);
     }
@@ -110,6 +117,12 @@ export default function ModelsManager({ providerId, onBack }: Props) {
           Clear fetched
         </Button>
       </div>
+
+      {error && (
+        <Alert variant="error" title="Failed to fetch models">
+          {error}
+        </Alert>
+      )}
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />

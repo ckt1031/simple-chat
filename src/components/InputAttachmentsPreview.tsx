@@ -18,7 +18,7 @@ export default function InputAttachmentsPreview({
   if (attachments.length === 0) return null;
 
   return (
-    <div className="flex gap-2 overflow-x-auto custom-scrollbar mb-2">
+    <div className="flex gap-2 overflow-x-auto mb-2">
       {attachments.map((att) => (
         <div
           key={att.id}

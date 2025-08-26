@@ -280,7 +280,7 @@ export function Chat() {
   return (
     <div className="h-full flex flex-col dark:bg-neutral-900 min-h-0 relative overflow-hidden">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-2 sm:p-4 space-y-4 overflow-x-hidden">
+      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-4 overflow-x-hidden">
         {showEmptyState ? (
           <ChatEmptyState />
         ) : (

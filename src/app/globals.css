@@ -96,3 +96,54 @@ button:disabled,
     height: 100dvh;
   }
 }
+
+/* Custom scrollbar for scrollable lists */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(163 163 163) transparent; /* neutral-400 */
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgb(163 163 163); /* neutral-400 */
+  border-radius: 9999px;
+}
+
+.dark .custom-scrollbar {
+  scrollbar-color: rgb(82 82 82) transparent; /* neutral-700 */
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgb(82 82 82); /* neutral-700 */
+}
+
+/* Improve horizontal scrolling for tables and code blocks */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background-color: rgb(163 163 163);
+  border-radius: 3px;
+}
+
+.dark .overflow-x-auto::-webkit-scrollbar-thumb {
+  background-color: rgb(82 82 82);
+}

@@ -21,6 +21,13 @@ export interface Conversation {
   abortController?: AbortController;
 }
 
+export interface MessageAsset {
+  id: string;
+  type: "image" | "pdf" | "file";
+  mimeType?: string;
+  name?: string;
+}
+
 export interface Message {
   id: string;
   content: string;
@@ -36,12 +43,7 @@ export interface Message {
     code?: string | number;
   };
   aborted?: boolean;
-  assets?: Array<{
-    id: string;
-    type: "image" | "pdf" | "file";
-    mimeType?: string;
-    name?: string;
-  }>;
+  assets?: MessageAsset[];
 }
 
 export interface ConversationState {

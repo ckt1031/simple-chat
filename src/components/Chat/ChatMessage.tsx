@@ -2,21 +2,17 @@
 
 import { memo, useState } from "react";
 import { Message, useConversationStore } from "@/lib/stores/conversation";
-import { usePreferencesStore } from "@/lib/stores/perferences";
 import { useProviderStore } from "@/lib/stores/provider";
 import { cn, formatDate } from "@/lib/utils";
 import { MemoizedMarkdown } from "../MemoizedMarkdown";
 import ChatActionButtons from "./ChatActionButtons";
-import { useEffect } from "react";
-import {
-  getAssetObjectURL,
-  revokeObjectURL,
-} from "@/lib/stores/utils/asset-db";
 import { Loader2 } from "lucide-react";
 import ChatEdit from "./ChatEdit";
+import ChatAttachmentEditor from "./ChatAttachmentEditor";
 import { getErrorDisplayInfo, ChatError } from "@/lib/utils/error-handling";
 import { Alert } from "../ui";
 import Reasoning from "./Reasoning";
+import ChatAttachmentPreview from "./ChatAttachmentPreview";
 
 interface ChatMessageProps {
   message: Message;
@@ -32,10 +28,6 @@ function ChatMessage({
   conversationId,
 }: ChatMessageProps) {
   const isUser = message.role === "user";
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [fileLinks, setFileLinks] = useState<
-    { id: string; name?: string; url: string }[]
-  >([]);
   const [isEditing, setIsEditing] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const updateMessage = useConversationStore((s) => s.updateMessage);
@@ -52,7 +44,6 @@ function ChatMessage({
     !message.content;
 
   // Get model information for display
-  const defaultModel = usePreferencesStore((s) => s.defaultModel);
   const providers = useProviderStore((s) => s.providers);
 
   // Helper function to get model display name
@@ -77,12 +68,7 @@ function ChatMessage({
     return null;
   };
 
-  // Determine which model to show (only if different from default)
-  const messageModel = message.model;
-  const shouldShowModel = !isUser;
-  const modelDisplayName = shouldShowModel
-    ? getModelDisplayName(messageModel)
-    : null;
+  const modelDisplayName = !isUser ? getModelDisplayName(message.model) : null;
 
   // Helper function to convert message error to ChatError type
   const getChatError = (error: Message["error"]): ChatError | null => {
@@ -94,41 +80,21 @@ function ChatMessage({
     };
   };
 
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      if (!message.assets || message.assets.length === 0) {
-        setImageUrls([]);
-        return;
-      }
-      const urls: string[] = [];
-      const files: { id: string; name?: string; url: string }[] = [];
-      for (const a of message.assets) {
-        const url = await getAssetObjectURL(a.id);
-        if (!url) continue;
-        if (a.type === "image") urls.push(url);
-        else files.push({ id: a.id, name: a.name, url });
-      }
-      if (!cancelled) {
-        setImageUrls(urls);
-        setFileLinks(files);
-      }
-    };
-    load();
-    return () => {
-      cancelled = true;
-      imageUrls.forEach((u) => revokeObjectURL(u));
-      fileLinks.forEach((f) => revokeObjectURL(f.url));
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [message.id]);
-
   const handleRegenerate = () => {
     if (!isUser) onRegenerate(message.id);
   };
 
-  const saveEdit = (value: string) => {
-    updateMessage(message.id, { content: value, timestamp: Date.now() });
+  const saveEdit = (value: string, assets?: Message["assets"]) => {
+    const updates: Partial<Message> = {
+      content: value,
+      timestamp: Date.now(),
+    };
+
+    if (assets !== undefined) {
+      updates.assets = assets;
+    }
+
+    updateMessage(message.id, updates);
     setIsEditing(false);
   };
 
@@ -196,32 +162,29 @@ function ChatMessage({
                 })()}
               </div>
             )}
-            {imageUrls.length > 0 && (
-              <div
-                className={cn(
-                  "mb-2 grid gap-2",
-                  imageUrls.length === 1
-                    ? "grid-cols-1"
-                    : "grid-cols-1 sm:grid-cols-2",
-                )}
-              >
-                {imageUrls.map((src, idx) => (
-                  <img
-                    key={idx}
-                    src={src}
-                    alt="attachment"
-                    className="rounded-md max-h-32 object-contain bg-neutral-100 dark:bg-neutral-800 w-full"
-                  />
+            {!isEditing && message.assets && message.assets.length > 0 && (
+              <div className={cn("mb-2 flex flex-wrap gap-2 justify-end")}>
+                {message.assets.map((asset) => (
+                  <ChatAttachmentPreview key={asset.id} asset={asset} />
                 ))}
               </div>
             )}
             {isUser ? (
               isEditing ? (
-                <ChatEdit
-                  initialValue={message.content}
-                  onCancel={() => setIsEditing(false)}
-                  onSave={saveEdit}
-                />
+                message.assets && message.assets.length > 0 ? (
+                  <ChatAttachmentEditor
+                    initialContent={message.content}
+                    initialAssets={message.assets}
+                    onCancel={() => setIsEditing(false)}
+                    onSave={saveEdit}
+                  />
+                ) : (
+                  <ChatEdit
+                    initialValue={message.content}
+                    onCancel={() => setIsEditing(false)}
+                    onSave={(value) => saveEdit(value)}
+                  />
+                )
               ) : (
                 <div
                   className="whitespace-pre-wrap select-text break-words overflow-hidden"
@@ -230,22 +193,6 @@ function ChatMessage({
                   }}
                 >
                   {displayUserContent}
-                  {fileLinks.length > 0 && (
-                    <div className="mt-2 flex flex-col gap-1">
-                      {fileLinks.map((f) => (
-                        <a
-                          key={f.id}
-                          href={f.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex max-w-full items-center gap-2 rounded-md border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-2 py-1 text-xs text-neutral-800 dark:text-neutral-200 hover:underline"
-                          title={f.name || "File"}
-                        >
-                          <span className="truncate">{f.name || "File"}</span>
-                        </a>
-                      ))}
-                    </div>
-                  )}
                   {!expanded && isLongUserMessage && (
                     <span className="ml-1 text-neutral-500 dark:text-neutral-400 underline">
                       Show more

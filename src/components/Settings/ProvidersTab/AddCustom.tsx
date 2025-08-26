@@ -42,9 +42,6 @@ export default function AddCustom({ officialList, onBack }: Props) {
                 <Icon className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
                 <div className="text-sm font-medium">{label}</div>
               </div>
-              <div className="text-xs text-neutral-500 mt-1">
-                Use {label}-compatible API
-              </div>
             </Card>
           );
         })}

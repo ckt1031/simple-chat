@@ -9,42 +9,21 @@ import {
   Model,
   ModelWithProvider,
 } from "@/lib/stores/provider";
-import ModelList, { ProviderGroup } from "@/components/ModelList";
+import ModelList from "@/components/ModelList";
 
 function DefaultModelSelector() {
   const defaultModel = usePreferencesStore((s) => s.defaultModel);
   const updateSettings = usePreferencesStore((s) => s.updateSettings);
 
-  const { providers, getOfficialProviders, getCustomProviders } =
+  const { providers, getEnabledProviderModelGroups, getDisplayText } =
     useProviderStore();
 
   const [open, setOpen] = useState(false);
 
-  const groups: ProviderGroup[] = useMemo(() => {
-    const official: ProviderGroup[] = getOfficialProviders()
-      .filter((prov) => prov.enabled)
-      .map((prov) => ({
-        id: prov.provider,
-        label: prov.provider,
-        kind: "official" as const,
-        officialKey: prov.provider,
-        data: prov,
-      }));
-
-    const customList: ProviderGroup[] = getCustomProviders()
-      .filter((prov) => prov.enabled)
-      .map((prov) => ({
-        id: prov.id,
-        label:
-          prov.displayName && prov.displayName.trim().length > 0
-            ? prov.displayName
-            : prov.id,
-        kind: "custom" as const,
-        data: prov,
-      }));
-
-    return [...official, ...customList];
-  }, [providers, getOfficialProviders, getCustomProviders]);
+  const groups = useMemo(
+    () => getEnabledProviderModelGroups(),
+    [providers, getEnabledProviderModelGroups],
+  );
 
   const handleSelect = (providerId: string, model: Model) => {
     const next: ModelWithProvider = {
@@ -61,9 +40,7 @@ function DefaultModelSelector() {
   };
 
   const buttonLabel = defaultModel
-    ? defaultModel.name && defaultModel.name.trim().length > 0
-      ? defaultModel.name
-      : defaultModel.id
+    ? getDisplayText(defaultModel.name, defaultModel.id)
     : "No default model";
 
   return (
@@ -86,15 +63,14 @@ function DefaultModelSelector() {
           <ModelList
             groups={groups}
             onSelect={handleSelect}
-            isModelSelected={(providerId, modelId) =>
+            isSelected={(providerId, modelId) =>
               defaultModel?.providerId === providerId &&
               defaultModel?.id === modelId
             }
             selectedLabel="Default"
-            showClearButton={true}
             onClear={handleClear}
-            clearButtonText="Clear default model"
-            maxHeight="max-h-60"
+            clearLabel="Clear default model"
+            className="max-h-60"
           />
         </div>
       )}

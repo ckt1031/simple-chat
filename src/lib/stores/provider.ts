@@ -64,6 +64,16 @@ export interface ProviderStore {
   resolveModelByKey: (key: string) => ModelWithProvider | null;
   getModelLabel: (providerId: string, modelId: string) => string;
   getProviderLabel: (providerId: string) => string;
+  getDisplayText: (value: string | undefined, fallback: string) => string;
+
+  // Grouping
+  getEnabledProviderModelGroups: (query?: string) => Array<{
+    id: string;
+    label: string;
+    kind: "official" | "custom";
+    officialKey?: OfficialProvider;
+    models: Model[];
+  }>;
 
   // Actions
   updateProvider: (id: string, updates: Partial<BaseProviderState>) => void;
@@ -173,17 +183,47 @@ export const useProviderStore = create<ProviderStore>()(
         if (!provider) return modelId;
         const model = provider.models.find((m) => m.id === modelId);
         if (!model) return modelId;
-        return model.name && model.name.trim().length > 0
-          ? model.name
-          : model.id;
+        return get().getDisplayText(model.name, model.id);
       },
       getProviderLabel: (providerId: string) => {
         const provider = get().providers[providerId];
         if (!provider) return providerId;
         if (provider.type === "official") return provider.provider;
-        return provider.displayName && provider.displayName.trim().length > 0
-          ? provider.displayName
-          : provider.id;
+        return get().getDisplayText(provider.displayName, provider.id);
+      },
+      getDisplayText: (value: string | undefined, fallback: string) => {
+        if (!value) return fallback;
+        const trimmed = value.trim();
+        return trimmed.length > 0 ? trimmed : fallback;
+      },
+
+      getEnabledProviderModelGroups: (query?: string) => {
+        const q = (query ?? "").toLowerCase().trim();
+        const enabledProviders = get().getEnabledProviders();
+
+        return enabledProviders
+          .map((p) => {
+            const label =
+              p.type === "official"
+                ? p.provider
+                : get().getDisplayText(p.displayName, p.id);
+
+            const models = p.models.filter((m) => {
+              if (!m.enabled) return false;
+              if (!q) return true;
+              const name = get().getDisplayText(m.name, m.id).toLowerCase();
+              return name.includes(q);
+            });
+
+            return {
+              id: p.type === "official" ? p.provider : p.id,
+              label,
+              kind: p.type,
+              officialKey: p.type === "official" ? p.provider : undefined,
+              models,
+            };
+          })
+          .filter((group) => group.models.length > 0);
       },
 
       updateProvider: (id: string, updates: Partial<BaseProviderState>) => {
@@ -237,7 +277,8 @@ export const useProviderStore = create<ProviderStore>()(
           const mergedFetched: Model[] = fetchedModels.map((m) => ({
             id: m.id,
             name: m.name ?? m.id,
-            enabled: oldFetchedById.get(m.id)?.enabled ?? m.enabled ?? false,
+            // Ignore incoming enabled; preserve previous if existed, else false
+            enabled: oldFetchedById.get(m.id)?.enabled ?? false,
             source: "fetch",
             thinking: m.thinking,
           }));

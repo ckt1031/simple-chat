@@ -50,9 +50,6 @@ function ChatMessage({
 
   // Get model information for display
   const defaultModel = usePreferencesStore((s) => s.defaultModel);
-  const currentSelectedModel = useConversationStore(
-    (s) => s.currentSelectedModel,
-  );
   const providers = useProviderStore((s) => s.providers);
 
   // Helper function to get model display name

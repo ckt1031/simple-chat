@@ -13,7 +13,7 @@ import {
 import { useUIStore } from "@/lib/stores/ui";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useClickAway } from "react-use";
-import ModelList, { ProviderGroup } from "./ModelList";
+import ModelList from "./ModelList";
 
 export default function ModelSelector() {
   const {
@@ -29,42 +29,21 @@ export default function ModelSelector() {
 
   const {
     providers,
-    getOfficialProviders,
-    getCustomProviders,
     formatModelKey,
     getModelLabel,
     parseModelKey,
+    getEnabledProviderModelGroups,
+    getDisplayText,
   } = useProviderStore();
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const dropdownRef = useRef(null);
 
-  const groups: ProviderGroup[] = useMemo(() => {
-    const official: ProviderGroup[] = getOfficialProviders()
-      .filter((prov) => prov.enabled)
-      .map((prov) => ({
-        id: prov.provider,
-        label: prov.provider,
-        kind: "official" as const,
-        officialKey: prov.provider,
-        data: prov,
-      }));
-
-    const customList: ProviderGroup[] = getCustomProviders()
-      .filter((prov) => prov.enabled)
-      .map((prov) => ({
-        id: prov.id,
-        label:
-          prov.displayName && prov.displayName.trim().length > 0
-            ? prov.displayName
-            : prov.id,
-        kind: "custom" as const,
-        data: prov,
-      }));
-
-    return [...official, ...customList];
-  }, [providers, getOfficialProviders, getCustomProviders]);
+  const groups = useMemo(
+    () => getEnabledProviderModelGroups(query),
+    [providers, query, getEnabledProviderModelGroups],
+  );
 
   const handleSelect = (providerId: string, model: Model) => {
     if (currentConversationId) {
@@ -87,15 +66,10 @@ export default function ModelSelector() {
   const buttonLabel = useMemo(() => {
     // Home page: prefer UI-selected model, then default model
     if (!currentConversationId) {
-      if (uiSelectedModel) {
-        return uiSelectedModel.name && uiSelectedModel.name.trim().length > 0
-          ? uiSelectedModel.name
-          : uiSelectedModel.id;
-      }
+      if (uiSelectedModel)
+        return getDisplayText(uiSelectedModel.name, uiSelectedModel.id);
       if (defaultModel) {
-        return defaultModel.name && defaultModel.name.trim().length > 0
-          ? defaultModel.name
-          : defaultModel.id;
+        return getDisplayText(defaultModel.name, defaultModel.id);
       }
       return "Select model";
     }
@@ -105,16 +79,9 @@ export default function ModelSelector() {
       const parsed = parseModelKey(currentSelectedModel);
       if (parsed) return getModelLabel(parsed.providerId, parsed.modelId);
     }
-    if (uiSelectedModel) {
-      return uiSelectedModel.name && uiSelectedModel.name.trim().length > 0
-        ? uiSelectedModel.name
-        : uiSelectedModel.id;
-    }
-    if (defaultModel) {
-      return defaultModel.name && defaultModel.name.trim().length > 0
-        ? defaultModel.name
-        : defaultModel.id;
-    }
+    if (uiSelectedModel)
+      return getDisplayText(uiSelectedModel.name, uiSelectedModel.id);
+    if (defaultModel) return getDisplayText(defaultModel.name, defaultModel.id);
     return "Select model";
   }, [
     currentSelectedModel,
@@ -122,6 +89,7 @@ export default function ModelSelector() {
     uiSelectedModel,
     defaultModel,
     providers,
+    getDisplayText,
   ]);
 
   const isModelSelected = (providerId: string, modelId: string) => {
@@ -189,14 +157,15 @@ export default function ModelSelector() {
           <ModelList
             groups={groups}
             onSelect={handleSelect}
-            isModelSelected={isModelSelected}
+            isSelected={isModelSelected}
             selectedLabel="Selected"
-            showClearButton={Boolean(!currentConversationId && uiSelectedModel)}
-            onClear={handleClearSelection}
-            clearButtonText="Clear selection"
-            query={query}
-            showSearch={true}
-            maxHeight="max-h-60 sm:max-h-80"
+            onClear={
+              Boolean(!currentConversationId && uiSelectedModel)
+                ? handleClearSelection
+                : undefined
+            }
+            clearLabel="Clear selection"
+            className="max-h-60 sm:max-h-80"
           />
         </div>
       )}

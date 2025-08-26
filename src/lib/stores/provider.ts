@@ -219,7 +219,8 @@ export const useProviderStore = create<ProviderStore>()(
               id: p.type === "official" ? p.provider : p.id,
               label,
               kind: p.type,
-              officialKey: p.type === "official" ? p.provider : undefined,
+              officialKey:
+                p.type === "official" ? p.provider : p.providerFormat,
               models,
             };
           })

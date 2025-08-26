@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePreferencesStore } from "@/lib/stores/perferences";
 import {
@@ -10,6 +10,7 @@ import {
   ModelWithProvider,
 } from "@/lib/stores/provider";
 import ModelList from "@/components/ModelList";
+import { defaultProviderConfig } from "@/lib/api/sdk";
 
 function DefaultModelSelector() {
   const defaultModel = usePreferencesStore((s) => s.defaultModel);
@@ -43,6 +44,16 @@ function DefaultModelSelector() {
     ? getDisplayText(defaultModel.name, defaultModel.id)
     : "No default model";
 
+  const SelectedIcon = useMemo(() => {
+    if (!defaultModel) return undefined;
+    const provider = providers[defaultModel.providerId];
+    const resolvedKey =
+      provider?.type === "official"
+        ? provider.provider
+        : provider?.providerFormat;
+    return resolvedKey ? defaultProviderConfig[resolvedKey]?.icon : undefined;
+  }, [defaultModel, providers]);
+
   return (
     <div className="relative">
       <button
@@ -54,8 +65,38 @@ function DefaultModelSelector() {
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span className="truncate max-w-[200px] text-left">{buttonLabel}</span>
-        <ChevronDown className="w-4 h-4 opacity-70 flex-shrink-0" />
+        <span className="flex items-center gap-2 truncate max-w-[200px] text-left">
+          {SelectedIcon && (
+            <SelectedIcon className="w-4 h-4 text-neutral-500 dark:text-neutral-400 flex-shrink-0" />
+          )}
+          <span className="truncate">{buttonLabel}</span>
+        </span>
+        <span className="flex items-center gap-2">
+          {defaultModel && (
+            <span
+              role="button"
+              aria-label="Clear default model"
+              title="Clear default model"
+              tabIndex={0}
+              className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleClear();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleClear();
+                }
+              }}
+            >
+              <X className="w-4 h-4" />
+            </span>
+          )}
+          <ChevronDown className="w-4 h-4 opacity-70 flex-shrink-0" />
+        </span>
       </button>
 
       {open && (
@@ -68,8 +109,6 @@ function DefaultModelSelector() {
               defaultModel?.id === modelId
             }
             selectedLabel="Default"
-            onClear={handleClear}
-            clearLabel="Clear default model"
             className="max-h-60"
           />
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronDown, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePreferencesStore } from "@/lib/stores/perferences";
 import { useConversationStore } from "@/lib/stores/conversation";
@@ -14,6 +14,7 @@ import { useUIStore } from "@/lib/stores/ui";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useClickAway } from "react-use";
 import ModelList from "./ModelList";
+import { defaultProviderConfig } from "@/lib/api/sdk";
 
 export default function ModelSelector() {
   const {
@@ -63,26 +64,65 @@ export default function ModelSelector() {
     setOpen(false);
   };
 
-  const buttonLabel = useMemo(() => {
+  const resolveIconByProviderId = (providerId: string) => {
+    const provider = providers[providerId];
+    if (!provider) return undefined;
+    const resolvedKey =
+      provider.type === "official"
+        ? provider.provider
+        : provider.providerFormat;
+    return resolvedKey ? defaultProviderConfig[resolvedKey]?.icon : undefined;
+  };
+
+  const buildLabelAndIcon = (
+    providerId: string,
+    modelId: string,
+    name?: string,
+  ) => {
+    return {
+      label: name
+        ? getDisplayText(name, modelId)
+        : getModelLabel(providerId, modelId),
+      icon: resolveIconByProviderId(providerId),
+    } as const;
+  };
+
+  const selectedModelAndIcon = useMemo(() => {
     // Home page: prefer UI-selected model, then default model
     if (!currentConversationId) {
       if (uiSelectedModel)
-        return getDisplayText(uiSelectedModel.name, uiSelectedModel.id);
-      if (defaultModel) {
-        return getDisplayText(defaultModel.name, defaultModel.id);
-      }
-      return "Select model";
+        return buildLabelAndIcon(
+          uiSelectedModel.providerId,
+          uiSelectedModel.id,
+          uiSelectedModel.name,
+        );
+      if (defaultModel)
+        return buildLabelAndIcon(
+          defaultModel.providerId,
+          defaultModel.id,
+          defaultModel.name,
+        );
+      return { label: "Select model", icon: undefined } as const;
     }
 
     // Active conversation: use conversation model or fall back to default
     if (currentSelectedModel) {
       const parsed = parseModelKey(currentSelectedModel);
-      if (parsed) return getModelLabel(parsed.providerId, parsed.modelId);
+      if (parsed) return buildLabelAndIcon(parsed.providerId, parsed.modelId);
     }
     if (uiSelectedModel)
-      return getDisplayText(uiSelectedModel.name, uiSelectedModel.id);
-    if (defaultModel) return getDisplayText(defaultModel.name, defaultModel.id);
-    return "Select model";
+      return buildLabelAndIcon(
+        uiSelectedModel.providerId,
+        uiSelectedModel.id,
+        uiSelectedModel.name,
+      );
+    if (defaultModel)
+      return buildLabelAndIcon(
+        defaultModel.providerId,
+        defaultModel.id,
+        defaultModel.name,
+      );
+    return { label: "Select model", icon: undefined } as const;
   }, [
     currentSelectedModel,
     currentConversationId,
@@ -132,8 +172,11 @@ export default function ModelSelector() {
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span className="truncate max-w-[120px] sm:max-w-[220px] text-left">
-          {buttonLabel}
+        <span className="flex items-center gap-2 truncate max-w-[120px] sm:max-w-[220px] text-left">
+          {selectedModelAndIcon.icon && (
+            <selectedModelAndIcon.icon className="w-4 h-4 text-neutral-500 dark:text-neutral-400 flex-shrink-0" />
+          )}
+          <span className="truncate">{selectedModelAndIcon.label}</span>
         </span>
         <ChevronDown className="w-4 h-4 opacity-70 flex-shrink-0" />
       </button>
@@ -159,12 +202,6 @@ export default function ModelSelector() {
             onSelect={handleSelect}
             isSelected={isModelSelected}
             selectedLabel="Selected"
-            onClear={
-              Boolean(!currentConversationId && uiSelectedModel)
-                ? handleClearSelection
-                : undefined
-            }
-            clearLabel="Clear selection"
             className="max-h-60 sm:max-h-80"
           />
         </div>

@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { saveImageAsset } from "@/lib/stores/utils/asset-db";
 import InputAttachmentsPreview from "../InputAttachmentsPreview";
 import SendStopButton from "../SendStopButton";
+import { useDropArea } from "react-use";
 
 interface ChatInputProps {
   onSend: (
@@ -85,6 +86,11 @@ function ChatInput({
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const files = Array.from(e.target.files || []);
+    await processFiles(files);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const processFiles = useCallback(async (files: File[]) => {
     const images = files.filter((f) => f.type.startsWith("image/"));
     if (images.length === 0) return;
 
@@ -103,14 +109,11 @@ function ChatInput({
     const saved = await Promise.all(images.map(createImageAttachment));
     setAttachments((prev) => {
       const next = [...prev, ...saved];
-      // Adding an attachment means there is content to send
-      setHasText(
-        (textareaRef.current?.value || "").trim().length > 0 || next.length > 0,
-      );
+      const currentText = (textareaRef.current?.value || "").trim();
+      setHasText(currentText.length > 0 || next.length > 0);
       return next;
     });
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
+  }, []);
 
   const removeAttachment = useCallback((id: string) => {
     setAttachments((prev) => {
@@ -138,6 +141,18 @@ function ChatInput({
     [attachments.length],
   );
 
+  const [dropBond, dropState] = useDropArea({
+    onFiles: async (files) => {
+      // Files can be FileList or File[] depending on source; normalize
+      const list = Array.isArray(files)
+        ? files
+        : Array.from(files as unknown as File[]);
+      await processFiles(list as File[]);
+    },
+    onUri: () => {},
+    onText: () => {},
+  });
+
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto">
       {/* Attachments preview */}
@@ -147,9 +162,15 @@ function ChatInput({
       />
 
       <div
+        {...dropBond}
         className={cn(
           "relative flex items-center space-x-2 p-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full shadow-sm min-h-[44px] max-h-[300px]",
           "rounded-xl",
+          "transition-all duration-300",
+          // bigger
+          dropState.over
+            ? "scale-101 shadow-lg ring ring-blue-500/50"
+            : undefined,
         )}
       >
         {/* Plus Button */}

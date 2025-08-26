@@ -3,6 +3,7 @@ import { useSettingsProviderNavigationStore } from "@/lib/stores/navigation";
 import { ArrowLeft } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import { defaultProviderConfig } from "@/lib/api/sdk";
 
 interface Props {
   officialList: { id: OfficialProvider; label: string }[];
@@ -28,19 +29,25 @@ export default function AddCustom({ officialList, onBack }: Props) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {officialList.map(({ id, label }) => (
-          <Card
-            key={id}
-            variant="bordered"
-            className="p-4 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer"
-            onClick={() => handleChoose(id)}
-          >
-            <div className="text-sm font-medium">{label}</div>
-            <div className="text-xs text-neutral-500 mt-1">
-              Use {label}-compatible API
-            </div>
-          </Card>
-        ))}
+        {officialList.map(({ id, label }) => {
+          const Icon = defaultProviderConfig[id].icon;
+          return (
+            <Card
+              key={id}
+              variant="bordered"
+              className="p-4 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer"
+              onClick={() => handleChoose(id)}
+            >
+              <div className="flex items-center gap-2">
+                <Icon className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
+                <div className="text-sm font-medium">{label}</div>
+              </div>
+              <div className="text-xs text-neutral-500 mt-1">
+                Use {label}-compatible API
+              </div>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

@@ -67,28 +67,35 @@ export default function ProviderList({ officialList }: Props) {
               No custom providers
             </div>
           )}
-          {customProviders.map((provider) => (
-            <button
-              key={provider.id}
-              onClick={() => navigateToConfigure(provider.id)}
-              className="w-full flex items-center justify-between px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
-            >
-              <span className="text-sm font-medium">
-                {provider.displayName || `Custom (${provider.providerFormat})`}
-              </span>
-              <div className="flex items-center gap-3">
-                <span
-                  className={cn(
-                    "text-xs",
-                    provider.enabled ? "text-green-600" : "text-neutral-500",
-                  )}
-                >
-                  {provider.enabled ? "Enabled" : "Disabled"}
-                </span>
-                <span className="text-neutral-400">›</span>
-              </div>
-            </button>
-          ))}
+          {customProviders.map((provider) => {
+            const Icon = defaultProviderConfig[provider.providerFormat].icon;
+            return (
+              <button
+                key={provider.id}
+                onClick={() => navigateToConfigure(provider.id)}
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
+              >
+                <div className="flex items-center gap-2">
+                  <Icon className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
+                  <span className="text-sm font-medium">
+                    {provider.displayName ||
+                      `Custom (${provider.providerFormat})`}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span
+                    className={cn(
+                      "text-xs",
+                      provider.enabled ? "text-green-600" : "text-neutral-500",
+                    )}
+                  >
+                    {provider.enabled ? "Enabled" : "Disabled"}
+                  </span>
+                  <span className="text-neutral-400">›</span>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </Card>
 

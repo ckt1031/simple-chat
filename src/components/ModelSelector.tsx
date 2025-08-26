@@ -59,11 +59,6 @@ export default function ModelSelector() {
     setOpen(false);
   };
 
-  const handleClearSelection = () => {
-    setUiSelectedModel(null);
-    setOpen(false);
-  };
-
   const resolveIconByProviderId = (providerId: string) => {
     const provider = providers[providerId];
     if (!provider) return undefined;

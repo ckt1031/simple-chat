@@ -209,9 +209,9 @@ export const useConversationStore = create<ConversationStore>()((set, get) => ({
     if (!state.currentConversationId) return;
 
     // Update in-memory state
-    set(() => ({
+    set({
       currentSelectedModel: modelId,
-    }));
+    });
 
     // Persist immediately
     void writeConversationBody(state.currentConversationId, {

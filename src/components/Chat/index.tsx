@@ -123,126 +123,114 @@ export function Chat() {
     }
   };
 
-  const getSelectedModelForRequest = () => {
+  const getSelectedModelForRequest = useCallback(() => {
+    // Conversation store
     if (currentSelectedModel) {
       const resolved = resolveModelByKey(currentSelectedModel);
       if (resolved) return resolved;
     }
+    // UI store
     if (uiSelectedModel) return uiSelectedModel;
+    // Preferences store
     if (defaultModel) return defaultModel;
     return null;
+  }, [currentSelectedModel, uiSelectedModel, defaultModel]);
+
+  const handleSendMessage = async (
+    content: string,
+    isRegenerating = false,
+    assets?: Message["assets"],
+  ) => {
+    let conversationId = currentConversationId;
+
+    if (!conversationId) {
+      const initialModelKey = uiSelectedModel
+        ? formatModelKey(uiSelectedModel.providerId, uiSelectedModel.id)
+        : defaultModel
+          ? formatModelKey(defaultModel.providerId, defaultModel.id)
+          : null;
+      conversationId = createNewConversation(null, initialModelKey);
+      window.history.pushState(null, "", `/?id=${conversationId}`);
+    }
+
+    const userMessage: Omit<Message, "id"> = {
+      timestamp: Date.now(),
+      role: "user",
+      content,
+      assets,
+    };
+    if (!isRegenerating) addMessage(userMessage);
+
+    if (!hasEnabledProviders()) {
+      addMessage(createNoProvidersError());
+      return;
+    }
+
+    const selected = getSelectedModelForRequest();
+
+    if (!selected) {
+      addMessage(createNoModelError());
+      return;
+    }
+
+    const { currentConversationId: curId, currentMessages } =
+      useConversationStore.getState();
+    const useCur = curId === conversationId ? currentMessages : [];
+
+    const abortController = new AbortController();
+    const modelForMessage = formatModelKey(selected.providerId, selected.id);
+
+    const assistantId = addMessage({
+      timestamp: Date.now(),
+      role: "assistant",
+      content: "",
+      model: modelForMessage,
+    });
+
+    try {
+      setConversationLoading(conversationId, true, abortController);
+
+      const { completionsStreaming } = await import(
+        "@/lib/api/completions-streaming"
+      );
+
+      const stream = await completionsStreaming(
+        selected,
+        useCur as Message[],
+        abortController.signal,
+      );
+
+      for await (const delta of stream.fullStream) {
+        if (delta.type === "text-delta") {
+          endReasoning(assistantId);
+          appendToMessage(assistantId, delta.text);
+        } else if (delta.type === "reasoning-start") {
+          updateMessage(assistantId, { reasoningStartTime: Date.now() });
+        } else if (delta.type === "reasoning-delta") {
+          appendToReasoning(assistantId, delta.text);
+        } else if (delta.type === "reasoning-end") {
+          endReasoning(assistantId);
+        }
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === "AbortError") {
+        const { currentConversationId, currentMessages } =
+          useConversationStore.getState();
+        const isSame = currentConversationId === conversationId;
+        const last = isSame
+          ? currentMessages[currentMessages.length - 1]
+          : undefined;
+        if (last && last.role === "assistant") {
+          updateMessage(last.id, { aborted: true });
+        }
+      } else {
+        handleStreamingError(err, conversationId, assistantId);
+      }
+    } finally {
+      setConversationLoading(conversationId, false);
+      await persistCurrentConversation();
+    }
   };
-
-  const handleSendMessage = useCallback(
-    async (
-      content: string,
-      isRegenerating = false,
-      assets?: Message["assets"],
-    ) => {
-      let conversationId = currentConversationId;
-
-      if (!conversationId) {
-        const initialModelKey = uiSelectedModel
-          ? formatModelKey(uiSelectedModel.providerId, uiSelectedModel.id)
-          : defaultModel
-            ? formatModelKey(defaultModel.providerId, defaultModel.id)
-            : null;
-        conversationId = createNewConversation(null, initialModelKey);
-        window.history.pushState(null, "", `/?id=${conversationId}`);
-      }
-
-      const userMessage: Omit<Message, "id"> = {
-        timestamp: Date.now(),
-        role: "user",
-        content,
-        assets,
-      };
-      if (!isRegenerating) addMessage(userMessage);
-
-      if (!hasEnabledProviders()) {
-        addMessage(createNoProvidersError());
-        return;
-      }
-
-      const selected = getSelectedModelForRequest();
-      if (!selected) {
-        addMessage(createNoModelError());
-        return;
-      }
-
-      const { currentConversationId: curId, currentMessages } =
-        useConversationStore.getState();
-      const useCur = curId === conversationId ? currentMessages : [];
-
-      const abortController = new AbortController();
-      const modelForMessage = formatModelKey(selected.providerId, selected.id);
-      const assistantId = addMessage({
-        timestamp: Date.now(),
-        role: "assistant",
-        content: "",
-        model: modelForMessage,
-      });
-
-      try {
-        setConversationLoading(conversationId, true, abortController);
-
-        const { completionsStreaming } = await import(
-          "@/lib/api/completions-streaming"
-        );
-
-        const stream = await completionsStreaming(
-          selected,
-          useCur as Message[],
-          abortController.signal,
-        );
-
-        for await (const delta of stream.fullStream) {
-          if (delta.type === "text-delta") {
-            endReasoning(assistantId);
-            appendToMessage(assistantId, delta.text);
-          } else if (delta.type === "reasoning-start") {
-            updateMessage(assistantId, { reasoningStartTime: Date.now() });
-          } else if (delta.type === "reasoning-delta") {
-            appendToReasoning(assistantId, delta.text);
-          } else if (delta.type === "reasoning-end") {
-            endReasoning(assistantId);
-          }
-        }
-      } catch (err: unknown) {
-        if (err instanceof Error && err.name === "AbortError") {
-          const { currentConversationId, currentMessages } =
-            useConversationStore.getState();
-          const isSame = currentConversationId === conversationId;
-          const last = isSame
-            ? currentMessages[currentMessages.length - 1]
-            : undefined;
-          if (last && last.role === "assistant") {
-            updateMessage(last.id, { aborted: true });
-          }
-        } else {
-          handleStreamingError(err, conversationId, assistantId);
-        }
-      } finally {
-        setConversationLoading(conversationId, false);
-        await persistCurrentConversation();
-      }
-    },
-    [
-      addMessage,
-      appendToMessage,
-      appendToReasoning,
-      createNewConversation,
-      currentConversationId,
-      defaultModel,
-      endReasoning,
-      formatModelKey,
-      hasEnabledProviders,
-      persistCurrentConversation,
-      setConversationLoading,
-      uiSelectedModel,
-      updateMessage,
-    ],
-  );
 
   const handleRegenerateMessage = useCallback(
     async (messageId: string) => {

@@ -76,11 +76,7 @@ function ChatMessage({
 
   // Determine which model to show (only if different from default)
   const messageModel = message.model;
-  const defaultModelId = defaultModel
-    ? `${defaultModel.providerId}:${defaultModel.id}`
-    : null;
-  const shouldShowModel =
-    messageModel && messageModel !== defaultModelId && !isUser;
+  const shouldShowModel = !isUser;
   const modelDisplayName = shouldShowModel
     ? getModelDisplayName(messageModel)
     : null;

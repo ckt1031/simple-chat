@@ -123,9 +123,9 @@ export function Chat() {
     }
   };
 
-  const getSelectedModelForRequest = useCallback(() => {
+  const getSelectedModelForRequest = () => {
     // Conversation store
-    if (currentSelectedModel) {
+    if (currentSelectedModel && currentConversationId) {
       const resolved = resolveModelByKey(currentSelectedModel);
       if (resolved) return resolved;
     }
@@ -134,7 +134,7 @@ export function Chat() {
     // Preferences store
     if (defaultModel) return defaultModel;
     return null;
-  }, [currentSelectedModel, uiSelectedModel, defaultModel]);
+  };
 
   const handleSendMessage = async (
     content: string,
@@ -188,7 +188,7 @@ export function Chat() {
     });
 
     try {
-      setConversationLoading(conversationId, true, abortController);
+      setConversationLoading(conversationId, true);
 
       const { completionsStreaming } = await import(
         "@/lib/api/completions-streaming"

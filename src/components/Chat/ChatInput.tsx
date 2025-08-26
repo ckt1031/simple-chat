@@ -25,7 +25,6 @@ function ChatInput({
   placeholder = "Ask anything...",
   isLoading = false,
 }: ChatInputProps) {
-  const [message, setMessage] = useState("");
   const [hasText, setHasText] = useState(false);
   const [attachments, setAttachments] = useState<
     {
@@ -58,7 +57,6 @@ function ChatInput({
         // Revoke preview URLs and clear attachments
         attachments.forEach((a) => URL.revokeObjectURL(a.previewUrl));
         setAttachments([]);
-        setMessage("");
         // Reset the textarea height
         if (textareaRef.current) {
           textareaRef.current.style.height = "auto";
@@ -132,8 +130,8 @@ function ChatInput({
   const handleTextareaInput = useCallback(
     (e: React.FormEvent<HTMLTextAreaElement>) => {
       const value = e.currentTarget.value;
+      if (textareaRef.current) textareaRef.current.value = value;
       setHasText(value.length > 0 || attachments.length > 0);
-      setMessage(value);
       e.currentTarget.style.height = "auto";
       e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
     },
@@ -176,7 +174,7 @@ function ChatInput({
         {/* Text Input */}
         <textarea
           ref={textareaRef}
-          value={message}
+          // value={message}
           onChange={handleTextareaInput}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { ChevronDown, Search, X } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePreferencesStore } from "@/lib/stores/perferences";
 import { useConversationStore } from "@/lib/stores/conversation";

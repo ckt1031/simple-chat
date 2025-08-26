@@ -84,11 +84,7 @@ export interface ConversationStore extends ConversationState {
   deleteMessage: (messageId: string) => void;
   removeLastAssistantMessage: (messageId: string) => void;
   // Streaming helpers
-  setConversationLoading: (
-    conversationId: string,
-    loading: boolean,
-    abortController?: AbortController,
-  ) => void;
+  setConversationLoading: (conversationId: string, loading: boolean) => void;
   stopConversation: (conversationId: string) => void;
   resetAllLoadingStates: () => void;
   persistCurrentConversation: () => Promise<void>;
@@ -315,11 +311,7 @@ export const useConversationStore = create<ConversationStore>()((set, get) => ({
     }
   },
 
-  setConversationLoading: (
-    conversationId: string,
-    loading: boolean,
-    abortController?: AbortController,
-  ) => {
+  setConversationLoading: (conversationId: string, loading: boolean) => {
     set((state) => {
       const loadingById = { ...state.loadingById, [conversationId]: loading };
       // Also update abort controller flag for current if matches

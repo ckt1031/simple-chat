@@ -23,6 +23,8 @@ export default async function listModels(
       return await listOpenRouterModels(provider);
     case OfficialProvider.DEEPSEEK:
       return await listModelsOpenAI(provider);
+    case OfficialProvider.GROQ:
+      return await listModelsOpenAI(provider);
     case OfficialProvider.ANTHROPIC:
       return await listAnthropicModels(provider);
     default:

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Copy, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -12,14 +12,30 @@ const MAX_LINES_BEFORE_COLLAPSE = 20;
 export default function CodeBlock({ children, className }: CodeBlockProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const extractTextContent = (node: React.ReactNode): string => {
+    if (typeof node === "string") {
+      return node;
+    }
+    if (typeof node === "number" || typeof node === "boolean") {
+      return String(node);
+    }
+    if (Array.isArray(node)) {
+      return node.map(extractTextContent).join("");
+    }
+    if (node && typeof node === "object" && "props" in node) {
+      const element = node as React.ReactElement & {
+        props: { children?: React.ReactNode };
+      };
+      if (element.props.children) {
+        return extractTextContent(element.props.children);
+      }
+    }
+    return "";
+  };
+
   const { shouldShowExpand, hiddenLines } = useMemo(() => {
-    // Get the code content as string
-    const codeContent =
-      typeof children === "string"
-        ? children
-        : Array.isArray(children)
-          ? children.join("")
-          : "";
+    // Extract text content for line counting
+    const codeContent = extractTextContent(children);
 
     // Count lines to determine if we should show expand/collapse
     const lines = codeContent.split("\n");
@@ -30,7 +46,8 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
   }, [children]);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(children as string);
+    const textToCopy = extractTextContent(children);
+    navigator.clipboard.writeText(textToCopy);
   };
 
   return (

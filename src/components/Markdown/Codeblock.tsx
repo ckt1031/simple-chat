@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { Copy, ChevronDown, ChevronUp } from "lucide-react";
+import React, { useMemo, useState, useCallback } from "react";
+import { Copy, ChevronDown, ChevronUp, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CodeBlockProps {
@@ -11,6 +11,7 @@ const MAX_LINES_BEFORE_COLLAPSE = 20;
 
 export default function CodeBlock({ children, className }: CodeBlockProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   const extractTextContent = (node: React.ReactNode): string => {
     if (typeof node === "string") {
@@ -45,10 +46,16 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
     };
   }, [children]);
 
-  const handleCopy = () => {
+  const handleCopy = useCallback(async () => {
     const textToCopy = extractTextContent(children);
-    navigator.clipboard.writeText(textToCopy);
-  };
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy text:", error);
+    }
+  }, [children]);
 
   return (
     <div className="relative group">
@@ -71,9 +78,17 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
       <div className="absolute top-2 right-2 p-2">
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1 p-2 text-xs bg-neutral-700 text-neutral-300 rounded hover:bg-neutral-600 transition-colors"
+          className={cn(
+            "flex items-center gap-1 p-2 text-xs rounded transition-all duration-200",
+            "bg-neutral-700 text-neutral-300 hover:bg-neutral-600",
+          )}
+          title={isCopied ? "Copied!" : "Copy code"}
         >
-          <Copy className="w-3 h-3" />
+          {isCopied ? (
+            <Check className="w-3 h-3" />
+          ) : (
+            <Copy className="w-3 h-3" />
+          )}
         </button>
       </div>
 

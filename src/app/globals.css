@@ -1,9 +1,15 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 @import "katex/dist/katex.min.css";
-@import "highlight.js/styles/github-dark.css";
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@import "highlight.js/styles/github.css";
+
+/* When data-theme=dark is enabled, use the dark theme */
+html[data-theme="dark"] {
+  @import "highlight.js/styles/github-dark.css";
+}
 
 /* Ensure proper height constraints */
 html,

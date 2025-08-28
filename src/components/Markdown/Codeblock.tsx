@@ -34,6 +34,11 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
     return "";
   };
 
+  const isSingleLine = useMemo(() => {
+    const codeContent = extractTextContent(children).trim();
+    return codeContent.split("\n").length === 1;
+  }, [children]);
+
   const { shouldShowExpand, hiddenLines } = useMemo(() => {
     // Extract text content for line counting
     const codeContent = extractTextContent(children);
@@ -47,7 +52,7 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
   }, [children]);
 
   const handleCopy = useCallback(async () => {
-    const textToCopy = extractTextContent(children);
+    const textToCopy = extractTextContent(children).trim();
     try {
       await navigator.clipboard.writeText(textToCopy);
       setIsCopied(true);
@@ -58,7 +63,7 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
   }, [children]);
 
   return (
-    <div className="relative group">
+    <div className="relative custom-scrollbar">
       {/* Code content */}
       <pre
         className={cn(
@@ -66,7 +71,8 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
           isExpanded ? "max-h-full" : "max-h-[200px]",
           "m-0 rounded-b-lg",
           // Override global prose pre background
-          "!bg-neutral-800",
+          "!bg-gray-100 dark:!bg-neutral-800",
+          "border border-gray-300 dark:border-neutral-700",
         )}
       >
         <code className="block m-2 whitespace-pre-wrap !bg-transparent">
@@ -75,12 +81,13 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
       </pre>
 
       {/* Top right copy button */}
-      <div className="absolute top-2 right-2 p-2">
+      <div className={cn("absolute right-2 top-2", !isSingleLine && "p-2")}>
         <button
           onClick={handleCopy}
           className={cn(
             "flex items-center gap-1 p-2 text-xs rounded transition-all duration-200",
-            "bg-neutral-700 text-neutral-300 hover:bg-neutral-600",
+            "border border-gray-300 dark:border-neutral-700",
+            "text-gray-500 dark:text-neutral-300",
           )}
           title={isCopied ? "Copied!" : "Copy code"}
         >
@@ -97,7 +104,12 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
         <div className="absolute bottom-2 right-2 p-2">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-1 px-2 py-1 text-xs bg-neutral-700 text-neutral-300 rounded hover:bg-neutral-600 transition-colors"
+            className={cn(
+              "border border-gray-300 dark:border-neutral-700",
+              "text-gray-500 dark:text-neutral-300",
+              "bg-gray-200 dark:bg-neutral-700",
+              "flex items-center gap-1 px-2 py-1 text-xs rounded hover:opacity-80 transition-colors",
+            )}
             title={isExpanded ? "Collapse code" : "Expand code"}
           >
             {isExpanded ? (

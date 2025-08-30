@@ -38,13 +38,14 @@ function Sidebar() {
       {/* Animated sidebar */}
       <div
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 shadow-lg transition-transform duration-300 ease-in-out",
+          "fixed left-0 top-0 z-40 h-screen bg-white dark:bg-neutral-900 shadow-lg transition-transform",
+          "border-r border-neutral-200 dark:border-neutral-800",
+          "max-w-64",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full",
-          "lg:relative lg:left-auto lg:top-auto lg:shadow-none lg:translate-x-0",
+          "lg:relative lg:left-auto lg:top-auto lg:shadow-none",
           isSidebarOpen ? "w-64" : "lg:w-0",
           "lg:transition-[width] duration-300 ease-in-out",
-          "overflow-hidden min-w-0 max-w-full",
-          !isSidebarOpen ? "pointer-events-none" : "",
+          !isSidebarOpen && "pointer-events-none",
         )}
       >
         <div className={cn("flex h-full flex-col", contentVisibilityClass)}>

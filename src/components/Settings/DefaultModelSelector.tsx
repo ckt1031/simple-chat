@@ -63,7 +63,7 @@ function DefaultModelSelector() {
       <button
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex items-center gap-2 rounded-lg border border-neutral-200 dark:border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800/50 w-full",
+          "flex items-center gap-2 rounded-2xl border border-neutral-200 dark:border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800/50 w-full",
           "justify-between overflow-hidden",
         )}
         aria-haspopup="listbox"

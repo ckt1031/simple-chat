@@ -36,7 +36,7 @@ export default function SettingsModal() {
         bg-white dark:bg-neutral-900 shadow-xl h-full
         min-w-[320px] sm:min-w-[400px] md:min-w-[600px] lg:min-w-[700px]
         w-full sm:w-[90vw]
-        sm:h-[80vh] sm:max-w-4xl sm:rounded-lg
+        sm:h-[80vh] sm:max-w-4xl sm:rounded-2xl
         flex flex-col sm:flex-row
       "
       >
@@ -70,7 +70,7 @@ export default function SettingsModal() {
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
                 className={cn(
-                  "w-full text-left px-3 py-2 text-sm rounded-lg transition-colors",
+                  "w-full text-left px-3 py-2 text-sm rounded-2xl transition-colors",
                   settingsTab === tab.id
                     ? "bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white"
                     : "text-neutral-700 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700",

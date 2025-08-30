@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import ImageViewer from "./ImageViewer";
 
 interface InputAttachmentsPreviewProps {
   attachments: {
@@ -25,8 +26,8 @@ export default function InputAttachmentsPreview({
           className="relative h-16 w-24 sm:max-w-[24%] rounded-md overflow-hidden border border-neutral-200 dark:border-neutral-700 flex-shrink-0 bg-neutral-50 dark:bg-neutral-800"
         >
           {att.type === "image" ? (
-            <img
-              src={att.previewUrl}
+            <ImageViewer
+              image={att.previewUrl}
               alt={att.name || "image"}
               className="object-cover w-full h-full"
             />

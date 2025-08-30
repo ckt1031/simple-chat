@@ -3,6 +3,7 @@ import { getAssetObjectURL } from "@/lib/stores/utils/asset-db";
 import { cn } from "@/lib/utils";
 import { FileIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import ImageViewer from "../ImageViewer";
 
 interface ChatAttachmentPreviewProps {
   asset: MessageAsset;
@@ -33,9 +34,9 @@ export default function ChatAttachmentPreview({
 
   if (asset.type === "image" && imageUrl) {
     return (
-      <img
+      <ImageViewer
         key={asset.id}
-        src={imageUrl}
+        image={imageUrl}
         alt="attachment"
         className="h-15 rounded-md"
       />

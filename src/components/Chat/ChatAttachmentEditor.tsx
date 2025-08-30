@@ -11,6 +11,7 @@ import {
 } from "@/lib/attachments";
 import { getAssetObjectURL } from "@/lib/stores/utils/asset-db";
 import type { Message } from "@/lib/stores/conversation";
+import ImageViewer from "../ImageViewer";
 
 interface AttachmentItem {
   id: string;
@@ -154,8 +155,8 @@ export default function ChatAttachmentEditor({
               className="relative h-16 w-24 rounded-md overflow-hidden border border-neutral-200 dark:border-neutral-700 flex-shrink-0 bg-neutral-50 dark:bg-neutral-800"
             >
               {att.type === "image" ? (
-                <img
-                  src={att.previewUrl}
+                <ImageViewer
+                  image={att.previewUrl}
                   alt={att.name || "image"}
                   className="object-cover w-full h-full"
                 />

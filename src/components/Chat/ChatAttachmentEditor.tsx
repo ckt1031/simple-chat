@@ -189,7 +189,7 @@ export default function ChatAttachmentEditor({
           onClick={handleUploadClick}
           className="py-1 px-2 text-sm text-neutral-600 dark:text-neutral-400 border border-neutral-300 dark:border-neutral-600 rounded-full hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
         >
-          Add files?
+          Add files
         </button>
       </div>
 

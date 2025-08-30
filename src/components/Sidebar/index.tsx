@@ -104,9 +104,10 @@ function Sidebar() {
           <div className="p-4">
             <button
               onClick={openSettings}
-              className="p-1 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded transition-all duration-200 hover:scale-110 hover:rotate-12"
+              className="animated-action-button flex items-center gap-1 p-0.5"
             >
-              <Settings className="w-4 h-4 text-neutral-500 dark:text-white" />
+              <Settings className="w-4 h-4" />
+              <span>Settings</span>
             </button>
           </div>
         </div>

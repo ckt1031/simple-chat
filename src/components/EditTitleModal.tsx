@@ -94,6 +94,7 @@ export default function EditTitleModal() {
             </Button>
             <Button
               type="submit"
+              variant="primary"
               disabled={!formState.isValid}
               className="min-w-[80px]"
             >

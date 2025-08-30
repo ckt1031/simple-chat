@@ -1,9 +1,8 @@
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
 import { Check, Copy, PencilLine, RefreshCcw, Trash } from "lucide-react";
 import { useConversationStore } from "@/lib/stores/conversation";
 import { useUIStore } from "@/lib/stores/ui";
 import { cn } from "@/lib/utils";
-import isMobile from "@/lib/is-mobile";
 
 interface ChatActionButtonsProps {
   isRegenerating?: boolean;
@@ -33,26 +32,26 @@ function ChatActionButtons({
   // For more advanced/production use, consider a library or a custom hook.
 
   // We'll use a state to control visibility
-  const isDeviceMobile = useMemo(() => isMobile(), []);
-  const [visible, setVisible] = useState(isDeviceMobile);
+  // const isDeviceMobile = useMemo(() => isMobile(), []);
+  // const [visible, setVisible] = useState(isDeviceMobile);
 
-  useEffect(() => {
-    function handleMouseMove(e: MouseEvent) {
-      if (!containerRef.current || isDeviceMobile) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const proximity = 60; // px
-      const withinProximity =
-        e.clientX >= rect.left - proximity &&
-        e.clientX <= rect.right + proximity &&
-        e.clientY >= rect.top - proximity &&
-        e.clientY <= rect.bottom + proximity;
-      setVisible(withinProximity);
-    }
-    document.addEventListener("mousemove", handleMouseMove);
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, []);
+  // useEffect(() => {
+  //   function handleMouseMove(e: MouseEvent) {
+  //     if (!containerRef.current || isDeviceMobile) return;
+  //     const rect = containerRef.current.getBoundingClientRect();
+  //     const proximity = 60; // px
+  //     const withinProximity =
+  //       e.clientX >= rect.left - proximity &&
+  //       e.clientX <= rect.right + proximity &&
+  //       e.clientY >= rect.top - proximity &&
+  //       e.clientY <= rect.bottom + proximity;
+  //     setVisible(withinProximity);
+  //   }
+  //   document.addEventListener("mousemove", handleMouseMove);
+  //   return () => {
+  //     document.removeEventListener("mousemove", handleMouseMove);
+  //   };
+  // }, []);
 
   const handleDelete = () => {
     openDeleteConfirmation(
@@ -78,53 +77,31 @@ function ChatActionButtons({
   };
 
   return (
-    <div
-      ref={containerRef}
-      className={cn(
-        "flex space-x-2 mt-1 px-2 transition-opacity duration-200",
-        "font-light",
-        visible ? "opacity-100" : "opacity-0",
-      )}
-    >
+    <div ref={containerRef} className="flex my-2">
       <button
         onClick={handleDelete}
         disabled={isGenerating}
-        className={cn(
-          "transition-colors",
-          isGenerating
-            ? "text-neutral-400 dark:text-neutral-600 cursor-not-allowed"
-            : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white",
-        )}
+        className="animated-action-button"
         title={
           isGenerating ? "Cannot delete while generating" : "Delete message"
         }
       >
-        <Trash size={16} strokeWidth={1.5} />
+        <Trash size={18} />
       </button>
       {onEdit && (
         <button
           onClick={onEdit}
           disabled={isGenerating}
-          className={cn(
-            "transition-colors",
-            isGenerating
-              ? "text-neutral-400 dark:text-neutral-600 cursor-not-allowed"
-              : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white",
-          )}
+          className="animated-action-button"
           title={isGenerating ? "Cannot edit while generating" : "Edit message"}
         >
-          <PencilLine size={16} strokeWidth={1.5} />
+          <PencilLine size={18} />
         </button>
       )}
       <button
         onClick={handleCopyInternal}
         disabled={isGenerating}
-        className={cn(
-          "transition-colors",
-          isGenerating
-            ? "text-neutral-400 dark:text-neutral-600 cursor-not-allowed"
-            : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white",
-        )}
+        className="animated-action-button"
         title={
           isGenerating
             ? "Cannot copy while generating"
@@ -133,22 +110,13 @@ function ChatActionButtons({
               : "Copy message"
         }
       >
-        {copied ? (
-          <Check size={16} strokeWidth={1.5} />
-        ) : (
-          <Copy size={16} strokeWidth={1.5} />
-        )}
+        {copied ? <Check size={18} /> : <Copy size={18} />}
       </button>
       {isLastMessage(messageId) && (
         <button
           onClick={handleRegenerate}
           disabled={isRegenerating || isGenerating}
-          className={cn(
-            "transition-colors",
-            isRegenerating || isGenerating
-              ? "text-neutral-400 dark:text-neutral-600 cursor-not-allowed"
-              : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white",
-          )}
+          className="animated-action-button"
           title={
             isGenerating
               ? "Cannot regenerate while generating"
@@ -158,9 +126,8 @@ function ChatActionButtons({
           }
         >
           <RefreshCcw
-            size={16}
+            size={18}
             className={isRegenerating ? "animate-spin" : ""}
-            strokeWidth={1.5}
           />
         </button>
       )}

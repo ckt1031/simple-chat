@@ -84,18 +84,10 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
       <div className={cn("absolute right-2 top-2", !isSingleLine && "p-2")}>
         <button
           onClick={handleCopy}
-          className={cn(
-            "flex items-center gap-1 p-2 text-xs rounded transition-all duration-200",
-            "border border-gray-300 dark:border-neutral-700",
-            "text-gray-500 dark:text-neutral-300",
-          )}
+          className="animated-action-button"
           title={isCopied ? "Copied!" : "Copy code"}
         >
-          {isCopied ? (
-            <Check className="w-3 h-3" />
-          ) : (
-            <Copy className="w-3 h-3" />
-          )}
+          {isCopied ? <Check size={18} /> : <Copy size={18} />}
         </button>
       </div>
 

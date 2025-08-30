@@ -237,16 +237,14 @@ function ChatMessage({
           </div>
 
           {/* Action Buttons - Show below messages for both user and assistant */}
-          <div className="h-5">
-            <ChatActionButtons
-              conversationId={conversationId}
-              handleRegenerate={handleRegenerate}
-              isRegenerating={isRegenerating}
-              messageId={message.id}
-              onEdit={isUser ? () => setIsEditing(true) : undefined}
-              isGenerating={isGenerating}
-            />
-          </div>
+          <ChatActionButtons
+            conversationId={conversationId}
+            handleRegenerate={handleRegenerate}
+            isRegenerating={isRegenerating}
+            messageId={message.id}
+            onEdit={isUser ? () => setIsEditing(true) : undefined}
+            isGenerating={isGenerating}
+          />
           {/* Abort notice below the message */}
           {!isUser && message.aborted && (
             <div className="px-2 w-full">

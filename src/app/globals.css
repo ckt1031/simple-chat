@@ -153,3 +153,9 @@ button:disabled,
 .dark .overflow-x-auto::-webkit-scrollbar-thumb {
   background-color: rgb(82 82 82);
 }
+
+.animated-action-button {
+  @apply transition-all duration-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg p-2
+  text-neutral-500 dark:text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300
+  active:scale-90;
+}

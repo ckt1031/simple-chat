@@ -75,9 +75,9 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
           "border border-gray-300 dark:border-neutral-700",
         )}
       >
-        <code className="block m-2 whitespace-pre-wrap !bg-transparent">
+        <span className="block m-2 whitespace-pre-wrap !bg-transparent">
           {children}
-        </code>
+        </span>
       </pre>
 
       {/* Top right copy button */}

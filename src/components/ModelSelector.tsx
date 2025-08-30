@@ -154,7 +154,7 @@ export default function ModelSelector() {
 
   useHotkeys("ctrl+m", () => setOpen(true));
   useHotkeys("esc", () => setOpen(false));
-  useClickAway(dropdownRef, () => setOpen(false));
+  // useClickAway(dropdownRef, () => setOpen(false));
 
   return (
     <div className="relative">

@@ -56,7 +56,7 @@ function DefaultModelSelector() {
     return resolvedKey ? defaultProviderConfig[resolvedKey]?.icon : undefined;
   }, [defaultModel, providers]);
 
-  useClickAway(ref, () => setOpen(false));
+  // useClickAway(ref, () => setOpen(false));
 
   return (
     <div className="relative" ref={ref}>

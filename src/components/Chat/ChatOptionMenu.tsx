@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useState } from "react";
-import { MoreVertical, PencilLine, Trash2 } from "lucide-react";
+import { Ellipsis, MoreVertical, PencilLine, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClickAway } from "react-use";
 import { useConversationStore } from "@/lib/stores/conversation";
@@ -70,7 +70,7 @@ function ChatOptionMenu({
     );
   };
 
-  useClickAway(refs.floating, () => setOpen(false));
+  // useClickAway(refs.floating, () => setOpen(false));
 
   return (
     <>
@@ -83,12 +83,12 @@ function ChatOptionMenu({
           "shadow-2xl",
           alwaysShowButton ? "opacity-100" : "opacity-100 lg:opacity-0",
           buttonClassName ||
-            "p-1 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-md",
+          "p-1 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-md",
         )}
         aria-label="Conversation menu"
         aria-expanded={open}
       >
-        <MoreVertical
+        <Ellipsis
           className="text-neutral-500 dark:text-neutral-400"
           style={{ width: iconSize, height: iconSize }}
         />

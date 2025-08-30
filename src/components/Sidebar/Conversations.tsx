@@ -80,7 +80,7 @@ export function Conversations() {
             key={conversation.id}
             onClick={() => handleSelectConversation(conversation.id)}
             className={cn(
-              "group flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer",
+              "group flex items-center justify-between px-3 py-2 text-sm rounded-xl transition-colors cursor-pointer",
               convStore.currentConversationId === conversation.id
                 ? "bg-neutral-200 text-neutral-800 dark:bg-neutral-800 dark:text-white"
                 : "text-neutral-700 dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-700",

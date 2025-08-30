@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronRight, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePreferencesStore } from "@/lib/stores/perferences";
 import { useConversationStore } from "@/lib/stores/conversation";
@@ -161,7 +161,7 @@ export default function ModelSelector() {
       <button
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex items-center gap-2 rounded-lg border border-neutral-200 dark:border-neutral-700 px-2 sm:px-3 py-1.5 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800/50",
+          "flex items-center gap-2 rounded-lg px-2 sm:px-3 py-1.5 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800/50",
           "min-w-[140px] sm:min-w-[180px] justify-between overflow-hidden",
         )}
         aria-haspopup="listbox"
@@ -173,13 +173,13 @@ export default function ModelSelector() {
           )}
           <span className="truncate">{selectedModelAndIcon.label}</span>
         </span>
-        <ChevronDown className="w-4 h-4 opacity-70 flex-shrink-0" />
+        <ChevronRight className="w-4 h-4 opacity-70 flex-shrink-0" />
       </button>
 
       {open && (
         <div
           ref={dropdownRef}
-          className="absolute z-20 mt-2 w-[280px] sm:w-[320px] rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg max-h-[80vh] overflow-hidden"
+          className="absolute z-20 mt-2 w-[280px] sm:w-[320px] rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg max-h-[80vh] overflow-hidden"
         >
           <div className="relative border-neutral-200 dark:border-neutral-700">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />

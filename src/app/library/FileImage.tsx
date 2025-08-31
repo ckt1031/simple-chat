@@ -1,5 +1,6 @@
 "use client";
 
+import ImageViewer from "@/components/ImageViewer";
 import { Trash2 } from "lucide-react";
 
 type LibraryItem = {
@@ -31,10 +32,9 @@ export default function FileImage({ items, onDelete }: FileImageProps) {
             key={item.id}
             className="group relative overflow-hidden rounded-md border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900"
           >
-            <img
-              src={item.url}
+            <ImageViewer
+              image={item.url}
               alt={item.name || item.id}
-              loading="lazy"
               className="h-36 w-full object-cover"
             />
             <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent p-2 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100">

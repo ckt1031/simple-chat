@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePreferencesStore } from "@/lib/stores/perferences";
 import ChatInput from "./ChatInput";
 import ChatEmptyState from "./ChatEmptyState";
@@ -23,6 +23,9 @@ export function Chat() {
 
   const defaultModel = usePreferencesStore((s) => s.defaultModel);
   const uiSelectedModel = useUIStore((s) => s.selectedModel);
+
+  const [abortController, setAbortController] =
+    useState<AbortController | null>(null);
 
   const {
     currentConversationId,
@@ -120,6 +123,8 @@ export function Chat() {
   const handleStopGeneration = () => {
     if (currentConversationId) {
       stopConversation(currentConversationId);
+      abortController?.abort();
+      setAbortController(null);
     }
   };
 
@@ -178,6 +183,8 @@ export function Chat() {
     const useCur = curId === conversationId ? currentMessages : [];
 
     const abortController = new AbortController();
+    setAbortController(abortController);
+
     const modelForMessage = formatModelKey(selected.providerId, selected.id);
 
     const assistantId = addMessage({

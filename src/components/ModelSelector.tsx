@@ -163,7 +163,7 @@ export default function ModelSelector() {
     ) {
       return;
     }
-    
+
     setOpen(false);
   });
 

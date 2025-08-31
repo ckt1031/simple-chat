@@ -105,12 +105,6 @@ function ChatInput({
       (f) =>
         f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf"),
     );
-    if (images.length === 0 && pdfs.length === 0) return;
-
-    const createImage = (file: File) => createImageAttachment(file);
-    const createPdf = (file: File) => createPdfAttachment(file);
-    const createGeneric = (file: File) => createGenericFileAttachment(file);
-
     const otherFiles = files.filter(
       (f) =>
         !f.type.startsWith("image/") &&
@@ -118,6 +112,12 @@ function ChatInput({
           f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf")
         ),
     );
+    if (images.length === 0 && pdfs.length === 0 && otherFiles.length === 0)
+      return;
+
+    const createImage = (file: File) => createImageAttachment(file);
+    const createPdf = (file: File) => createPdfAttachment(file);
+    const createGeneric = (file: File) => createGenericFileAttachment(file);
 
     const [savedImages, savedPdfs, savedOthers] = await Promise.all([
       Promise.all(images.map(createImage)),
@@ -204,7 +204,7 @@ function ChatInput({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*,application/pdf,.pdf,text/plain,.txt,.md,.markdown,.srt,.csv,application/json"
+          accept="image/*,application/pdf,.pdf,text/plain,.txt,.md,.markdown,.srt,.csv,text/csv,.tsv,text/tab-separated-values,application/json,.jsonl,text/html,.html,.htm,.log,application/xml,text/xml,.yaml,.yml"
           multiple
           className="hidden"
           onChange={handleFilesSelected}

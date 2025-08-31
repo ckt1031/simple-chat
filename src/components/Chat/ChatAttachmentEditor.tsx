@@ -198,7 +198,7 @@ export default function ChatAttachmentEditor({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*,application/pdf,.pdf,text/plain,.txt,.md,.markdown,.srt,.csv,application/json"
+        accept="image/*,application/pdf,.pdf,text/plain,.txt,.md,.markdown,.srt,.csv,text/csv,.tsv,text/tab-separated-values,application/json,.jsonl,text/html,.html,.htm,.log,application/xml,text/xml,.yaml,.yml"
         multiple
         className="hidden"
         onChange={handleFilesSelected}

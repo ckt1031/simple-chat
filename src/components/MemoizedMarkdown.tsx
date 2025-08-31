@@ -63,6 +63,8 @@ const MemoizedMarkdownBlock = memo(
     prevProps.isStreaming === nextProps.isStreaming,
 );
 
+MemoizedMarkdownBlock.displayName = "MemoizedMarkdownBlock";
+
 export const MemoizedMarkdown = memo(
   ({
     content,
@@ -84,3 +86,5 @@ export const MemoizedMarkdown = memo(
     ));
   },
 );
+
+MemoizedMarkdown.displayName = "MemoizedMarkdown";

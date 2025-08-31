@@ -15,7 +15,7 @@ function HomePageContent() {
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
 
   return (
-    <div className="h-screen flex bg-white dark:bg-neutral-900 overflow-hidden">
+    <div className="h-full flex bg-white dark:bg-neutral-900 overflow-hidden">
       {/* Sidebar overlayed */}
       <Sidebar />
 

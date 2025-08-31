@@ -38,7 +38,7 @@ function Sidebar() {
       {/* Animated sidebar */}
       <div
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen bg-white dark:bg-neutral-900 shadow-lg transition-transform",
+          "fixed left-0 top-0 z-40 h-full bg-white dark:bg-neutral-900 shadow-lg transition-transform",
           "border-r border-neutral-200 dark:border-neutral-800",
           "max-w-64",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full",

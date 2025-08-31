@@ -104,7 +104,7 @@ function DefaultModelSelector() {
       </button>
 
       {open && (
-        <div className="absolute z-20 mt-2 w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg max-h-[60vh] overflow-hidden">
+        <div className="absolute z-20 mt-2 w-full rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg max-h-[60vh] overflow-hidden">
           <ModelList
             groups={groups}
             onSelect={handleSelect}

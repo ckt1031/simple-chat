@@ -42,7 +42,7 @@ button:disabled,
 
 /* Ensure code blocks still look good without backticks */
 .prose pre {
-  @apply bg-neutral-100 dark:bg-neutral-800 rounded-lg p-2 overflow-x-auto;
+  @apply bg-neutral-100 dark:bg-neutral-800 rounded-2xl p-2 overflow-x-auto;
   max-width: 100%;
 }
 
@@ -157,5 +157,5 @@ button:disabled,
 .animated-action-button {
   @apply transition-all duration-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg p-2
   text-neutral-500 dark:text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300
-  active:scale-90 focus:outline-none;
+  active:scale-75 focus:outline-none;
 }

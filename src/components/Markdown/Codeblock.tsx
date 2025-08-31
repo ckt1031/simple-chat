@@ -5,11 +5,16 @@ import { cn } from "@/lib/utils";
 interface CodeBlockProps {
   children: React.ReactNode;
   className?: string;
+  isStreaming?: boolean;
 }
 
 const MAX_LINES_BEFORE_COLLAPSE = 20;
 
-export default function CodeBlock({ children, className }: CodeBlockProps) {
+export default function CodeBlock({
+  children,
+  className,
+  isStreaming,
+}: CodeBlockProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
@@ -39,16 +44,14 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
     return codeContent.split("\n").length === 1;
   }, [children]);
 
-  const { shouldShowExpand, hiddenLines } = useMemo(() => {
+  const shouldShowExpand = useMemo(() => {
     // Extract text content for line counting
     const codeContent = extractTextContent(children);
 
     // Count lines to determine if we should show expand/collapse
     const lines = codeContent.split("\n");
-    return {
-      shouldShowExpand: lines.length > MAX_LINES_BEFORE_COLLAPSE,
-      hiddenLines: lines.length - MAX_LINES_BEFORE_COLLAPSE,
-    };
+
+    return lines.length > MAX_LINES_BEFORE_COLLAPSE;
   }, [children]);
 
   const handleCopy = useCallback(async () => {
@@ -68,7 +71,7 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
       <pre
         className={cn(
           className,
-          isExpanded ? "max-h-full" : "max-h-[200px]",
+          isStreaming || isExpanded ? "max-h-full" : "max-h-[200px]",
           "m-0 rounded-b-lg",
           // Override global prose pre background
           "!bg-gray-100 dark:!bg-neutral-800",
@@ -92,7 +95,7 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
       </div>
 
       {/* Expand/collapse button for long code */}
-      {shouldShowExpand && (
+      {shouldShowExpand && !isStreaming && (
         <div className="absolute bottom-2 right-2 p-2">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
@@ -112,7 +115,7 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
             ) : (
               <>
                 <ChevronDown className="w-3 h-3" />
-                Show {hiddenLines} more lines
+                Expand
               </>
             )}
           </button>

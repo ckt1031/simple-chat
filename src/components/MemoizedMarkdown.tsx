@@ -15,8 +15,13 @@ function parseMarkdownIntoBlocks(markdown: string): string[] {
 
 const CodeBlock = dynamic(() => import("./Markdown/Codeblock"));
 
+interface MemoizedMarkdownBlockProps {
+  content: string;
+  isStreaming?: boolean;
+}
+
 const MemoizedMarkdownBlock = memo(
-  ({ content }: { content: string }) => {
+  ({ content, isStreaming }: MemoizedMarkdownBlockProps) => {
     return (
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
@@ -36,7 +41,10 @@ const MemoizedMarkdownBlock = memo(
             if (codeElement?.type === "code") {
               return (
                 <Suspense fallback={<div>Loading code block...</div>}>
-                  <CodeBlock className={codeElement.props.className}>
+                  <CodeBlock
+                    className={codeElement.props.className}
+                    isStreaming={isStreaming}
+                  >
                     {codeElement.props.children}
                   </CodeBlock>
                 </Suspense>
@@ -50,22 +58,29 @@ const MemoizedMarkdownBlock = memo(
       </ReactMarkdown>
     );
   },
-  (prevProps, nextProps) => {
-    if (prevProps.content !== nextProps.content) return false;
-    return true;
-  },
+  (prevProps, nextProps) =>
+    prevProps.content === nextProps.content &&
+    prevProps.isStreaming === nextProps.isStreaming,
 );
 
-MemoizedMarkdownBlock.displayName = "MemoizedMarkdownBlock";
-
 export const MemoizedMarkdown = memo(
-  ({ content, id }: { content: string; id: string }) => {
+  ({
+    content,
+    id,
+    isStreaming,
+  }: {
+    content: string;
+    id: string;
+    isStreaming?: boolean;
+  }) => {
     const blocks = useMemo(() => parseMarkdownIntoBlocks(content), [content]);
 
     return blocks.map((block, index) => (
-      <MemoizedMarkdownBlock content={block} key={`${id}-block_${index}`} />
+      <MemoizedMarkdownBlock
+        content={block}
+        isStreaming={isStreaming}
+        key={`${id}-block_${index}`}
+      />
     ));
   },
 );
-
-MemoizedMarkdown.displayName = "MemoizedMarkdown";

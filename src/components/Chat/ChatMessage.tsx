@@ -38,10 +38,7 @@ function ChatMessage({
   );
   const isLastMessage = useConversationStore((s) => s.isLastMessage);
   const isGenerating =
-    !isUser &&
-    isConversationLoading &&
-    isLastMessage(message.id) &&
-    !message.content;
+    !isUser && isConversationLoading && isLastMessage(message.id);
 
   // Get model information for display
   const providers = useProviderStore((s) => s.providers);
@@ -221,6 +218,7 @@ function ChatMessage({
                     key={message.id}
                     id={message.id}
                     content={message.content}
+                    isStreaming={isGenerating}
                   />
                 )}
               </div>

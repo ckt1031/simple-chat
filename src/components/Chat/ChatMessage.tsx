@@ -128,10 +128,10 @@ function ChatMessage({
         >
           <div
             className={cn(
-              "py-2 rounded-2xl text-sm leading-relaxed relative group break-words max-w-full",
+              "py-2 text-sm leading-relaxed relative group break-words",
               isUser
-                ? "px-3 sm:px-4 bg-neutral-200 text-black dark:bg-neutral-800 dark:text-white"
-                : "px-2",
+                ? "rounded-2xl px-3 sm:px-4 bg-neutral-200 text-black dark:bg-neutral-800 dark:text-white"
+                : "px-2 w-full",
               isEditing && isUser && "w-full",
             )}
           >

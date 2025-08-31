@@ -30,7 +30,7 @@ export default function SettingsModal() {
   useHotkeys("esc", () => closeSettings());
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
       <div
         className="
         bg-white dark:bg-neutral-900 shadow-xl h-full
@@ -38,6 +38,7 @@ export default function SettingsModal() {
         w-full sm:w-[90vw]
         sm:h-[80vh] sm:max-w-4xl sm:rounded-2xl
         flex flex-col sm:flex-row
+        border border-neutral-500 dark:border-neutral-700
       "
       >
         {/* Mobile Header */}
@@ -53,7 +54,7 @@ export default function SettingsModal() {
         </div>
 
         {/* Desktop Sidebar */}
-        <div className="hidden sm:block w-48 bg-neutral-50 dark:bg-neutral-800 sm:rounded-l-lg">
+        <div className="hidden sm:block w-48 bg-neutral-50 dark:bg-neutral-800 sm:rounded-l-2xl">
           <div className="pt-2 px-2">
             <button
               onClick={closeSettings}
@@ -101,7 +102,7 @@ export default function SettingsModal() {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
           <Suspense fallback={<div>Loading...</div>}>
             {settingsTab === "general" && <GeneralTab />}
             {settingsTab === "providers" && <ProvidersTab />}

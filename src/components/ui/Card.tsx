@@ -10,7 +10,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
     const variants = {
       default: "",
       bordered:
-        "border border-neutral-200 dark:border-neutral-800 rounded-lg overflow-hidden",
+        "border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden",
     };
 
     return (

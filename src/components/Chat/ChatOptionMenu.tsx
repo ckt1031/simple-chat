@@ -70,9 +70,13 @@ function ChatOptionMenu({
     );
   };
 
-  useClickAway(refs.floating, (event) =>{
+  useClickAway(refs.floating, (event) => {
     // If the click is on the reference button or any of its children (e.g., the SVG), don't close
-    if (refs.reference.current && (refs.reference.current as HTMLElement).contains(event.target as Node)) return;
+    if (
+      refs.reference.current &&
+      (refs.reference.current as HTMLElement).contains(event.target as Node)
+    )
+      return;
     setOpen(false);
   });
 
@@ -87,7 +91,7 @@ function ChatOptionMenu({
           "shadow-2xl",
           alwaysShowButton ? "opacity-100" : "opacity-100 lg:opacity-0",
           buttonClassName ||
-          "p-1 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-md",
+            "p-1 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-md",
         )}
         aria-label="Conversation menu"
         aria-expanded={open}

@@ -21,7 +21,7 @@ export default function Alert({
   children,
 }: AlertProps) {
   const base =
-    "w-full rounded-md border text-sm" +
+    "w-full rounded-2xl border text-sm" +
     (compact ? " px-2 py-1.5" : " px-3 py-2");
 
   const variantClasses: Record<AlertVariant, string> = {

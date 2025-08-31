@@ -4,10 +4,13 @@ import { X, AlertTriangle } from "lucide-react";
 import { useUIStore } from "@/lib/stores/ui";
 import Button from "@/components/ui/Button";
 import { useHotkeys } from "react-hotkeys-hook";
+import { useClickAway } from "react-use";
+import { useRef } from "react";
 
 export default function DeleteConfirmationModal() {
   const deleteConfirmation = useUIStore((s) => s.deleteConfirmation);
   const closeDeleteConfirmation = useUIStore((s) => s.closeDeleteConfirmation);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   const handleConfirm = () => {
     if (deleteConfirmation.onConfirm) {
@@ -23,13 +26,18 @@ export default function DeleteConfirmationModal() {
   // Close on Escape key
   useHotkeys("esc", () => closeDeleteConfirmation());
 
+  useClickAway(modalRef, handleCancel);
+
   if (!deleteConfirmation.isOpen) {
     return null;
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white dark:bg-neutral-900 shadow-xl rounded-lg max-w-md w-full mx-4 border border-neutral-200 dark:border-neutral-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+      <div
+        ref={modalRef}
+        className="bg-white dark:bg-neutral-900 shadow-xl rounded-2xl max-w-md w-full mx-4 border border-neutral-200 dark:border-neutral-800"
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-800">
           <div className="flex items-center gap-3">

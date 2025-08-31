@@ -8,6 +8,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useForm } from "react-hook-form";
+import { useClickAway } from "react-use";
 
 export default function EditTitleModal() {
   const { isOpen, conversationId } = useUIStore((s) => s.editTitle);
@@ -22,6 +23,7 @@ export default function EditTitleModal() {
     return headers.find((c) => c.id === conversationId)?.title ?? "";
   }, [headers, conversationId]);
 
+  const modalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { register, handleSubmit, reset, formState } = useForm({
     defaultValues: { title: "" },
@@ -52,11 +54,16 @@ export default function EditTitleModal() {
     if (isOpen) closeEditTitle();
   });
 
+  useClickAway(modalRef, handleCancel);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white dark:bg-neutral-900 shadow-xl rounded-lg max-w-md w-full mx-4 border border-neutral-200 dark:border-neutral-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+      <div
+        ref={modalRef}
+        className="bg-white dark:bg-neutral-900 shadow-xl rounded-2xl max-w-md w-full mx-4 border border-neutral-200 dark:border-neutral-800"
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-800">
           <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">

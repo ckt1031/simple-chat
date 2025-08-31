@@ -40,6 +40,7 @@ export default function ModelSelector() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const dropdownRef = useRef(null);
+  const buttonRef = useRef(null);
 
   const groups = useMemo(
     () => getEnabledProviderModelGroups(query),
@@ -154,11 +155,22 @@ export default function ModelSelector() {
 
   useHotkeys("ctrl+m", () => setOpen(true));
   useHotkeys("esc", () => setOpen(false));
-  // useClickAway(dropdownRef, () => setOpen(false));
+  useClickAway(dropdownRef, (event) => {
+    // If the click is on the reference button or any of its children (e.g., the SVG), don't close
+    if (
+      buttonRef.current &&
+      (buttonRef.current as HTMLElement).contains(event.target as Node)
+    ) {
+      return;
+    }
+    
+    setOpen(false);
+  });
 
   return (
     <div className="relative">
       <button
+        ref={buttonRef}
         onClick={() => setOpen((v) => !v)}
         className={cn(
           "flex items-center gap-2 rounded-lg px-2 sm:px-3 py-1.5 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800/50",

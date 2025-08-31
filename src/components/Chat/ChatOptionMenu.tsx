@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useState } from "react";
-import { Ellipsis, MoreVertical, PencilLine, Trash2 } from "lucide-react";
+import { Ellipsis, PencilLine, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClickAway } from "react-use";
 import { useConversationStore } from "@/lib/stores/conversation";
@@ -70,7 +70,11 @@ function ChatOptionMenu({
     );
   };
 
-  // useClickAway(refs.floating, () => setOpen(false));
+  useClickAway(refs.floating, (event) =>{
+    // If the click is on the reference button or any of its children (e.g., the SVG), don't close
+    if (refs.reference.current && (refs.reference.current as HTMLElement).contains(event.target as Node)) return;
+    setOpen(false);
+  });
 
   return (
     <>

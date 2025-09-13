@@ -76,6 +76,8 @@ export default function CodeBlock({
           // Override global prose pre background
           "!bg-gray-100 dark:!bg-neutral-800",
           "border border-gray-300 dark:border-neutral-700",
+          // Compatibility color for codeblocks without Highlight.js
+          "text-black dark:text-white",
         )}
       >
         <span className="block m-2 whitespace-pre-wrap !bg-transparent">

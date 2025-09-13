@@ -2,6 +2,7 @@
 
 import { useTheme } from "next-themes";
 import DefaultModelSelector from "./DefaultModelSelector";
+import ResetSettings from "./ResetSettings";
 
 export default function GeneralTab() {
   const { theme, setTheme } = useTheme();
@@ -54,6 +55,8 @@ export default function GeneralTab() {
           <DefaultModelSelector />
         </div>
       </div>
+
+      <ResetSettings />
     </div>
   );
 }

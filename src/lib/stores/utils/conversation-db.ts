@@ -123,3 +123,8 @@ export async function deleteConversation(id: string): Promise<void> {
     deleteConversationBody(id),
   ]);
 }
+
+export async function clearAllConversations(): Promise<void> {
+  const { clear } = await import("idb-keyval");
+  await clear(dbStore);
+}

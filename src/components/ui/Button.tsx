@@ -20,7 +20,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       secondary:
         "border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800",
       danger:
-        "border border-red-200 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/20",
+        "border border-red-300 text-red-700 bg-white hover:bg-red-100 hover:text-red-800 dark:border-red-900 dark:text-red-200 dark:bg-transparent dark:hover:bg-red-900/30 dark:hover:text-red-100",
       ghost: "hover:bg-neutral-100 dark:hover:bg-neutral-800",
     };
 

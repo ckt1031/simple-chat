@@ -4,6 +4,7 @@ import {
   ConversationFolder,
   ConversationHeader,
   deleteConversation as dbDeleteConversation,
+  clearAllConversations as dbClearAllConversations,
   readConversationBody,
   readConversationIndex,
   readFolderIndex,
@@ -91,6 +92,7 @@ export interface ConversationStore extends ConversationState {
   resetAllLoadingStates: () => void;
   persistCurrentConversation: () => Promise<void>;
   removeAssetReferences: (assetId: string) => void;
+  clearAllConversations: () => Promise<void>;
 }
 
 export const useConversationStore = create<ConversationStore>()((set, get) => ({
@@ -365,6 +367,21 @@ export const useConversationStore = create<ConversationStore>()((set, get) => ({
         if (filtered.length === m.assets.length) return m;
         return { ...m, assets: filtered };
       }),
+    }));
+  },
+
+  clearAllConversations: async () => {
+    // Clear all conversations from database
+    await dbClearAllConversations();
+
+    // Reset store state
+    set(() => ({
+      headers: [],
+      folders: [],
+      currentConversationId: null,
+      currentMessages: [],
+      currentSelectedModel: null,
+      loadingById: {},
     }));
   },
 }));

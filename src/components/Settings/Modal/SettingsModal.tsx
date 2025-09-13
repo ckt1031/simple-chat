@@ -38,7 +38,7 @@ export default function SettingsModal() {
         w-full sm:w-[90vw]
         sm:h-[80vh] sm:max-w-4xl sm:rounded-2xl
         flex flex-col sm:flex-row
-        border border-neutral-500 dark:border-neutral-700
+        sm:border-2 border-neutral-500 dark:border-neutral-700
       "
       >
         {/* Mobile Header */}

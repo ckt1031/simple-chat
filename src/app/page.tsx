@@ -4,6 +4,7 @@ import { Menu } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import { Chat } from "@/components/Chat";
 import { SettingsModal } from "@/components/Settings/Modal";
+import { ChatManagementModal } from "@/components/Chat/Management";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 import EditTitleModal from "@/components/EditTitleModal";
 import ModelSelector from "@/components/ModelSelector";
@@ -51,6 +52,9 @@ function HomePageContent() {
 
       {/* Settings Modal with global state */}
       <SettingsModal />
+
+      {/* Chat Management Modal */}
+      <ChatManagementModal />
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal />

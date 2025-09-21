@@ -7,6 +7,7 @@ import GeneralTab from "@/components/Settings/GeneralTab";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Suspense, useState } from "react";
 import dynamic from "next/dynamic";
+import Loading from "./Loading";
 
 export const SettingsTabs = [
   { id: "general", label: "General" },
@@ -103,7 +104,7 @@ export default function SettingsModal() {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<Loading />}>
             {settingsTab === "general" && <GeneralTab />}
             {settingsTab === "providers" && <ProvidersTab />}
             {settingsTab === "about" && <AboutTab />}

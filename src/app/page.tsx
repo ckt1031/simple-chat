@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu } from "lucide-react";
+import { Menu, Save } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import { Chat } from "@/components/Chat";
 import { SettingsModal } from "@/components/Settings/Modal";
@@ -11,9 +11,11 @@ import ModelSelector from "@/components/ModelSelector";
 import { Suspense } from "react";
 import ChatOptionMenu from "@/components/Chat/ChatOptionMenu";
 import { useUIStore } from "@/lib/stores/ui";
+import { useConversationStore } from "@/lib/stores/conversation";
 
 function HomePageContent() {
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
+  const isPersisting = useConversationStore((s) => s.isPersisting);
 
   return (
     <div className="h-full flex bg-white dark:bg-neutral-900 overflow-hidden">
@@ -33,6 +35,13 @@ function HomePageContent() {
           </button>
           {/* Model Selector here */}
           <ModelSelector />
+          {/* Persistence indicator */}
+          {isPersisting && (
+            <div className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
+              <Save className="w-3 h-3 animate-pulse" />
+              <span>Saving...</span>
+            </div>
+          )}
           {/* Mobile actions menu on the right */}
           <div className="ml-auto lg:hidden relative">
             <ChatOptionMenu

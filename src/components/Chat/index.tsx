@@ -16,6 +16,7 @@ import {
   createNoProvidersError,
   createNoModelError,
 } from "@/lib/utils/chat-error-handling";
+import { ConversationLoading } from "@/components/ConversationLoading";
 
 export function Chat() {
   const router = useRouter();
@@ -26,6 +27,7 @@ export function Chat() {
 
   const [abortController, setAbortController] =
     useState<AbortController | null>(null);
+  const [isSwitchingConversation, setIsSwitchingConversation] = useState(false);
 
   const {
     currentConversationId,
@@ -44,6 +46,7 @@ export function Chat() {
     persistCurrentConversation,
     currentSelectedModel,
     removeLastAssistantMessage,
+    isPersisting,
   } = useConversationStore(
     useShallow((s) => ({
       currentConversationId: s.currentConversationId,
@@ -62,6 +65,7 @@ export function Chat() {
       persistCurrentConversation: s.persistCurrentConversation,
       currentSelectedModel: s.currentSelectedModel,
       removeLastAssistantMessage: s.removeLastAssistantMessage,
+      isPersisting: s.isPersisting,
     })),
   );
 
@@ -102,7 +106,10 @@ export function Chat() {
         const shouldLoad =
           currentConversationId !== chatId || currentMessages.length === 0;
         if (shouldLoad) {
-          void openConversation(chatId);
+          setIsSwitchingConversation(true);
+          void openConversation(chatId).finally(() => {
+            setIsSwitchingConversation(false);
+          });
         } else {
           // Ensure store reflects the same id (no-op if already set)
           setCurrentConversation(chatId);
@@ -263,9 +270,30 @@ export function Chat() {
   // Show loading state while hydrating
   if (!isHydrated) {
     return (
-      <p className="text-center opacity-50 dark:text-white p-5">
-        Initializing conversation...
-      </p>
+      <div className="h-full flex flex-col dark:bg-neutral-900 min-h-0 relative overflow-hidden">
+        <div className="flex-1 flex items-center justify-center">
+          <ConversationLoading message="Initializing conversations..." />
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state while switching conversations
+  if (isSwitchingConversation) {
+    return (
+      <div className="h-full flex flex-col dark:bg-neutral-900 min-h-0 relative overflow-hidden">
+        <div className="flex-1 flex items-center justify-center">
+          <ConversationLoading message="Loading conversation..." />
+        </div>
+        <div className="flex-shrink-0 overflow-hidden border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-2 sm:px-4 py-2">
+          <ChatInput
+            onSend={onSend}
+            onStop={handleStopGeneration}
+            disabled={true}
+            isLoading={false}
+          />
+        </div>
+      </div>
     );
   }
 

@@ -60,6 +60,7 @@ export interface ConversationState {
   // Loading flags per conversation id (for sidebar spinners)
   loadingById: Record<string, boolean>;
   isHydrated: boolean;
+  isPersisting: boolean;
 }
 
 export interface ConversationStore extends ConversationState {
@@ -103,6 +104,7 @@ export const useConversationStore = create<ConversationStore>()((set, get) => ({
   currentSelectedModel: null,
   loadingById: {},
   isHydrated: false,
+  isPersisting: false,
 
   hydrateFromDB: async () => {
     const [index, folderIndex] = await Promise.all([
@@ -349,14 +351,20 @@ export const useConversationStore = create<ConversationStore>()((set, get) => ({
     const state = get();
     const id = state.currentConversationId;
     if (!id) return;
-    const header = state.headers.find((h) => h.id === id);
-    if (header) {
-      await upsertConversationHeader(header);
+
+    set({ isPersisting: true });
+    try {
+      const header = state.headers.find((h) => h.id === id);
+      if (header) {
+        await upsertConversationHeader(header);
+      }
+      await writeConversationBody(id, {
+        messages: state.currentMessages,
+        selectedModel: state.currentSelectedModel ?? undefined,
+      });
+    } finally {
+      set({ isPersisting: false });
     }
-    await writeConversationBody(id, {
-      messages: state.currentMessages,
-      selectedModel: state.currentSelectedModel ?? undefined,
-    });
   },
 
   removeAssetReferences: (assetId: string) => {

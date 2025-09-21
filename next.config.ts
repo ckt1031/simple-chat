@@ -4,9 +4,9 @@ import type { NextConfig } from "next";
 const experimentalSettings: NextConfig["experimental"] = {};
 
 if (process.env.NODE_ENV === "production") {
-  experimentalSettings.sri = {
-    algorithm: "sha384",
-  };
+  // experimentalSettings.sri = {
+  //   algorithm: "sha384",
+  // };
   experimentalSettings.reactCompiler = true;
 }
 

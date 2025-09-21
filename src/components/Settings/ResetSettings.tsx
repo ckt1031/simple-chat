@@ -75,21 +75,11 @@ export default function ResetSettings() {
         </h4>
 
         <div className="flex flex-col gap-3 md:flex-row md:gap-4">
-          <Button
-            variant="danger"
-            onClick={handleClearAllChats}
-            className="flex items-center gap-2"
-          >
-            <Trash2 className="w-4 h-4" />
+          <Button variant="danger" onClick={handleClearAllChats}>
             Clear All Chats
           </Button>
 
-          <Button
-            variant="danger"
-            onClick={handleResetAllSettings}
-            className="flex items-center gap-2"
-          >
-            <Settings className="w-4 h-4" />
+          <Button variant="danger" onClick={handleResetAllSettings}>
             Reset All Settings
           </Button>
         </div>

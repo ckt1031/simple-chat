@@ -32,7 +32,13 @@ function LibraryPageContent() {
 
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const { removeAssetReferences } = useConversationStore();
+  const { removeAssetReferences, setCurrentConversation } =
+    useConversationStore();
+
+  // Clear current conversation when library page loads
+  useEffect(() => {
+    setCurrentConversation(null);
+  }, [setCurrentConversation]);
 
   useEffect(() => {
     let mounted = true;

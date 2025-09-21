@@ -20,11 +20,6 @@ export default function ChatAttachmentPreview({
     setImageUrl(url ?? null);
   }, [asset.id]);
 
-  const loadFile = useCallback(async () => {
-    const url = await getAssetObjectURL(asset.id);
-    setFileUrl(url ?? null);
-  }, [asset.id]);
-
   useEffect(() => {
     if (asset.type === "image") void loadImage();
   }, [asset.id, loadImage]);

@@ -2,7 +2,6 @@
 
 import { X } from "lucide-react";
 import { useUIStore } from "@/lib/stores/ui";
-import { cn } from "@/lib/utils";
 import { useHotkeys } from "react-hotkeys-hook";
 import ChatList from "./ChatList";
 

@@ -11,7 +11,6 @@ import {
 } from "@/lib/stores/provider";
 import ModelList from "@/components/ModelList";
 import { defaultProviderConfig } from "@/lib/api/sdk";
-import { useClickAway } from "react-use";
 
 function DefaultModelSelector() {
   const ref = useRef<HTMLDivElement>(null);

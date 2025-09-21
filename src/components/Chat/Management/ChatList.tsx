@@ -56,10 +56,6 @@ export default function ChatList() {
   const handleDeleteSelected = useCallback(() => {
     if (selectedChats.size === 0) return;
 
-    const chatTitles = filteredChats
-      .filter((chat) => selectedChats.has(chat.id))
-      .map((chat) => chat.title);
-
     openDeleteConfirmation(
       "Delete Selected Chats",
       `Are you sure you want to delete ${selectedChats.size} chat${selectedChats.size > 1 ? "s" : ""}?`,

@@ -2,7 +2,6 @@ import { memo, useRef, useState } from "react";
 import { Check, Copy, PencilLine, RefreshCcw, Trash } from "lucide-react";
 import { useConversationStore } from "@/lib/stores/conversation";
 import { useUIStore } from "@/lib/stores/ui";
-import { cn } from "@/lib/utils";
 
 interface ChatActionButtonsProps {
   isRegenerating?: boolean;

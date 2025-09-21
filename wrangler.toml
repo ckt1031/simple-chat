@@ -1,5 +1,8 @@
 name = "simple-chat"
+main = ".open-next/worker.js"
 compatibility_date = "2025-08-15"
+compatibility_flags = ["nodejs_compat"]
+keep_vars = true
 
 [assets]
-directory = "./out"
+directory = ".open-next/assets"

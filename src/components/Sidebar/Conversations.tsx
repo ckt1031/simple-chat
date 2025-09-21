@@ -56,26 +56,28 @@ export function Conversations() {
           <div
             key={conversation.id}
             className={cn(
-              "group flex items-center justify-between px-3 py-2 text-sm rounded-xl transition-colors",
+              "group flex items-center justify-between px-3 py-2 text-sm rounded-xl transition-colors cursor-pointer",
               convStore.currentConversationId === conversation.id
                 ? "bg-neutral-200 text-neutral-800 dark:bg-neutral-800 dark:text-white"
                 : "text-neutral-700 dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-700",
             )}
+            onClick={() => handleSelectConversation(conversation.id)}
           >
             <div className="flex items-center space-x-2 min-w-0 flex-1">
               {convStore.loadingById[conversation.id] && (
                 <Loader2 className="w-3 h-3 animate-spin text-neutral-500 flex-shrink-0" />
               )}
-              <button
-                type="button"
-                className="truncate select-none max-w-[250px] lg:max-w-full text-left cursor-pointer"
-                onClick={() => handleSelectConversation(conversation.id)}
+              <span
+                className="truncate select-none max-w-[250px] lg:max-w-full"
                 title={conversation.title}
               >
                 {conversation.title}
-              </button>
+              </span>
             </div>
-            <div className="relative flex-shrink-0">
+            <div
+              className="relative flex-shrink-0"
+              onClick={(e) => e.stopPropagation()}
+            >
               <ChatOptionMenu
                 size="sm"
                 align="right"

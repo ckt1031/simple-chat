@@ -1,13 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Download,
-  Upload,
-  AlertTriangle,
-  Trash2,
-  Settings,
-} from "lucide-react";
+import { Download, Upload, AlertTriangle, Trash2 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import { useConversationStore, Message } from "@/lib/stores/conversation";
@@ -21,7 +15,6 @@ import {
   readConversationIndex,
   readFolderIndex,
   readConversationBody,
-  clearAllConversations,
   ConversationFolder,
   ConversationHeader,
   ConversationBody,

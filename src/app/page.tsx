@@ -8,14 +8,51 @@ import { ChatManagementModal } from "@/components/Chat/Management";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 import EditTitleModal from "@/components/EditTitleModal";
 import ModelSelector from "@/components/ModelSelector";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import ChatOptionMenu from "@/components/Chat/ChatOptionMenu";
 import { useUIStore } from "@/lib/stores/ui";
 import { useConversationStore } from "@/lib/stores/conversation";
+import { googleDriveSync } from "@/lib/utils/google-drive";
 
 function HomePageContent() {
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
   const isPersisting = useConversationStore((s) => s.isPersisting);
+
+  // Handle Google OAuth callback and auto-sync on load
+  useEffect(() => {
+    const handleGoogleAuth = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const authSuccess = urlParams.get("google_auth_success");
+
+      const error = urlParams.get("error");
+
+      if (authSuccess) {
+        try {
+          await googleDriveSync.handleAuthSuccess(authSuccess);
+          // Clean up URL parameters
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname,
+          );
+          // Show success message (you could add a toast notification here)
+          console.log("Google Drive authentication successful!");
+        } catch (err) {
+          console.error("Google Drive authentication failed:", err);
+        }
+      } else if (error) {
+        console.error("Google Drive authentication error:", error);
+        // Clean up URL parameters
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname,
+        );
+      }
+    };
+
+    handleGoogleAuth();
+  }, []);
 
   return (
     <div className="h-full flex bg-white dark:bg-neutral-900 overflow-hidden">

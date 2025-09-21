@@ -13,6 +13,7 @@ export const SettingsTabs = [
   { id: "general", label: "General" },
   { id: "providers", label: "Providers" },
   { id: "data", label: "Data" },
+  { id: "sync", label: "Sync" },
   { id: "about", label: "About" },
 ];
 
@@ -21,6 +22,9 @@ const ProvidersTab = dynamic(
 );
 const DataManagementTab = dynamic(
   () => import("@/components/Settings/DataManagement"),
+);
+const GoogleDriveSyncTab = dynamic(
+  () => import("@/components/Settings/GoogleDrive"),
 );
 const AboutTab = dynamic(() => import("@/components/Settings/AboutTab"));
 
@@ -112,6 +116,7 @@ export default function SettingsModal() {
             {settingsTab === "general" && <GeneralTab />}
             {settingsTab === "providers" && <ProvidersTab />}
             {settingsTab === "data" && <DataManagementTab />}
+            {settingsTab === "sync" && <GoogleDriveSyncTab />}
             {settingsTab === "about" && <AboutTab />}
           </Suspense>
         </div>

@@ -12,6 +12,7 @@ export interface AssetRecord {
   size?: number;
   createdAt: number;
   blob: Blob;
+  driveFileId?: string; // Google Drive file ID for remote access
 }
 
 export interface AssetRef {
@@ -188,6 +189,106 @@ export async function importAssets(assets: AssetRecord[]): Promise<void> {
   for (const asset of assets) {
     await importAsset(asset);
   }
+}
+
+export async function getAsset(assetId: string): Promise<AssetRecord | null> {
+  // First, try to get the asset from local storage
+  const localAsset = (await get(assetId, assetsStore)) as
+    | AssetRecord
+    | undefined;
+
+  if (localAsset?.blob) {
+    return localAsset;
+  }
+
+  // If not available locally but we have a Google Drive file ID, try to download it
+  if (localAsset?.driveFileId) {
+    try {
+      console.log(
+        `Asset ${assetId} not available locally, downloading from Google Drive...`,
+      );
+      const downloadedAsset = await downloadAssetFromDrive(
+        localAsset.driveFileId,
+        localAsset,
+      );
+      if (downloadedAsset) {
+        // Update the local asset with the downloaded blob
+        const updatedAsset = { ...localAsset, blob: downloadedAsset.blob };
+        await set(assetId, updatedAsset, assetsStore);
+        console.log(`Asset ${assetId} downloaded and cached locally`);
+        return updatedAsset;
+      }
+    } catch (error) {
+      console.error(
+        `Failed to download asset ${assetId} from Google Drive:`,
+        error,
+      );
+    }
+  }
+
+  return localAsset || null;
+}
+
+async function downloadAssetFromDrive(
+  driveFileId: string,
+  assetMetadata: Omit<AssetRecord, "blob">,
+): Promise<AssetRecord | null> {
+  try {
+    // Import Google Drive sync dynamically to avoid circular dependencies
+    const { googleDriveSync } = await import("../../utils/google-drive");
+
+    // Check if user is authenticated
+    const isAuthenticated = await googleDriveSync.isAuthenticated();
+    if (!isAuthenticated) {
+      console.log(
+        "User not authenticated, cannot download asset from Google Drive",
+      );
+      return null;
+    }
+
+    // Download the file content
+    const response = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`,
+      {
+        headers: {
+          Authorization: `Bearer ${await getAccessToken()}`,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      console.error(
+        `Failed to download asset from Google Drive: ${response.status}`,
+      );
+      return null;
+    }
+
+    const blob = await response.blob();
+
+    return {
+      ...assetMetadata,
+      blob,
+    };
+  } catch (error) {
+    console.error("Error downloading asset from Google Drive:", error);
+    return null;
+  }
+}
+
+async function getAccessToken(): Promise<string> {
+  // Get access token from localStorage (same logic as in google-drive.ts)
+  try {
+    const stored = localStorage.getItem("google_drive_tokens");
+    if (stored) {
+      const tokens = JSON.parse(stored);
+      if (tokens?.access_token) {
+        return tokens.access_token;
+      }
+    }
+  } catch (error) {
+    console.error("Error getting access token:", error);
+  }
+  throw new Error("No access token available");
 }
 
 async function sha256Hex(buffer: ArrayBuffer): Promise<string> {

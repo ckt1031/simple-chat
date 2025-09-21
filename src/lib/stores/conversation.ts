@@ -3,6 +3,7 @@ import { createWithEqualityFn as create } from "zustand/traditional";
 import {
   ConversationFolder,
   ConversationHeader,
+  ConversationBody,
   deleteConversation as dbDeleteConversation,
   clearAllConversations as dbClearAllConversations,
   readConversationBody,
@@ -10,6 +11,7 @@ import {
   readFolderIndex,
   upsertConversationHeader,
   writeConversationBody,
+  upsertFolder,
 } from "./utils/conversation-db";
 
 // In-memory shape for the currently opened conversation
@@ -94,6 +96,11 @@ export interface ConversationStore extends ConversationState {
   persistCurrentConversation: () => Promise<void>;
   removeAssetReferences: (assetId: string) => void;
   clearAllConversations: () => Promise<void>;
+  importConversations: (data: {
+    headers: ConversationHeader[];
+    folders: ConversationFolder[];
+    bodies: Record<string, ConversationBody<Message>>;
+  }) => Promise<void>;
 }
 
 export const useConversationStore = create<ConversationStore>()((set, get) => ({
@@ -391,5 +398,27 @@ export const useConversationStore = create<ConversationStore>()((set, get) => ({
       currentSelectedModel: null,
       loadingById: {},
     }));
+  },
+
+  importConversations: async (data) => {
+    const { headers, folders, bodies } = data;
+
+    // Import folders first
+    for (const folder of folders) {
+      await upsertFolder(folder);
+    }
+
+    // Import conversation headers and bodies
+    for (const header of headers) {
+      await upsertConversationHeader(header);
+
+      // Import body if exists
+      if (bodies[header.id]) {
+        await writeConversationBody(header.id, bodies[header.id]);
+      }
+    }
+
+    // Refresh the store state
+    await get().hydrateFromDB();
   },
 }));

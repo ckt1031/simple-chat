@@ -12,11 +12,15 @@ import Loading from "./Loading";
 export const SettingsTabs = [
   { id: "general", label: "General" },
   { id: "providers", label: "Providers" },
+  { id: "data", label: "Data" },
   { id: "about", label: "About" },
 ];
 
 const ProvidersTab = dynamic(
   () => import("@/components/Settings/ProvidersTab"),
+);
+const DataManagementTab = dynamic(
+  () => import("@/components/Settings/DataManagement"),
 );
 const AboutTab = dynamic(() => import("@/components/Settings/AboutTab"));
 
@@ -107,6 +111,7 @@ export default function SettingsModal() {
           <Suspense fallback={<Loading />}>
             {settingsTab === "general" && <GeneralTab />}
             {settingsTab === "providers" && <ProvidersTab />}
+            {settingsTab === "data" && <DataManagementTab />}
             {settingsTab === "about" && <AboutTab />}
           </Suspense>
         </div>

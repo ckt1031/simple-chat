@@ -180,6 +180,16 @@ export async function deleteAssetById(id: string): Promise<void> {
   await del(id, assetsStore);
 }
 
+export async function importAsset(asset: AssetRecord): Promise<void> {
+  await set(asset.id, asset, assetsStore);
+}
+
+export async function importAssets(assets: AssetRecord[]): Promise<void> {
+  for (const asset of assets) {
+    await importAsset(asset);
+  }
+}
+
 async function sha256Hex(buffer: ArrayBuffer): Promise<string> {
   const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
   const hashArray = Array.from(new Uint8Array(hashBuffer));

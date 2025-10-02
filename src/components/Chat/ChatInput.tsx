@@ -159,6 +159,18 @@ function ChatInput({
     [attachments.length],
   );
 
+  const handleTextareaFocus = useCallback(() => {
+    // Scroll input into view when focused (especially important for mobile)
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+    }, 300); // Delay to allow keyboard to appear
+  }, []);
+
   const [dropBond, dropState] = useDropArea({
     onFiles: async (files) => {
       // Files can be FileList or File[] depending on source; normalize
@@ -216,6 +228,7 @@ function ChatInput({
           // value={message}
           onChange={handleTextareaInput}
           onKeyDown={handleKeyDown}
+          onFocus={handleTextareaFocus}
           placeholder={placeholder}
           disabled={disabled}
           className={cn(

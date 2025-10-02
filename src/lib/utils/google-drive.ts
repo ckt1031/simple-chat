@@ -571,14 +571,22 @@ class GoogleDriveSyncImpl implements GoogleDriveSync {
         }
       }
 
-      console.log(`Uploading ${assetsToUpload.length} new assets`);
-      console.log(`Deleting ${assetsToDelete.length} remote assets`);
+      console.log(
+        `Asset sync summary: ${assetsToUpload.length} to upload, ${assetsToDelete.length} to delete`,
+      );
+      console.log(
+        `Local assets: ${assets.length}, Remote assets: ${uploadedAssets.size}`,
+      );
 
       // Delete remote asset files that no longer exist locally
-      for (const assetId of assetsToDelete) {
-        // Since Google Drive API doesn't support wildcards in filenames for search,
-        // we need to find all asset files and match by ID
-        await this.deleteRemoteAsset(assetId, appFolderId);
+      if (assetsToDelete.length > 0) {
+        console.log(`Deleting assets: ${assetsToDelete.join(", ")}`);
+        for (const assetId of assetsToDelete) {
+          await this.deleteRemoteAsset(assetId, appFolderId);
+        }
+        console.log(
+          `Successfully deleted ${assetsToDelete.length} remote assets`,
+        );
       }
 
       // Upload new assets
@@ -1106,71 +1114,88 @@ class GoogleDriveSyncImpl implements GoogleDriveSync {
     fileName: string,
     folderId: string,
   ): Promise<void> {
-    try {
-      const fileId = await this.findFileByName(fileName, folderId);
-      if (!fileId) {
-        console.log(`File ${fileName} not found remotely, skipping delete`);
-        return;
-      }
-
-      const response = await this.makeDriveRequest(`/files/${fileId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        console.error(
-          `Failed to delete remote file ${fileName}:`,
-          response.status,
-        );
-      } else {
-        console.log(`Successfully deleted remote file: ${fileName}`);
-      }
-    } catch (error) {
-      console.error(`Error deleting remote file ${fileName}:`, error);
+    const fileId = await this.findFileByName(fileName, folderId);
+    if (!fileId) {
+      console.warn(
+        `File ${fileName} not found remotely (may have been already deleted)`,
+      );
+      return;
     }
+
+    const response = await this.makeDriveRequest(`/files/${fileId}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(
+        `Failed to delete remote file ${fileName}:`,
+        response.status,
+        errorText,
+      );
+      throw new Error(
+        `Failed to delete remote file ${fileName}: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    console.log(`Successfully deleted remote file: ${fileName}`);
   }
 
   private async deleteRemoteAsset(
     assetId: string,
     folderId: string,
   ): Promise<void> {
-    try {
-      // Find all asset files and match by asset ID
-      const response = await this.makeDriveRequest(
-        `/files?q=name contains '${ASSET_FILE_PREFIX}${assetId}' and '${folderId}' in parents and trashed=false`,
+    // Find all asset files and match by asset ID
+    // Search for files that start with the asset prefix and contain the asset ID
+    const response = await this.makeDriveRequest(
+      `/files?q=name contains '${ASSET_FILE_PREFIX}${assetId}' and '${folderId}' in parents and trashed=false&fields=files(id,name)`,
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(
+        `Failed to search for asset ${assetId}:`,
+        response.status,
+        errorText,
       );
+      throw new Error(
+        `Failed to search for asset ${assetId}: ${response.status} ${response.statusText}`,
+      );
+    }
 
-      if (!response.ok) {
-        console.error(
-          `Failed to search for asset ${assetId}:`,
-          response.status,
-        );
-        return;
+    const data = await response.json();
+    const assetFiles = data.files || [];
+
+    console.log(
+      `Found ${assetFiles.length} remote file(s) to delete for asset ${assetId}`,
+    );
+
+    // Delete all matching files (should typically be just one)
+    const deletionErrors: string[] = [];
+    for (const file of assetFiles) {
+      const deleteResponse = await this.makeDriveRequest(`/files/${file.id}`, {
+        method: "DELETE",
+      });
+
+      if (!deleteResponse.ok) {
+        const errorMsg = `Failed to delete asset file ${file.name}: ${deleteResponse.status}`;
+        console.error(errorMsg);
+        deletionErrors.push(errorMsg);
+      } else {
+        console.log(`Successfully deleted asset file: ${file.name}`);
       }
+    }
 
-      const data = await response.json();
-      const assetFiles = data.files || [];
+    if (deletionErrors.length > 0) {
+      throw new Error(
+        `Failed to delete ${deletionErrors.length} asset file(s): ${deletionErrors.join(", ")}`,
+      );
+    }
 
-      // Delete all matching files (should typically be just one)
-      for (const file of assetFiles) {
-        const deleteResponse = await this.makeDriveRequest(
-          `/files/${file.id}`,
-          {
-            method: "DELETE",
-          },
-        );
-
-        if (!deleteResponse.ok) {
-          console.error(
-            `Failed to delete asset file ${file.name}:`,
-            deleteResponse.status,
-          );
-        } else {
-          console.log(`Successfully deleted asset file: ${file.name}`);
-        }
-      }
-    } catch (error) {
-      console.error(`Error deleting remote asset ${assetId}:`, error);
+    if (assetFiles.length === 0) {
+      console.warn(
+        `No remote files found for asset ${assetId} (may have been already deleted)`,
+      );
     }
   }
 

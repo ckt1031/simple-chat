@@ -1,17 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Cloud,
-  CloudOff,
-  Upload,
-  Download,
-  RefreshCw,
-  CheckCircle,
-  AlertCircle,
-  Trash2,
-  User,
-} from "lucide-react";
+import { Upload, Download, RefreshCw, AlertCircle, Trash2 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import {
@@ -101,6 +91,14 @@ export default function GoogleDriveSync() {
   };
 
   const handleSyncToDrive = async () => {
+    if (
+      !confirm(
+        "Upload your local data to Google Drive? This will overwrite the remote data.",
+      )
+    ) {
+      return;
+    }
+
     try {
       setSyncStatus((prev) => ({
         ...prev,
@@ -141,6 +139,14 @@ export default function GoogleDriveSync() {
   };
 
   const handleSyncFromDrive = async () => {
+    if (
+      !confirm(
+        "Download data from Google Drive? This will overwrite your local data.",
+      )
+    ) {
+      return;
+    }
+
     try {
       setSyncStatus((prev) => ({
         ...prev,
@@ -198,61 +204,60 @@ export default function GoogleDriveSync() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <Card>
-          <div className="p-4">
-            <div className="flex items-center gap-3 mb-4">
-              <Cloud className="w-6 h-6 text-blue-600" />
-              <h3 className="text-lg font-semibold">Google Drive Sync</h3>
-            </div>
-            <div className="animate-pulse space-y-3">
-              <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-3/4"></div>
-              <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-1/2"></div>
-            </div>
+      <Card>
+        <div className="p-4">
+          <h3 className="text-lg font-semibold mb-3">Google Drive Sync</h3>
+          <div className="animate-pulse space-y-2">
+            <div className="h-3 bg-neutral-200 dark:bg-neutral-700 rounded w-3/4"></div>
+            <div className="h-3 bg-neutral-200 dark:bg-neutral-700 rounded w-1/2"></div>
           </div>
-        </Card>
-      </div>
+        </div>
+      </Card>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-4">
       <Card>
         <div className="p-4">
-          <div className="flex items-center gap-3 mb-4">
-            <Cloud className="w-6 h-6 text-blue-600" />
-            <h3 className="text-lg font-semibold">Google Drive Sync</h3>
-            {syncStatus.isAuthenticated ? (
-              <CheckCircle className="w-5 h-5 text-green-600" />
-            ) : (
-              <CloudOff className="w-5 h-5 text-neutral-400" />
-            )}
-          </div>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
-            Sync your chat data across devices using Google Drive. Your data is
-            stored securely and only you have access to it.
-          </p>
+          <h3 className="text-lg font-semibold mb-3">Google Drive Sync</h3>
 
           {!syncStatus.isAuthenticated ? (
             <div className="space-y-3">
-              <Button onClick={handleAuthenticate} className="w-full sm:w-auto">
-                <Cloud className="w-4 h-4 mr-2" />
+              <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                Sync your chat data across devices using Google Drive.
+              </p>
+              <Button onClick={handleAuthenticate}>
                 Connect to Google Drive
               </Button>
             </div>
           ) : (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-green-600 dark:text-green-400 font-medium">
-                  Connected to Google Drive
-                </span>
-                <Button onClick={handleDisconnect} variant="danger" size="sm">
-                  <Trash2 className="w-4 h-4 mr-1" />
-                  Disconnect
-                </Button>
-              </div>
+            <div className="space-y-4">
+              {/* Account info inline */}
+              {userProfile && (
+                <div className="flex items-center justify-between pb-3 border-b border-neutral-200 dark:border-neutral-700">
+                  <div className="flex items-center gap-2">
+                    {userProfile.picture && (
+                      <img
+                        src={userProfile.picture}
+                        alt="Profile"
+                        className="w-6 h-6 rounded-full"
+                      />
+                    )}
+                    <div className="text-sm">
+                      <p className="font-medium font-mono">
+                        {userProfile.email}
+                      </p>
+                    </div>
+                  </div>
+                  <Button onClick={handleDisconnect} variant="danger" size="sm">
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    Disconnect
+                  </Button>
+                </div>
+              )}
 
+              {/* Sync info */}
               {syncMetadata && (
                 <div className="text-sm text-neutral-600 dark:text-neutral-400 space-y-1">
                   <p>
@@ -265,103 +270,57 @@ export default function GoogleDriveSync() {
                   <p>Remote version: {syncMetadata.remoteVersion}</p>
                 </div>
               )}
+
+              {/* Sync buttons */}
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  onClick={handleSyncToDrive}
+                  disabled={syncStatus.isSyncing}
+                  variant="secondary"
+                  className="w-full"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload
+                </Button>
+
+                <Button
+                  onClick={handleSyncFromDrive}
+                  disabled={syncStatus.isSyncing}
+                  variant="secondary"
+                  className="w-full"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download
+                </Button>
+              </div>
+
+              {/* Progress bar */}
+              {syncStatus.isSyncing && (
+                <div>
+                  <div className="flex items-center justify-between text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                    <span>Syncing...</span>
+                    <span>{syncStatus.progress}%</span>
+                  </div>
+                  <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-1.5">
+                    <div
+                      className="bg-neutral-800 dark:bg-neutral-300 h-1.5 rounded-full transition-all duration-300"
+                      style={{ width: `${syncStatus.progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
       </Card>
 
-      {/* Account Info */}
-      {syncStatus.isAuthenticated && userProfile && (
-        <Card>
-          <div className="p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <User className="w-5 h-5 text-blue-600" />
-              <h4 className="font-semibold">Account</h4>
-            </div>
-            <div className="flex items-center gap-3">
-              {userProfile.picture ? (
-                <img
-                  src={userProfile.picture}
-                  alt="Profile"
-                  className="w-8 h-8 rounded-full"
-                />
-              ) : (
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
-                </div>
-              )}
-              <div className="flex-1">
-                <p className="font-medium text-sm font-mono">
-                  {userProfile.name}
-                </p>
-                <p className="text-xs text-neutral-600 dark:text-neutral-400 font-mono">
-                  {userProfile.email}
-                </p>
-              </div>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Sync Controls */}
-      {syncStatus.isAuthenticated && (
-        <Card>
-          <div className="p-4">
-            <h4 className="font-semibold mb-4 flex items-center gap-2">
-              <RefreshCw className="w-5 h-5" />
-              Sync Operations
-            </h4>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Button
-                onClick={handleSyncToDrive}
-                disabled={syncStatus.isSyncing}
-                variant="secondary"
-                className="w-full"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                {syncStatus.isSyncing ? "Syncing..." : "Sync to Drive"}
-              </Button>
-
-              <Button
-                onClick={handleSyncFromDrive}
-                disabled={syncStatus.isSyncing}
-                variant="secondary"
-                className="w-full"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                {syncStatus.isSyncing ? "Syncing..." : "Sync from Drive"}
-              </Button>
-            </div>
-
-            {syncStatus.isSyncing && (
-              <div className="mt-4">
-                <div className="flex items-center justify-between text-sm text-neutral-600 dark:text-neutral-400 mb-2">
-                  <span>Syncing...</span>
-                  <span>{syncStatus.progress}%</span>
-                </div>
-                <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${syncStatus.progress}%` }}
-                  ></div>
-                </div>
-              </div>
-            )}
-          </div>
-        </Card>
-      )}
-
       {/* Error Display */}
       {syncStatus.error && (
         <Card className="rounded-xl border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
           <div className="p-4">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <h4 className="font-medium text-red-800 dark:text-red-200 mb-1">
-                  Sync Error
-                </h4>
+            <div className="flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
                 <p className="text-sm text-red-700 dark:text-red-300">
                   {syncStatus.error}
                 </p>

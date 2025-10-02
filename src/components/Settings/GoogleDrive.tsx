@@ -283,7 +283,7 @@ export default function GoogleDriveSync() {
             <div className="space-y-4">
               {/* Account info inline */}
               {userProfile && (
-                <div className="flex items-center justify-between pb-3 border-b border-neutral-200 dark:border-neutral-700">
+                <div className="flex items-center md:flex-row gap-4 flex-col justify-between pb-3 border-b border-neutral-200 dark:border-neutral-700">
                   <div className="flex items-center gap-2">
                     {userProfile.picture && (
                       <img
@@ -293,12 +293,15 @@ export default function GoogleDriveSync() {
                       />
                     )}
                     <div className="text-sm">
-                      <p className="font-medium font-mono">
-                        {userProfile.email}
-                      </p>
+                      <p className="font-bold font-mono">{userProfile.email}</p>
                     </div>
                   </div>
-                  <Button onClick={handleDisconnect} variant="danger" size="sm">
+                  <Button
+                    onClick={handleDisconnect}
+                    variant="danger"
+                    size="sm"
+                    className="w-full md:w-auto"
+                  >
                     <Trash2 className="w-4 h-4 mr-1" />
                     Disconnect
                   </Button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Upload, Download, RefreshCw, AlertCircle, Trash2 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -10,6 +10,11 @@ import {
   SyncMetadata,
 } from "@/lib/utils/google-drive";
 // Removed @react-oauth/google import - using backend API now
+
+interface SyncLog {
+  message: string;
+  timestamp: number;
+}
 
 export default function GoogleDriveSync() {
   const [syncStatus, setSyncStatus] = useState<SyncStatus>({
@@ -28,10 +33,27 @@ export default function GoogleDriveSync() {
     picture?: string;
     verified_email: boolean;
   } | null>(null);
+  const [syncLogs, setSyncLogs] = useState<SyncLog[]>([]);
+  const consoleEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadSyncStatus();
   }, []);
+
+  useEffect(() => {
+    // Auto-scroll to bottom when new logs are added
+    if (consoleEndRef.current) {
+      consoleEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [syncLogs]);
+
+  const addLog = (message: string) => {
+    setSyncLogs((prev) => [...prev, { message, timestamp: Date.now() }]);
+  };
+
+  const clearLogs = () => {
+    setSyncLogs([]);
+  };
 
   const loadSyncStatus = async () => {
     try {
@@ -99,6 +121,8 @@ export default function GoogleDriveSync() {
       return;
     }
 
+    clearLogs();
+
     try {
       setSyncStatus((prev) => ({
         ...prev,
@@ -107,34 +131,45 @@ export default function GoogleDriveSync() {
         progress: 0,
       }));
 
-      // Simulate progress updates
-      const progressInterval = setInterval(() => {
-        setSyncStatus((prev) => ({
-          ...prev,
-          progress: Math.min(prev.progress + 10, 90),
-        }));
-      }, 200);
+      // Intercept console.log to capture sync operations
+      const originalLog = console.log;
+      console.log = (...args: unknown[]) => {
+        const message = args
+          .map((arg) =>
+            typeof arg === "object" ? JSON.stringify(arg) : String(arg),
+          )
+          .join(" ");
+        addLog(message);
+        originalLog.apply(console, args);
+      };
 
-      await googleDriveSync.syncToDrive();
+      try {
+        addLog("Starting sync to Google Drive...");
+        await googleDriveSync.syncToDrive();
+        addLog("Sync completed successfully!");
+      } finally {
+        // Restore original console.log
+        console.log = originalLog;
+      }
 
-      clearInterval(progressInterval);
       setSyncStatus((prev) => ({ ...prev, progress: 100 }));
 
-      // Reset progress after a short delay
+      // Reset after delay
       setTimeout(() => {
         setSyncStatus((prev) => ({ ...prev, isSyncing: false, progress: 0 }));
-      }, 1000);
+      }, 2000);
 
-      // Only reload status after successful sync
       await loadSyncStatus();
     } catch (error) {
+      addLog(
+        `Error: ${error instanceof Error ? error.message : "Sync failed"}`,
+      );
       setSyncStatus((prev) => ({
         ...prev,
         isSyncing: false,
         progress: 0,
         error: error instanceof Error ? error.message : "Sync to Drive failed",
       }));
-      // Don't call loadSyncStatus() on error to prevent infinite re-renders
     }
   };
 
@@ -147,6 +182,8 @@ export default function GoogleDriveSync() {
       return;
     }
 
+    clearLogs();
+
     try {
       setSyncStatus((prev) => ({
         ...prev,
@@ -155,27 +192,39 @@ export default function GoogleDriveSync() {
         progress: 0,
       }));
 
-      // Simulate progress updates
-      const progressInterval = setInterval(() => {
-        setSyncStatus((prev) => ({
-          ...prev,
-          progress: Math.min(prev.progress + 10, 90),
-        }));
-      }, 200);
+      // Intercept console.log to capture sync operations
+      const originalLog = console.log;
+      console.log = (...args: unknown[]) => {
+        const message = args
+          .map((arg) =>
+            typeof arg === "object" ? JSON.stringify(arg) : String(arg),
+          )
+          .join(" ");
+        addLog(message);
+        originalLog.apply(console, args);
+      };
 
-      await googleDriveSync.syncFromDrive();
+      try {
+        addLog("Starting sync from Google Drive...");
+        await googleDriveSync.syncFromDrive();
+        addLog("Sync completed successfully!");
+      } finally {
+        // Restore original console.log
+        console.log = originalLog;
+      }
 
-      clearInterval(progressInterval);
       setSyncStatus((prev) => ({ ...prev, progress: 100 }));
 
-      // Reset progress after a short delay
+      // Reset after delay
       setTimeout(() => {
         setSyncStatus((prev) => ({ ...prev, isSyncing: false, progress: 0 }));
-      }, 1000);
+      }, 2000);
 
-      // Only reload status after successful sync
       await loadSyncStatus();
     } catch (error) {
+      addLog(
+        `Error: ${error instanceof Error ? error.message : "Sync failed"}`,
+      );
       setSyncStatus((prev) => ({
         ...prev,
         isSyncing: false,
@@ -183,7 +232,6 @@ export default function GoogleDriveSync() {
         error:
           error instanceof Error ? error.message : "Sync from Drive failed",
       }));
-      // Don't call loadSyncStatus() on error to prevent infinite re-renders
     }
   };
 
@@ -294,18 +342,32 @@ export default function GoogleDriveSync() {
                 </Button>
               </div>
 
-              {/* Progress bar */}
-              {syncStatus.isSyncing && (
-                <div>
-                  <div className="flex items-center justify-between text-xs text-neutral-600 dark:text-neutral-400 mb-1">
-                    <span>Syncing...</span>
-                    <span>{syncStatus.progress}%</span>
+              {/* Sync console */}
+              {(syncStatus.isSyncing || syncLogs.length > 0) && (
+                <div className="border border-neutral-200 dark:border-neutral-700 rounded bg-neutral-50 dark:bg-neutral-900">
+                  <div className="flex items-center justify-between px-3 py-1.5 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800">
+                    <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
+                      Sync Console
+                    </span>
+                    {syncStatus.isSyncing && (
+                      <span className="text-xs text-neutral-600 dark:text-neutral-400">
+                        Syncing...
+                      </span>
+                    )}
                   </div>
-                  <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-1.5">
-                    <div
-                      className="bg-neutral-800 dark:bg-neutral-300 h-1.5 rounded-full transition-all duration-300"
-                      style={{ width: `${syncStatus.progress}%` }}
-                    ></div>
+                  <div className="p-2 max-h-32 overflow-y-auto font-mono text-xs space-y-0.5">
+                    {syncLogs.map((log, index) => (
+                      <div
+                        key={index}
+                        className="text-neutral-700 dark:text-neutral-300"
+                      >
+                        <span className="text-neutral-500 dark:text-neutral-500">
+                          [{new Date(log.timestamp).toLocaleTimeString()}]
+                        </span>{" "}
+                        {log.message}
+                      </div>
+                    ))}
+                    <div ref={consoleEndRef} />
                   </div>
                 </div>
               )}
